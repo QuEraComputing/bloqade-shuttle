@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 
 from bloqade.geometry.dialects import grid
-from bloqade.qourier.dialects import path
+
+from bloqade.shuttle.dialects import path
 
 
 class RendererInterface(ABC):

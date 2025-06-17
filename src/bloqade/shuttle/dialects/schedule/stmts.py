@@ -1,10 +1,11 @@
-from bloqade.qourier.dialects.schedule._dialect import dialect
-from bloqade.qourier.dialects.schedule.types import DeviceFunctionType
 from kirin import ir, lowering, types
 from kirin.decl import info, statement
 from kirin.dialects import func, ilist
 from kirin.ir.exception import ValidationError
 from kirin.lowering.python.traits import FromPythonWithSingleItem
+
+from bloqade.shuttle.dialects.schedule._dialect import dialect
+from bloqade.shuttle.dialects.schedule.types import DeviceFunctionType
 
 NxTones = types.TypeVar("NxTones")
 NyTones = types.TypeVar("NyTones")

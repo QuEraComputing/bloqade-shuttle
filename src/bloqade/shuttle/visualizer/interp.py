@@ -1,17 +1,18 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Generic, TypeVar
 
-from bloqade.qourier.dialects import spec
-from bloqade.qourier.passes import inject_spec
 from kirin import interp, ir
 from typing_extensions import Self
 
+from bloqade.shuttle.dialects import spec
+from bloqade.shuttle.passes import inject_spec
+
 if TYPE_CHECKING:
-    from bloqade.qourier.visualizer.renderers import RendererInterface
+    from bloqade.shuttle.visualizer.renderers import RendererInterface
 
 
 def default_renderer():
-    from bloqade.qourier.visualizer.renderers.matplotlib import MatplotlibRenderer
+    from bloqade.shuttle.visualizer.renderers.matplotlib import MatplotlibRenderer
 
     return MatplotlibRenderer()
 

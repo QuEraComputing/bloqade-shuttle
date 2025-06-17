@@ -1,6 +1,7 @@
-from bloqade.qourier.dialects import spec
 from kirin.analysis.forward import ForwardFrame
 from kirin.interp import MethodTable, impl
+
+from bloqade.shuttle.dialects import spec
 
 from .. import analysis, lattice
 

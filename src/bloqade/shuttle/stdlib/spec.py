@@ -1,7 +1,8 @@
 from itertools import repeat
 
 from bloqade.geometry.dialects import grid
-from bloqade.qourier.dialects import spec
+
+from bloqade.shuttle.dialects import spec
 
 
 def single_zone_spec(num_x: int, num_y: int, spacing: float = 10.0) -> spec.Spec:

@@ -1,7 +1,8 @@
-from bloqade.qourier.dialects.schedule import stmts, types
-from bloqade.qourier.dialects.schedule._dialect import dialect
 from kirin import ir
 from kirin.interp import Frame, Interpreter, InterpreterError, MethodTable, impl
+
+from bloqade.shuttle.dialects.schedule import stmts, types
+from bloqade.shuttle.dialects.schedule._dialect import dialect
 
 
 @dialect.register

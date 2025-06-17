@@ -1,9 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-from bloqade.qourier.codegen.taskgen import AbstractAction
 from kirin import types
 from kirin.dialects import ilist
+
+from bloqade.shuttle.codegen.taskgen import AbstractAction
 
 
 @dataclass

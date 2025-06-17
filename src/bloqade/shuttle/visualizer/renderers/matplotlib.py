@@ -3,12 +3,13 @@ from itertools import product
 
 import numpy as np
 from bloqade.geometry.dialects.grid.types import Grid
-from bloqade.qourier.codegen import taskgen
-from bloqade.qourier.dialects import path
 from matplotlib import pyplot as plt
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes
 from matplotlib.widgets import Button
+
+from bloqade.shuttle.codegen import taskgen
+from bloqade.shuttle.dialects import path
 
 from .interface import RendererInterface
 

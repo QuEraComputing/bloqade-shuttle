@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 
-from bloqade.qourier.analysis.zone import Zone, ZoneAnalysis
-from bloqade.qourier.dialects import spec
 from kirin import ir
 from kirin.passes import Pass
 from kirin.rewrite import Walk
 from kirin.rewrite.abc import RewriteResult, RewriteRule
+
+from bloqade.shuttle.analysis.zone import Zone, ZoneAnalysis
+from bloqade.shuttle.dialects import spec
 
 
 @dataclass

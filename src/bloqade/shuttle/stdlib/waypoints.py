@@ -1,9 +1,10 @@
 from typing import TypeVar
 
 from bloqade.geometry.dialects import grid
-from bloqade.qourier import action, schedule
-from bloqade.qourier.prelude import move, tweezer
 from kirin.dialects import ilist
+
+from bloqade.shuttle import action, schedule
+from bloqade.shuttle.prelude import move, tweezer
 
 NumX = TypeVar("NumX")
 NumY = TypeVar("NumY")

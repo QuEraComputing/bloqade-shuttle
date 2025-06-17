@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from typing import TypeVar
 
-from bloqade.qourier.dialects.path import Parallel, Path, Play, dialect
-from bloqade.qourier.visualizer.interp import PathVisualizer
-from bloqade.qourier.visualizer.renderers import RendererInterface
 from kirin import interp
+
+from bloqade.shuttle.dialects.path import Parallel, Path, Play, dialect
+from bloqade.shuttle.visualizer.interp import PathVisualizer
+from bloqade.shuttle.visualizer.renderers import RendererInterface
 
 
 @dataclass

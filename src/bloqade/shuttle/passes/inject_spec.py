@@ -1,12 +1,13 @@
 from dataclasses import dataclass, field
 
-from bloqade.qourier.dialects import spec
 from kirin import rewrite
 from kirin.dialects.py import Constant
 from kirin.ir.method import Method
 from kirin.ir.nodes.stmt import Statement
 from kirin.passes import Fold, HintConst, Pass
 from kirin.rewrite.abc import RewriteResult, RewriteRule
+
+from bloqade.shuttle.dialects import spec
 
 
 @dataclass

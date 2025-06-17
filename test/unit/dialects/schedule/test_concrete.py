@@ -1,8 +1,9 @@
 import pytest
-from bloqade.qourier.dialects import action, schedule
-from bloqade.qourier.prelude import move, tweezer
 from kirin import interp, ir
 from kirin.dialects import ilist
+
+from bloqade.shuttle.dialects import action, schedule
+from bloqade.shuttle.prelude import move, tweezer
 
 
 @tweezer

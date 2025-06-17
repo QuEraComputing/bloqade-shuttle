@@ -2,10 +2,11 @@ import math
 from typing import Any, Literal, TypeVar
 
 from bloqade.geometry.dialects import grid
-from bloqade.qourier import action, gate, init, measure, schedule
-from bloqade.qourier.passes.fold import AggressiveUnroll
-from bloqade.qourier.prelude import move, tweezer
 from kirin.dialects import ilist
+
+from bloqade.shuttle import action, gate, init, measure, schedule
+from bloqade.shuttle.passes.fold import AggressiveUnroll
+from bloqade.shuttle.prelude import move, tweezer
 
 NMove = TypeVar("NMove")
 

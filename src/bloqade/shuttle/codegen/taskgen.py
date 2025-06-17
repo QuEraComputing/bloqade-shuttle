@@ -3,11 +3,12 @@ from dataclasses import dataclass, field
 from typing import Any, ClassVar, Dict, Optional
 
 from bloqade.geometry.dialects import grid
-from bloqade.qourier.dialects import action
 from kirin.dialects import func, ilist
 from kirin.interp import Frame, Interpreter, InterpreterError, MethodTable, impl
 from kirin.ir.method import Method
 from typing_extensions import Self
+
+from bloqade.shuttle.dialects import action
 
 
 class AbstractAction(abc.ABC):

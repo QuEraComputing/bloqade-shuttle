@@ -1,10 +1,11 @@
 import pytest
 from bloqade.geometry.dialects import grid
-from bloqade.qourier.codegen import taskgen
-from bloqade.qourier.dialects import action
-from bloqade.qourier.prelude import tweezer
 from kirin import interp, ir, prelude
 from kirin.dialects import ilist
+
+from bloqade.shuttle.codegen import taskgen
+from bloqade.shuttle.dialects import action
+from bloqade.shuttle.prelude import tweezer
 
 
 class TestWaypointsAction:
@@ -81,7 +82,7 @@ class TestActionMethods:
         return grid.Grid.from_positions([1, 2], [3, 4])
 
     def init_interpreter(self):
-        from bloqade.qourier.prelude import tweezer
+        from bloqade.shuttle.prelude import tweezer
 
         interpreter = taskgen.TraceInterpreter(tweezer)
         interpreter.initialize()

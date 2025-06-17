@@ -1,7 +1,8 @@
-from bloqade.qourier.dialects import path, schedule
 from kirin import ir
 from kirin.dialects import func
 from kirin.rewrite import abc
+
+from bloqade.shuttle.dialects import path, schedule
 
 
 class RewriteDeviceCall(abc.RewriteRule):

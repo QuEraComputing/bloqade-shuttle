@@ -1,6 +1,7 @@
 from bloqade.geometry.dialects import grid
-from bloqade.qourier import spec
-from bloqade.qourier.prelude import move
+
+from bloqade.shuttle import spec
+from bloqade.shuttle.prelude import move
 
 
 def test_inject_spect():

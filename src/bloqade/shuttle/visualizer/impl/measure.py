@@ -1,12 +1,13 @@
 from typing import TypeVar
 
-from bloqade.qourier.dialects.measure import (
+from kirin import interp
+
+from bloqade.shuttle.dialects.measure import (
     Measure,
     dialect,
 )
-from bloqade.qourier.visualizer.interp import PathVisualizer
-from bloqade.qourier.visualizer.renderers import RendererInterface
-from kirin import interp
+from bloqade.shuttle.visualizer.interp import PathVisualizer
+from bloqade.shuttle.visualizer.renderers import RendererInterface
 
 
 class MeasureResultRuntime:

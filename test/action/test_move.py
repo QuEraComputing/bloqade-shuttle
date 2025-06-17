@@ -1,6 +1,7 @@
 from bloqade.geometry.dialects import grid
-from bloqade.qourier.dialects import action
-from bloqade.qourier.prelude import tweezer
+
+from bloqade.shuttle.dialects import action
+from bloqade.shuttle.prelude import tweezer
 
 
 def test_move():

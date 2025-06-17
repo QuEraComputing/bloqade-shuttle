@@ -1,6 +1,7 @@
-import bloqade.qourier as qourier
 import bloqade.squin as squin
 from bloqade.geometry.dialects import grid
+
+import bloqade.shuttle as qourier
 
 
 def emit_kernel():

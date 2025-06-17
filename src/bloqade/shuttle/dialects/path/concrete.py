@@ -1,6 +1,3 @@
-from bloqade.qourier.codegen import TraceInterpreter, reverse_path
-from bloqade.qourier.dialects import schedule
-from bloqade.qourier.dialects.path import dialect, stmts, types
 from kirin.interp import (
     Frame,
     Interpreter,
@@ -9,13 +6,17 @@ from kirin.interp import (
     impl,
 )
 
+from bloqade.shuttle.codegen import TraceInterpreter, reverse_path
+from bloqade.shuttle.dialects import schedule
+from bloqade.shuttle.dialects.path import dialect, stmts, types
+
 
 @dialect.register
 class PathInterpreter(MethodTable):
 
     @impl(stmts.Gen)
     def gen(self, interp: Interpreter, frame: Frame, stmt: stmts.Gen):
-        from bloqade.qourier.prelude import tweezer
+        from bloqade.shuttle.prelude import tweezer
 
         device_task = frame.get(stmt.device_task)
         if isinstance(device_task, schedule.DeviceFunction):

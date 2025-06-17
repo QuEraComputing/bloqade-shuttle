@@ -1,8 +1,8 @@
-from bloqade.qourier.dialects.spec._interface import (
+from bloqade.shuttle.dialects.spec._interface import (
     get_static_trap as get_static_trap,
 )
-from bloqade.qourier.dialects.spec.dialect import dialect as dialect
-from bloqade.qourier.dialects.spec.stmts import (
+from bloqade.shuttle.dialects.spec.dialect import dialect as dialect
+from bloqade.shuttle.dialects.spec.stmts import (
     GetStaticTrap as GetStaticTrap,
 )
-from bloqade.qourier.dialects.spec.types import Layout as Layout, Spec as Spec
+from bloqade.shuttle.dialects.spec.types import Layout as Layout, Spec as Spec

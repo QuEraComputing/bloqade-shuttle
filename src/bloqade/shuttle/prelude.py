@@ -1,5 +1,13 @@
 from bloqade.geometry.dialects import grid
-from bloqade.qourier.dialects import (
+from bloqade.squin import op, qubit
+from kirin import ir
+from kirin.dialects import func, ilist
+from kirin.passes import Default, Fold, TypeInfer
+from kirin.prelude import structural
+from kirin.rewrite import Walk
+from kirin.rewrite.chain import Chain
+
+from bloqade.shuttle.dialects import (
     action,
     atom,
     gate,
@@ -9,16 +17,9 @@ from bloqade.qourier.dialects import (
     schedule,
     spec,
 )
-from bloqade.qourier.passes.inject_spec import InjectSpecsPass
-from bloqade.qourier.passes.schedule2path import ScheduleToPath
-from bloqade.qourier.rewrite.desugar import DesugarTurnOffRewrite, DesugarTurnOnRewrite
-from bloqade.squin import op, qubit
-from kirin import ir
-from kirin.dialects import func, ilist
-from kirin.passes import Default, Fold, TypeInfer
-from kirin.prelude import structural
-from kirin.rewrite import Walk
-from kirin.rewrite.chain import Chain
+from bloqade.shuttle.passes.inject_spec import InjectSpecsPass
+from bloqade.shuttle.passes.schedule2path import ScheduleToPath
+from bloqade.shuttle.rewrite.desugar import DesugarTurnOffRewrite, DesugarTurnOnRewrite
 
 
 @ir.dialect_group(structural.union([spec, grid, atom, gate, op, qubit]))
