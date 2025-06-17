@@ -24,6 +24,25 @@ class RewriteDeviceCall(abc.RewriteRule):
         return abc.RewriteResult(has_done_something=True)
 
 
+class RewriteAutoInvoke(abc.RewriteRule):
+    def rewrite_Statement(self, node: ir.Statement) -> abc.RewriteResult:
+        if not isinstance(node, func.Invoke) or not isinstance(
+            node.parent_stmt, schedule.Auto
+        ):
+            return abc.RewriteResult()
+
+        (tweezer_task := schedule.NewTweezerTask(move_fn=node.callee)).insert_before(
+            node
+        )
+        (path.Gen(tweezer_task.result, node.inputs, kwargs=node.kwargs)).insert_before(
+            node
+        )
+
+        node.delete()
+
+        return abc.RewriteResult(has_done_something=True)
+
+
 class RewriteScheduleRegion(abc.RewriteRule):
     CLASSES = {
         schedule.Auto: path.Auto,

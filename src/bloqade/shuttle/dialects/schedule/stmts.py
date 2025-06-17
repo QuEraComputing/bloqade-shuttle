@@ -12,6 +12,14 @@ NyTones = types.TypeVar("NyTones")
 
 
 @statement(dialect=dialect)
+class NewTweezerTask(ir.Statement):
+    name = "tweezer_task"
+    traits = frozenset({ir.Pure()})
+    move_fn: ir.Method = info.attribute(types.MethodType)
+    result: ir.ResultValue = info.result(DeviceFunctionType)
+
+
+@statement(dialect=dialect)
 class NewDeviceFunction(ir.Statement):
     name = "device_function"
     traits = frozenset({lowering.FromPythonCall(), ir.Pure()})
