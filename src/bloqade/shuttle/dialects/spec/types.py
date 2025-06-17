@@ -1,0 +1,78 @@
+from dataclasses import dataclass, field
+from typing import cast
+
+import numpy as np
+from bloqade.geometry.dialects.grid import Grid
+
+
+@dataclass
+class Layout:
+    static_traps: dict[str, Grid]
+    """Abstract base class for layout."""
+
+    fillable: set[str]
+    """ The set of trap names that are fillable by the sorter. """
+
+    @staticmethod
+    def _plot_zone(zone: Grid, ax, name: str, **plot_options):
+        from matplotlib.axes import Axes  # type: ignore
+        from matplotlib.patches import Rectangle  # type: ignore
+
+        ax = cast(Axes, ax)
+
+        xs, ys = np.meshgrid(tuple(zone.x_positions), tuple(zone.y_positions))
+
+        path_collection = ax.scatter(xs.ravel(), ys.ravel(), **plot_options)
+
+        width = zone.width + 4
+        height = zone.height + 4
+        xy = (zone.x_positions[0] - 2, zone.y_positions[0] - 2)
+
+        patch = ax.add_patch(
+            Rectangle(
+                xy=xy,
+                width=width,
+                height=height,
+                edgecolor=path_collection.get_edgecolor(),
+                facecolor="none",
+            )
+        )
+        text_mid = (zone.x_init or 0.0) + zone.width / 2
+
+        ax.text(
+            x=text_mid, y=zone.y_positions[-1] + 4, s=name, ha="center", va="center"
+        )
+
+        return path_collection, patch
+
+    def fig(self, ax=None):
+        from matplotlib import pyplot as plt  # type: ignore
+
+        if ax is None:
+            _, ax = plt.subplots(1, 1)
+
+        for zone_id, zone in self.static_traps.items():
+            self._plot_zone(zone, ax, zone_id)
+
+        return ax, plt.gcf()
+
+    def show(self, ax=None):
+        # impoting this so that matplotlib is optional
+        import matplotlib.pyplot as plt  # type: ignore
+
+        ax, fig = self.fig(ax)
+        plt.show()
+
+
+def _default_layout():
+    zone = Grid.from_positions(
+        range(16),
+        range(16),
+    ).scale(10.0, 10.0)
+
+    return Layout(static_traps={"traps": zone}, fillable={"traps"})
+
+
+@dataclass(frozen=True)
+class Spec:
+    layout: Layout = field(default_factory=_default_layout)  # type: ignore
