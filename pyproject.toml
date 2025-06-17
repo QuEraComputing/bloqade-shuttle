@@ -1,5 +1,5 @@
 [project]
-name = "bloqade-qourier" # This is the name of your package
+name = "bloqade-shuttle-internal" # This is the name of your package
 version = "0.6.0-dev"
 description = "Add your description here"
 authors = [
