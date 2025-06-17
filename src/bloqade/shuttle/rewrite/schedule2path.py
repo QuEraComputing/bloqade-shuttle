@@ -1,5 +1,5 @@
 from kirin import ir
-from kirin.dialects import func
+from kirin.dialects import func, py
 from kirin.rewrite import abc
 
 from bloqade.shuttle.dialects import path, schedule
@@ -31,9 +31,10 @@ class RewriteAutoInvoke(abc.RewriteRule):
         ):
             return abc.RewriteResult()
 
-        (tweezer_task := schedule.NewTweezerTask(move_fn=node.callee)).insert_before(
-            node
-        )
+        (callee_stmt := py.Constant(node.callee)).insert_before(node)
+        (
+            tweezer_task := schedule.NewTweezerTask(move_fn=callee_stmt.result)
+        ).insert_before(node)
         (path.Gen(tweezer_task.result, node.inputs, kwargs=node.kwargs)).insert_before(
             node
         )

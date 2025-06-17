@@ -15,7 +15,7 @@ NyTones = types.TypeVar("NyTones")
 class NewTweezerTask(ir.Statement):
     name = "tweezer_task"
     traits = frozenset({ir.Pure()})
-    move_fn: ir.Method = info.attribute(types.MethodType)
+    move_fn: ir.SSAValue = info.argument(types.MethodType)
     result: ir.ResultValue = info.result(DeviceFunctionType)
 
 
