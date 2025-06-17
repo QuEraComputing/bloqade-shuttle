@@ -1,11 +1,13 @@
-from typing import Any, ParamSpec
+from typing import Any, ContextManager, ParamSpec
 
 from kirin import ir
 from kirin.dialects import ilist
 from kirin.lowering import wraps as _wraps
 
 from .stmts import (
+    Auto,
     NewDeviceFunction,
+    Parallel,
     Reverse,
 )
 from .types import DeviceFunction, ReverseDeviceFunction
@@ -43,3 +45,11 @@ def reverse(
 
     """
     ...
+
+
+@_wraps(Parallel)
+def parallel() -> ContextManager: ...
+
+
+@_wraps(Auto)
+def auto() -> ContextManager: ...
