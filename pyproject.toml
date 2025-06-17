@@ -1,6 +1,6 @@
 [project]
 name = "bloqade-qourier" # This is the name of your package
-version = "0.6.0-dev"
+version = "0.7.0-dev"
 description = "Add your description here"
 authors = [
     {name = "QuEra Computing Inc.", email = "info@quera.com"},
