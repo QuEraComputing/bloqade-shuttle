@@ -26,15 +26,20 @@ class RewriteDeviceCall(abc.RewriteRule):
 
 class RewriteAutoInvoke(abc.RewriteRule):
     def rewrite_Statement(self, node: ir.Statement) -> abc.RewriteResult:
-        if not isinstance(node, func.Invoke) or not isinstance(
-            node.parent_stmt, schedule.Auto
-        ):
+        if not isinstance(node.parent_stmt, schedule.Auto):
             return abc.RewriteResult()
 
-        (callee_stmt := py.Constant(node.callee)).insert_before(node)
-        (
-            tweezer_task := schedule.NewTweezerTask(move_fn=callee_stmt.result)
-        ).insert_before(node)
+        if isinstance(node, func.Invoke):
+            (callee_stmt := py.Constant(node.callee)).insert_before(node)
+            callee_ssa = callee_stmt.result
+        elif isinstance(node, func.Call):
+            callee_ssa = node.callee
+        else:
+            return abc.RewriteResult()
+
+        (tweezer_task := schedule.NewTweezerTask(move_fn=callee_ssa)).insert_before(
+            node
+        )
         (path.Gen(tweezer_task.result, node.inputs, kwargs=node.kwargs)).insert_before(
             node
         )
