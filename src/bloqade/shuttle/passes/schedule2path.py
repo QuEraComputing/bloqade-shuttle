@@ -10,6 +10,7 @@ from kirin.rewrite import (
 
 from bloqade.shuttle.rewrite.schedule2path import (
     Canonicalize,
+    RewriteAutoInvoke,
     RewriteDeviceCall,
     RewriteScheduleRegion,
 )
@@ -20,7 +21,11 @@ class ScheduleToPath(Pass):
 
     def unsafe_run(self, mt: ir.Method):
         result = Fixpoint(Walk(Canonicalize())).rewrite(mt.code)
-        result = Walk(RewriteDeviceCall()).rewrite(mt.code).join(result)
+        result = (
+            Walk(Chain(RewriteAutoInvoke(), RewriteDeviceCall()))
+            .rewrite(mt.code)
+            .join(result)
+        )
         result = Walk(RewriteScheduleRegion()).rewrite(mt.code).join(result)
         result = (
             Fixpoint(

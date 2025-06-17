@@ -1,5 +1,5 @@
 from kirin import ir
-from kirin.dialects import func
+from kirin.dialects import func, py
 from kirin.rewrite import abc
 
 from bloqade.shuttle.dialects import path, schedule
@@ -20,6 +20,31 @@ class RewriteDeviceCall(abc.RewriteRule):
             node.replace_by(path.Play(path_gen.result))
         else:
             node.delete()
+
+        return abc.RewriteResult(has_done_something=True)
+
+
+class RewriteAutoInvoke(abc.RewriteRule):
+    def rewrite_Statement(self, node: ir.Statement) -> abc.RewriteResult:
+        if not isinstance(node.parent_stmt, schedule.Auto):
+            return abc.RewriteResult()
+
+        if isinstance(node, func.Invoke):
+            (callee_stmt := py.Constant(node.callee)).insert_before(node)
+            callee_ssa = callee_stmt.result
+        elif isinstance(node, func.Call):
+            callee_ssa = node.callee
+        else:
+            return abc.RewriteResult()
+
+        (tweezer_task := schedule.NewTweezerTask(move_fn=callee_ssa)).insert_before(
+            node
+        )
+        (path.Gen(tweezer_task.result, node.inputs, kwargs=node.kwargs)).insert_before(
+            node
+        )
+
+        node.delete()
 
         return abc.RewriteResult(has_done_something=True)
 
