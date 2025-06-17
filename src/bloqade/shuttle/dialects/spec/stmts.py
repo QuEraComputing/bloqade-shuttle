@@ -1,8 +1,7 @@
 from bloqade.geometry.dialects import grid
+from bloqade.qourier.dialects.spec.dialect import dialect
 from kirin import ir, lowering, types
 from kirin.decl import info, statement
-
-from bloqade.qourier.dialects.spec.dialect import dialect
 
 
 @statement(dialect=dialect)

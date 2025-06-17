@@ -1,7 +1,6 @@
+from bloqade.qourier.dialects import action
 from kirin import ir, types
 from kirin.rewrite import abc
-
-from bloqade.qourier.dialects import action
 
 
 class DesugarTurnOnRewrite(abc.RewriteRule):

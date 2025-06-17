@@ -1,5 +1,4 @@
 from bloqade.geometry.dialects import grid
-
 from bloqade.qourier.codegen.taskgen import (
     TraceInterpreter,
     TurnOffXYSliceAction,

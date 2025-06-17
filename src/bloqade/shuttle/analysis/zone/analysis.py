@@ -1,10 +1,9 @@
 from dataclasses import dataclass, field
 
 from bloqade.geometry.dialects import grid
+from bloqade.qourier.dialects.spec import Spec
 from kirin import interp, ir
 from kirin.analysis.forward import Forward, ForwardFrame
-
-from bloqade.qourier.dialects.spec import Spec
 
 from .lattice import SpecZone, UnknownZone, Zone
 

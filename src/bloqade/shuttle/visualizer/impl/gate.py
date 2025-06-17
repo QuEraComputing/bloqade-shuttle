@@ -1,7 +1,5 @@
 from typing import TypeVar
 
-from kirin import interp
-
 from bloqade.qourier.dialects.gate import (
     GlobalR,
     GlobalRz,
@@ -12,6 +10,7 @@ from bloqade.qourier.dialects.gate import (
 )
 from bloqade.qourier.visualizer.interp import PathVisualizer
 from bloqade.qourier.visualizer.renderers import RendererInterface
+from kirin import interp
 
 
 @dialect.register(key="path.visualizer")

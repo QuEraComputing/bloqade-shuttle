@@ -1,9 +1,8 @@
-from kirin import decl, ir
-from kirin.decl import info
-
 from bloqade.qourier.dialects import schedule
 from bloqade.qourier.dialects.path._dialect import dialect
 from bloqade.qourier.dialects.path.types import PathType
+from kirin import decl, ir
+from kirin.decl import info
 
 
 @decl.statement(dialect=dialect)

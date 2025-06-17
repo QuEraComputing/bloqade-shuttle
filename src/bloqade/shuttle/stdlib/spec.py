@@ -1,7 +1,6 @@
 from itertools import repeat
 
 from bloqade.geometry.dialects import grid
-
 from bloqade.qourier.dialects import spec
 
 

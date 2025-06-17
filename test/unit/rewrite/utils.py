@@ -1,6 +1,5 @@
-from kirin import ir
-
 from bloqade.qourier.dialects import path, schedule
+from kirin import ir
 
 
 def simple_region(*stmts: ir.Statement) -> ir.Region:

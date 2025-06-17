@@ -1,9 +1,8 @@
 import typing
 
 from bloqade.geometry.dialects import grid
-from kirin.lowering import wraps
-
 from bloqade.qourier.dialects.measure.types import MeasurementArray
+from kirin.lowering import wraps
 
 from .stmts import Measure
 

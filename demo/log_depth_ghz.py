@@ -2,12 +2,11 @@ import math
 from typing import Any, Literal, TypeVar
 
 from bloqade.geometry.dialects import grid
-from kirin.dialects import ilist
-
 from bloqade.qourier import action, gate, init, measure, schedule
 from bloqade.qourier.dialects import spec
 from bloqade.qourier.prelude import move, tweezer
 from bloqade.qourier.visualizer import MatplotlibRenderer, PathVisualizer
+from kirin.dialects import ilist
 
 NMove = TypeVar("NMove")
 

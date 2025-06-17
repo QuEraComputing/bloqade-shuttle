@@ -1,11 +1,10 @@
 from bloqade.geometry.dialects import grid
-from kirin import ir
-from kirin.dialects import func
-
 from bloqade.qourier import spec
 from bloqade.qourier.analysis import zone
 from bloqade.qourier.passes.hint_zone import HintZone
 from bloqade.qourier.prelude import move
+from kirin import ir
+from kirin.dialects import func
 
 
 def return_stmts(kernel: ir.Method) -> list[func.Return]:

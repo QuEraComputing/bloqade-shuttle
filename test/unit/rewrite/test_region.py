@@ -1,7 +1,6 @@
-from kirin import ir, rewrite
-
 from bloqade.qourier.dialects import path, schedule
 from bloqade.qourier.rewrite import schedule2path
+from kirin import ir, rewrite
 
 from .utils import assert_block_equal, pth, sch
 

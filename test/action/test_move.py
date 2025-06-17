@@ -1,5 +1,4 @@
 from bloqade.geometry.dialects import grid
-
 from bloqade.qourier.dialects import action
 from bloqade.qourier.prelude import tweezer
 

@@ -1,7 +1,6 @@
+from bloqade.qourier.rewrite.schedule2path import Canonicalize
 from kirin import ir, rewrite
 from kirin.dialects import func
-
-from bloqade.qourier.rewrite.schedule2path import Canonicalize
 
 from .utils import assert_block_equal, sch
 

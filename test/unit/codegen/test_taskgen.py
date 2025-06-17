@@ -1,11 +1,10 @@
 import pytest
 from bloqade.geometry.dialects import grid
-from kirin import interp, ir, prelude
-from kirin.dialects import ilist
-
 from bloqade.qourier.codegen import taskgen
 from bloqade.qourier.dialects import action
 from bloqade.qourier.prelude import tweezer
+from kirin import interp, ir, prelude
+from kirin.dialects import ilist
 
 
 class TestWaypointsAction:

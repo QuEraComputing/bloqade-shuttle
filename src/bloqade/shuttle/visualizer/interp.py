@@ -1,11 +1,10 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Generic, TypeVar
 
-from kirin import interp, ir
-from typing_extensions import Self
-
 from bloqade.qourier.dialects import spec
 from bloqade.qourier.passes import inject_spec
+from kirin import interp, ir
+from typing_extensions import Self
 
 if TYPE_CHECKING:
     from bloqade.qourier.visualizer.renderers import RendererInterface

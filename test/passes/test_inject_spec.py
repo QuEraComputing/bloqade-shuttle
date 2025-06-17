@@ -1,5 +1,4 @@
 from bloqade.geometry.dialects import grid
-
 from bloqade.qourier import spec
 from bloqade.qourier.prelude import move
 

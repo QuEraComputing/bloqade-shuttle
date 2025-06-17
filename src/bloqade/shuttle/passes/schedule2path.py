@@ -1,3 +1,8 @@
+from bloqade.qourier.rewrite.schedule2path import (
+    Canonicalize,
+    RewriteDeviceCall,
+    RewriteScheduleRegion,
+)
 from kirin import ir
 from kirin.passes import Pass
 from kirin.rewrite import (
@@ -6,12 +11,6 @@ from kirin.rewrite import (
     DeadCodeElimination,
     Fixpoint,
     Walk,
-)
-
-from bloqade.qourier.rewrite.schedule2path import (
-    Canonicalize,
-    RewriteDeviceCall,
-    RewriteScheduleRegion,
 )
 
 

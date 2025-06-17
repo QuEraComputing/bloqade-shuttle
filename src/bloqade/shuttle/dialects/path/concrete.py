@@ -1,3 +1,6 @@
+from bloqade.qourier.codegen import TraceInterpreter, reverse_path
+from bloqade.qourier.dialects import schedule
+from bloqade.qourier.dialects.path import dialect, stmts, types
 from kirin.interp import (
     Frame,
     Interpreter,
@@ -5,10 +8,6 @@ from kirin.interp import (
     MethodTable,
     impl,
 )
-
-from bloqade.qourier.codegen import TraceInterpreter, reverse_path
-from bloqade.qourier.dialects import schedule
-from bloqade.qourier.dialects.path import dialect, stmts, types
 
 
 @dialect.register

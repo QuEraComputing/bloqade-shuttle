@@ -1,4 +1,5 @@
 from bloqade.geometry.dialects.grid import types as zone_types
+from bloqade.qourier.dialects.action._dialect import dialect
 from kirin import ir, lowering, types
 from kirin.decl import info, statement
 from kirin.dialects import func, ilist
@@ -11,8 +12,6 @@ from kirin.ir import (
     SymbolOpInterface,
 )
 from kirin.print.printer import Printer
-
-from bloqade.qourier.dialects.action._dialect import dialect
 
 
 class TweezerFuncOpCallableInterface(CallableStmtInterface["TweezerFunction"]):
