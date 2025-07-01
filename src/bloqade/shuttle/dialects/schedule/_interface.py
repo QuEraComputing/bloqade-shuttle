@@ -10,7 +10,7 @@ from .stmts import (
     Parallel,
     Reverse,
 )
-from .types import DeviceFunction, ReverseDeviceFunction
+from .types import Task
 
 Param = ParamSpec("Param")
 
@@ -20,7 +20,7 @@ def device_fn(
     move_fn: ir.Method[Param, None],
     x_tones: list[int] | ilist.IList[int, Any],
     y_tones: list[int] | ilist.IList[int, Any],
-) -> DeviceFunction[Param]:
+) -> Task[Param]:
     """Create a device function from a move function.
 
     Args:
@@ -35,8 +35,8 @@ def device_fn(
 
 @_wraps(Reverse)
 def reverse(
-    device_fn: DeviceFunction[Param],
-) -> ReverseDeviceFunction[Param]:
+    device_fn: Task[Param],
+) -> Task[Param]:
     """Create a reverse device function from a device function.
 
     Args:

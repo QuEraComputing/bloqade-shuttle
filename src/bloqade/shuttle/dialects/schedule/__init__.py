@@ -1,7 +1,5 @@
+from bloqade.shuttle.dialects.schedule import impls as impls
 from bloqade.shuttle.dialects.schedule._dialect import dialect as dialect
-from bloqade.shuttle.dialects.schedule.concrete import (
-    ScheduleInterpreter as ScheduleInterpreter,
-)
 from bloqade.shuttle.dialects.schedule.stmts import (
     Auto as Auto,
     ExecutableRegion as ExecutableRegion,
@@ -11,9 +9,7 @@ from bloqade.shuttle.dialects.schedule.stmts import (
     Reverse as Reverse,
 )
 from bloqade.shuttle.dialects.schedule.types import (
-    DeviceFunction as DeviceFunction,
-    DeviceFunctionType as DeviceFunctionType,
-    ReverseDeviceFunction as ReverseDeviceFunction,
+    TaskType as TaskType,
 )
 
 from ._interface import (

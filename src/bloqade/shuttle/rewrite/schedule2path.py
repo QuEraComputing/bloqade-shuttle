@@ -8,7 +8,7 @@ from bloqade.shuttle.dialects import path, schedule
 class RewriteDeviceCall(abc.RewriteRule):
     def rewrite_Statement(self, node: ir.Statement) -> abc.RewriteResult:
         if not isinstance(node, func.Call) or not node.callee.type.is_subseteq(
-            schedule.DeviceFunctionType
+            schedule.TaskType
         ):
             return abc.RewriteResult()
 

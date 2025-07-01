@@ -1,5 +1,5 @@
+from . import impls as impls
 from ._dialect import dialect as dialect
-from .concrete import PathInterpreter as PathInterpreter
 from .stmts import (
     Auto as Auto,
     Gen as Gen,

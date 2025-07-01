@@ -12,7 +12,7 @@ class Gen(ir.Statement):
 
     traits = frozenset({ir.Pure()})
     # not a fixed type here so just any
-    device_task: ir.SSAValue = info.argument(schedule.DeviceFunctionType)
+    task: ir.SSAValue = info.argument(schedule.TaskType)
     inputs: tuple[ir.SSAValue, ...] = info.argument()
     kwargs: tuple[str, ...] = info.attribute(default_factory=lambda: ())
     result: ir.ResultValue = info.result(PathType)

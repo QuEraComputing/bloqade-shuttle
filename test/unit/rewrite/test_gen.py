@@ -10,7 +10,7 @@ from .utils import assert_block_equal, sch
 def test_rewrite_to_device_call_with_play():
     """Test that the rewrite to device call works correctly."""
     # Create a test value for the device function
-    device_fn = ir.TestValue(schedule.DeviceFunctionType)
+    device_fn = ir.TestValue(schedule.TaskType)
     input_1 = ir.TestValue()
     input_2 = ir.TestValue()
 
@@ -44,7 +44,7 @@ def test_rewrite_to_device_call_with_play():
 def test_rewrite_to_device_call_without_play():
     """Test that the rewrite to device call works correctly."""
     # Create a test value for the device function
-    device_fn = ir.TestValue(schedule.DeviceFunctionType)
+    device_fn = ir.TestValue(schedule.TaskType)
     input_1 = ir.TestValue()
     input_2 = ir.TestValue()
 

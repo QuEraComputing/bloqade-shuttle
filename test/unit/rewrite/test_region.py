@@ -7,7 +7,7 @@ from .utils import assert_block_equal, pth, sch
 
 
 def test_rewrite_no_nesting():
-    device_fn = ir.TestValue(schedule.DeviceFunctionType)
+    device_fn = ir.TestValue(schedule.TaskType)
     input_1 = ir.TestValue()
     input_2 = ir.TestValue()
 
@@ -38,7 +38,7 @@ def test_rewrite_no_nesting():
 
 
 def test_rewrite_no_nesting_1_level():
-    device_fn = ir.TestValue(schedule.DeviceFunctionType)
+    device_fn = ir.TestValue(schedule.TaskType)
     input_1 = ir.TestValue()
     input_2 = ir.TestValue()
     input_3 = ir.TestValue()

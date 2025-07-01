@@ -8,7 +8,6 @@ from kirin.lattice.mixin import SimpleJoinMixin, SimpleMeetMixin
 from kirin.print.printer import Printer
 
 from bloqade.shuttle.codegen.taskgen import AbstractAction
-from bloqade.shuttle.dialects import path
 
 
 @dataclass
@@ -48,12 +47,54 @@ class NoSchedule(ScheduleLattice):
         return isinstance(other, NoSchedule)
 
 
+@final
 @dataclass
-class ConcretePath(ScheduleLattice):
-    path: path.Path
+class TweezerTask(ScheduleLattice):
+    move_fn: ir.Method
 
     def is_subseteq(self, other: ScheduleLattice) -> bool:
-        return isinstance(other, ConcretePath) and self.path == other.path
+        return isinstance(other, TweezerTask) and self.move_fn == other.move_fn
+
+
+@final
+@dataclass
+class DeviceFunction(ScheduleLattice):
+    move_fn: ir.Method
+    x_tones: tuple[int, ...]
+    y_tones: tuple[int, ...]
+
+    def is_subseteq(self, other: ScheduleLattice) -> bool:
+        return (
+            isinstance(other, DeviceFunction)
+            and self.move_fn == other.move_fn
+            and self.x_tones == other.x_tones
+            and self.y_tones == other.y_tones
+        )
+
+
+@dataclass
+class Reverse(ScheduleLattice):
+    task_or_fn: ScheduleLattice
+
+    def is_subseteq(self, other: ScheduleLattice) -> bool:
+        return isinstance(other, Reverse) and self.task_or_fn.is_subseteq(
+            other.task_or_fn
+        )
+
+
+@dataclass
+class ConcretePath(ScheduleLattice):
+    x_tones: tuple[int, ...]
+    y_tones: tuple[int, ...]
+    actions: tuple[AbstractAction, ...]
+
+    def is_subseteq(self, other: ScheduleLattice) -> bool:
+        return (
+            isinstance(other, ConcretePath)
+            and self.x_tones == other.x_tones
+            and self.y_tones == other.y_tones
+            and self.actions == other.actions
+        )
 
 
 @dataclass
@@ -88,7 +129,8 @@ class AutoSchedule(ScheduleLattice):
     def is_subseteq(self, other: ScheduleLattice) -> bool:
         return (
             isinstance(other, AutoSchedule)
-            and all(p1.is_subseteq(p2) for p1, p2 in zip(self.paths, other.paths))
+            and len(self.paths) == len(other.paths)
             and self.group_id == other.group_id
             and self.tones == other.tones
+            and all(p1.is_subseteq(p2) for p1, p2 in zip(self.paths, other.paths))
         )
