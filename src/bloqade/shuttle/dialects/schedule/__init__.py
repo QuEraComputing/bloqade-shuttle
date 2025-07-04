@@ -6,6 +6,7 @@ from bloqade.shuttle.dialects.schedule.stmts import (
     Auto as Auto,
     ExecutableRegion as ExecutableRegion,
     NewDeviceFunction as NewDeviceFunction,
+    NewTweezerTask as NewTweezerTask,
     Parallel as Parallel,
     Reverse as Reverse,
 )
