@@ -1,5 +1,6 @@
 from ._dialect import dialect as dialect
 from .concrete import PathInterpreter as PathInterpreter
+from .constprop import ConstProp as ConstProp
 from .stmts import (
     Auto as Auto,
     Gen as Gen,
