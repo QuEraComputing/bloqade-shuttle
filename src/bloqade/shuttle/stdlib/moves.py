@@ -18,10 +18,11 @@ def assert_sorted(indices):
 
 @tweezer
 def single_zone_move_cz(
-    ctrl_x_ids: ilist.IList[int, NumX] | list[int],
-    ctrl_y_ids: ilist.IList[int, NumY] | list[int],
-    qarg_x_ids: ilist.IList[int, NumX] | list[int],
-    qarg_y_ids: ilist.IList[int, NumY] | list[int],
+    zone: grid.Grid[Any, Any],
+    ctrl_x_ids: ilist.IList[int, NumX],
+    ctrl_y_ids: ilist.IList[int, NumY],
+    qarg_x_ids: ilist.IList[int, NumX],
+    qarg_y_ids: ilist.IList[int, NumY],
     shift_x: float,
     shift_y: float,
 ):
@@ -38,7 +39,6 @@ def single_zone_move_cz(
     assert_sorted(qarg_x_ids)
     assert_sorted(qarg_y_ids)
 
-    zone = spec.get_static_trap(zone_id="traps")
     start = grid.sub_grid(zone, ctrl_x_ids, ctrl_y_ids)
     target_atoms = grid.sub_grid(zone, qarg_x_ids, qarg_y_ids)
 
@@ -58,10 +58,10 @@ def default_move_cz_impl(
     zone: grid.Grid[Any, Any],
     x_shift: float,
     y_shift: float,
-    ctrl_x_ids: ilist.IList[int, NumX] | list[int],
-    ctrl_y_ids: ilist.IList[int, NumY] | list[int],
-    qarg_x_ids: ilist.IList[int, NumX] | list[int],
-    qarg_y_ids: ilist.IList[int, NumY] | list[int],
+    ctrl_x_ids: ilist.IList[int, NumX],
+    ctrl_y_ids: ilist.IList[int, NumY],
+    qarg_x_ids: ilist.IList[int, NumX],
+    qarg_y_ids: ilist.IList[int, NumY],
 ):
     """Move atoms from the start ids and run cz gate with the atoms at the end ids.
 
@@ -81,9 +81,9 @@ def default_move_cz_impl(
     )
     bwd_kernel = schedule.reverse(fwd_kernel)
 
-    fwd_kernel(ctrl_x_ids, ctrl_y_ids, qarg_x_ids, qarg_y_ids, x_shift, y_shift)
+    fwd_kernel(zone, ctrl_x_ids, ctrl_y_ids, qarg_x_ids, qarg_y_ids, x_shift, y_shift)
     gate.top_hat_cz(zone)
-    bwd_kernel(qarg_x_ids, qarg_y_ids, ctrl_x_ids, ctrl_y_ids, x_shift, y_shift)
+    bwd_kernel(zone, qarg_x_ids, qarg_y_ids, ctrl_x_ids, ctrl_y_ids, x_shift, y_shift)
 
 
 DEFAULT_X_SHIFT = 2.0
@@ -92,10 +92,10 @@ DEFAULT_Y_SHIFT = 2.0
 
 @move
 def default_move_cz(
-    ctrl_x_ids: ilist.IList[int, NumX] | list[int],
-    ctrl_y_ids: ilist.IList[int, NumY] | list[int],
-    qarg_x_ids: ilist.IList[int, NumX] | list[int],
-    qarg_y_ids: ilist.IList[int, NumY] | list[int],
+    ctrl_x_ids: ilist.IList[int, NumX],
+    ctrl_y_ids: ilist.IList[int, NumY],
+    qarg_x_ids: ilist.IList[int, NumX],
+    qarg_y_ids: ilist.IList[int, NumY],
 ):
     zone = spec.get_static_trap(zone_id="traps")
     default_move_cz_impl(
