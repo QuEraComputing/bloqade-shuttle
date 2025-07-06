@@ -20,6 +20,20 @@ def default_renderer():
 Plotter = TypeVar("Plotter", bound="RendererInterface")
 
 
+@spec.dialect.register(key="path.visualizer")
+class PathVisualizerDialect(interp.MethodTable):
+    @interp.impl(spec.GetStaticTrap)
+    def get_static_trap(
+        self,
+        _interp: "PathVisualizer[Plotter]",
+        frame: interp.Frame,
+        stmt: spec.GetStaticTrap,
+    ):
+        if (zone := _interp.arch_spec.layout.static_traps.get(stmt.zone_id)) is None:
+            raise interp.InterpreterError("Zone not found in layout.")
+        return (zone,)
+
+
 @dataclass
 class PathVisualizer(interp.Interpreter, Generic[Plotter]):
     """Debugging interpreter for visualizing the execution of paths."""
