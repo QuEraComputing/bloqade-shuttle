@@ -25,18 +25,21 @@ class InjectStaticTrapsRule(RewriteRule):
         return new_mt
 
     def rewrite_Statement(self, node: Statement) -> RewriteResult:
-        if isinstance(node, py.Constant) and isinstance(
-            mt := node.value.unwrap(), ir.Method
+        if (
+            isinstance(node, py.Constant)
+            and isinstance(mt := node.value.unwrap(), ir.Method)
+            and (new_mt := self.get(mt)) is not mt
         ):
-            new_mt = self.get(mt)
             node.replace_by(Constant(new_mt))
             return RewriteResult(has_done_something=True)
-        elif isinstance(node, func.Invoke):
-            new_callee = self.get(node.callee)
+        elif (
+            isinstance(node, func.Invoke)
+            and (callee := self.get(node.callee)) is not node.callee
+        ):
             node.replace_by(
                 func.Invoke(
                     node.inputs,
-                    callee=new_callee,
+                    callee=callee,
                     kwargs=node.kwargs,
                     purity=node.purity,
                 )
