@@ -121,7 +121,7 @@ def reverse_path(path: list[AbstractAction]) -> list[AbstractAction]:
 
 @dataclass
 class TraceInterpreter(ArchSpecInterpreter):
-    keys: ClassVar[list[str]] = ["spec.interp", "main"]
+    keys: ClassVar[list[str]] = ["action.tracer", "spec.interp", "main"]
     trace: list[AbstractAction] = field(init=False, default_factory=list)
     curr_pos: Optional[grid.Grid] = field(init=False, default=None)
 
@@ -142,10 +142,8 @@ class TraceInterpreter(ArchSpecInterpreter):
         return self.trace.copy()
 
 
-@action.dialect.register
+@action.dialect.register(key="action.tracer")
 class ActionTracer(MethodTable):
-    name = "action_tracer"
-    dialect = action.dialect
 
     intensity_actions = {
         action.TurnOnXY: TurnOnXYAction,
