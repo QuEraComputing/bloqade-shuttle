@@ -16,31 +16,27 @@ class InjectStaticTrapsRule(RewriteRule):
     arch_spec: ArchSpec
     visited: dict[ir.Method, ir.Method]
 
-    def get(self, mt: ir.Method):
-        if mt in self.visited:
-            return self.visited[mt]
-
-        # make sure to mark this method as visited to handle recursive calls
-        self.visited[mt] = (new_mt := mt.similar())
-        rewrite.Walk(self).rewrite(new_mt.code)
-        return new_mt
-
     def rewrite_Statement(self, node: Statement) -> RewriteResult:
+        print(node)
         if isinstance(node, path.Gen) and node.arch_spec is None:
             node.arch_spec = self.arch_spec
             return RewriteResult(has_done_something=True)
-        elif (
-            isinstance(node, func.Invoke)
-            and (callee := self.get(node.callee)) is not node.callee
-        ):
+        elif isinstance(node, func.Invoke):
+            # make sure to mark this method as visited to handle recursive calls
+            new_callee = self.visited.get(callee := node.callee)
+            if new_callee is None:
+                self.visited[callee] = (new_callee := callee.similar())
+                rewrite.Walk(self).rewrite(new_callee.code)
+
             node.replace_by(
                 func.Invoke(
                     node.inputs,
-                    callee=callee,
+                    callee=new_callee,
                     kwargs=node.kwargs,
                     purity=node.purity,
                 )
             )
+            return RewriteResult(has_done_something=True)
         elif (
             isinstance(node, spec.GetStaticTrap)
             and (zone_id := node.zone_id) in self.arch_spec.layout.static_traps
