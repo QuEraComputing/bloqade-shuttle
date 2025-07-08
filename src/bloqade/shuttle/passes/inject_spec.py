@@ -1,18 +1,19 @@
 from dataclasses import dataclass
 
 from kirin import ir, rewrite
-from kirin.dialects import func, py
+from kirin.dialects import func
 from kirin.dialects.py import Constant
 from kirin.ir.nodes.stmt import Statement
 from kirin.passes import Fold, HintConst, Pass
 from kirin.rewrite.abc import RewriteResult, RewriteRule
 
-from bloqade.shuttle.dialects import spec
+from bloqade.shuttle.dialects import path, spec
+from bloqade.shuttle.spec import ArchSpec
 
 
 @dataclass
 class InjectStaticTrapsRule(RewriteRule):
-    arch_spec: spec.Spec
+    arch_spec: ArchSpec
     visited: dict[ir.Method, ir.Method]
 
     def get(self, mt: ir.Method):
@@ -26,13 +27,6 @@ class InjectStaticTrapsRule(RewriteRule):
 
     def rewrite_Statement(self, node: Statement) -> RewriteResult:
         if (
-            isinstance(node, py.Constant)
-            and isinstance(mt := node.value.unwrap(), ir.Method)
-            and (new_mt := self.get(mt)) is not mt
-        ):
-            node.replace_by(Constant(new_mt))
-            return RewriteResult(has_done_something=True)
-        elif (
             isinstance(node, func.Invoke)
             and (callee := self.get(node.callee)) is not node.callee
         ):
@@ -51,13 +45,16 @@ class InjectStaticTrapsRule(RewriteRule):
             node.replace_by(Constant(self.arch_spec.layout.static_traps[zone_id]))
 
             return RewriteResult(has_done_something=True)
+        elif isinstance(node, path.Gen) and node.arch_spec is None:
+            node.arch_spec = self.arch_spec
+            return RewriteResult(has_done_something=True)
 
         return RewriteResult()
 
 
 @dataclass
 class InjectSpecsPass(Pass):
-    arch_spec: spec.Spec
+    arch_spec: ArchSpec
     fold: bool = True
 
     def unsafe_run(self, mt: ir.Method) -> RewriteResult:

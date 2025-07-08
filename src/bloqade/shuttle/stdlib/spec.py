@@ -2,10 +2,10 @@ from itertools import repeat
 
 from bloqade.geometry.dialects import grid
 
-from bloqade.shuttle.dialects import spec
+from bloqade.shuttle import spec
 
 
-def single_zone_spec(num_x: int, num_y: int, spacing: float = 10.0) -> spec.Spec:
+def single_zone_spec(num_x: int, num_y: int, spacing: float = 10.0) -> spec.ArchSpec:
     """Create a static trap spec with a single zone. compatible with the stdlib
 
     Args:
@@ -20,7 +20,7 @@ def single_zone_spec(num_x: int, num_y: int, spacing: float = 10.0) -> spec.Spec
     x_spacing = tuple(repeat(spacing, num_x - 1))
     y_spacing = tuple(repeat(spacing, num_y - 1))
 
-    return spec.Spec(
+    return spec.ArchSpec(
         layout=spec.Layout(
             static_traps={"traps": grid.Grid(x_spacing, y_spacing, 0.0, 0.0)},
             fillable=set(["traps"]),

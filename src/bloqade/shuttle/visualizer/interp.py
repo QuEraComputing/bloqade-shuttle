@@ -1,11 +1,9 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Generic, TypeVar
 
-from kirin import interp, ir
 from typing_extensions import Self
 
-from bloqade.shuttle.dialects import spec
-from bloqade.shuttle.passes import inject_spec
+from bloqade.shuttle.spec import ArchSpecInterpreter
 
 if TYPE_CHECKING:
     from bloqade.shuttle.visualizer.renderers import RendererInterface
@@ -20,26 +18,11 @@ def default_renderer():
 Plotter = TypeVar("Plotter", bound="RendererInterface")
 
 
-@spec.dialect.register(key="path.visualizer")
-class PathVisualizerDialect(interp.MethodTable):
-    @interp.impl(spec.GetStaticTrap)
-    def get_static_trap(
-        self,
-        _interp: "PathVisualizer[Plotter]",
-        frame: interp.Frame,
-        stmt: spec.GetStaticTrap,
-    ):
-        if (zone := _interp.arch_spec.layout.static_traps.get(stmt.zone_id)) is None:
-            raise interp.InterpreterError("Zone not found in layout.")
-        return (zone,)
-
-
 @dataclass
-class PathVisualizer(interp.Interpreter, Generic[Plotter]):
+class PathVisualizer(ArchSpecInterpreter, Generic[Plotter]):
     """Debugging interpreter for visualizing the execution of paths."""
 
-    keys = ["path.visualizer", "main"]
-    arch_spec: spec.Spec = field(kw_only=True)
+    keys = ["path.visualizer", "spec.interp", "main"]
     renderer: Plotter = field(kw_only=True, default_factory=default_renderer, repr=False)  # type: ignore
 
     def initialize(self) -> Self:
@@ -47,7 +30,3 @@ class PathVisualizer(interp.Interpreter, Generic[Plotter]):
             self.renderer.render_traps(zone, zone_id)
 
         return super().initialize()
-
-    def run(self, mt: ir.Method, args: tuple, kwargs: dict | None = None) -> None:
-        inject_spec.InjectSpecsPass(mt.dialects, self.arch_spec)(mt := mt.similar())
-        super().run(mt, args, kwargs=kwargs)

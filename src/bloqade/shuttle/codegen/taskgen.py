@@ -4,11 +4,12 @@ from typing import Any, ClassVar, Dict, Optional
 
 from bloqade.geometry.dialects import grid
 from kirin.dialects import func, ilist
-from kirin.interp import Frame, Interpreter, InterpreterError, MethodTable, impl
+from kirin.interp import Frame, InterpreterError, MethodTable, impl
 from kirin.ir.method import Method
 from typing_extensions import Self
 
 from bloqade.shuttle.dialects import action
+from bloqade.shuttle.spec import ArchSpecInterpreter
 
 
 class AbstractAction(abc.ABC):
@@ -119,8 +120,8 @@ def reverse_path(path: list[AbstractAction]) -> list[AbstractAction]:
 
 
 @dataclass
-class TraceInterpreter(Interpreter):
-    keys: ClassVar[list[str]] = ["action_tracer", "main"]
+class TraceInterpreter(ArchSpecInterpreter):
+    keys: ClassVar[list[str]] = ["spec.interp", "main"]
     trace: list[AbstractAction] = field(init=False, default_factory=list)
     curr_pos: Optional[grid.Grid] = field(init=False, default=None)
 

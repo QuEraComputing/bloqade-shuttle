@@ -7,7 +7,9 @@ from bloqade.shuttle.prelude import move
 
 def test_inject_spec():
     slm_grid = grid.Grid.from_positions([1, 2, 3], [4, 5, 6])
-    test_spec = spec.Spec(layout=spec.Layout({"slm": slm_grid}, fillable=set(["slm"])))
+    test_spec = spec.ArchSpec(
+        layout=spec.Layout({"slm": slm_grid}, fillable=set(["slm"]))
+    )
 
     @move(arch_spec=test_spec)
     def test():
@@ -21,7 +23,9 @@ def test_inject_spec():
 def test_inject_spac_callgraph():
 
     slm_grid = grid.Grid.from_positions([1, 2, 3], [4, 5, 6])
-    test_spec = spec.Spec(layout=spec.Layout({"slm": slm_grid}, fillable=set(["slm"])))
+    test_spec = spec.ArchSpec(
+        layout=spec.Layout({"slm": slm_grid}, fillable=set(["slm"]))
+    )
 
     @move
     def subroutine(depth: int):

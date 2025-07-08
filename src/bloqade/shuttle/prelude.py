@@ -7,6 +7,7 @@ from kirin.prelude import structural
 from kirin.rewrite import Walk
 from kirin.rewrite.chain import Chain
 
+from bloqade.shuttle import spec as spec_module
 from bloqade.shuttle.dialects import (
     action,
     atom,
@@ -31,12 +32,10 @@ def kernel(self):
         fold: bool = True,
         aggressive: bool = False,
         typeinfer: bool = True,
-        arch_spec: spec.Spec | None = None,
+        arch_spec: spec_module.ArchSpec | None = None,
     ) -> None:
-        if arch_spec is None:
-            arch_spec = spec.Spec()
-
-        InjectSpecsPass(self, arch_spec=arch_spec)(mt)
+        if arch_spec is not None:
+            InjectSpecsPass(self, arch_spec=arch_spec, fold=False)(mt)
 
         Default(
             self,
@@ -55,7 +54,6 @@ def kernel(self):
 def tweezer(self):
     fold_pass = Fold(self)
     typeinfer_pass = TypeInfer(self)
-    default_spec = spec.Spec()  # TODO read this from a file
     # TODO: add validation pass after type inference to check
     #       that the number of xtones and ytones match the decorator
     ilist_desugar = ilist.IListDesugar(self)
@@ -65,9 +63,11 @@ def tweezer(self):
         mt: ir.Method,
         *,
         fold: bool = True,
-        spec: spec.Spec | None = None,
+        arch_spec: spec_module.ArchSpec | None = None,
     ) -> None:
-        InjectSpecsPass(self, arch_spec=spec or default_spec)(mt)
+
+        if arch_spec is not None:
+            InjectSpecsPass(self, arch_spec=arch_spec, fold=False)(mt)
 
         if isinstance(mt.code, func.Function):
             new_code = action.TweezerFunction(
@@ -104,7 +104,7 @@ def move(self):
         fold: bool = True,
         aggressive: bool = False,
         typeinfer: bool = True,
-        arch_spec: spec.Spec | None = None,
+        arch_spec: spec_module.ArchSpec | None = None,
     ) -> None:
         schedule_to_path(mt)
 

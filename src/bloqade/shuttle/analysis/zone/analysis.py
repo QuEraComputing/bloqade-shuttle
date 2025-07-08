@@ -4,7 +4,7 @@ from bloqade.geometry.dialects import grid
 from kirin import interp, ir
 from kirin.analysis.forward import Forward, ForwardFrame
 
-from bloqade.shuttle.dialects.spec import Spec
+from bloqade.shuttle.spec import ArchSpec
 
 from .lattice import SpecZone, UnknownZone, Zone
 
@@ -18,7 +18,7 @@ class ZoneAnalysis(Forward[Zone]):
 
     keys = ["zone.analysis"]
     lattice = Zone
-    arch_spec: Spec = field(default_factory=Spec)
+    arch_spec: ArchSpec = field(default_factory=ArchSpec)
 
     def get_grid_lattice(self, zone: grid.Grid) -> Zone:
         for zone_id, zone_obj in self.arch_spec.layout.static_traps.items():

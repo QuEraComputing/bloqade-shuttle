@@ -3,6 +3,7 @@ from typing import cast
 
 import numpy as np
 from bloqade.geometry.dialects.grid import Grid
+from kirin.interp import Interpreter
 
 
 @dataclass
@@ -74,5 +75,19 @@ def _default_layout():
 
 
 @dataclass(frozen=True)
-class Spec:
+class ArchSpec:
     layout: Layout = field(default_factory=_default_layout)  # type: ignore
+
+
+@dataclass
+class ArchSpecMixin:
+    """Base class for interpreters that require an architecture specification."""
+
+    arch_spec: ArchSpec
+
+
+@dataclass
+class ArchSpecInterpreter(ArchSpecMixin, Interpreter):
+    """Interpreter that requires an architecture specification."""
+
+    pass

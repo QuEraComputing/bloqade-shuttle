@@ -20,6 +20,9 @@ class ConstProp(MethodTable):
     ):
         from bloqade.shuttle.prelude import tweezer
 
+        if stmt.arch_spec is None:
+            return (const.Result.top(),)
+
         device_task_prop = frame.get(stmt.device_task)
         if not isinstance(device_task_prop, const.Value):
             return (const.Result.top(),)
@@ -43,7 +46,7 @@ class ConstProp(MethodTable):
         )
 
         try:
-            path = TraceInterpreter(tweezer).run_trace(
+            path = TraceInterpreter(tweezer, stmt.arch_spec).run_trace(
                 device_task.move_fn,
                 tuple(
                     cast(const.Value, arg).data if isinstance(arg, const.Value) else arg

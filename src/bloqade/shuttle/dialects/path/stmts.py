@@ -1,9 +1,13 @@
+from typing import Optional
+
 from kirin import decl, ir
 from kirin.decl import info
 
 from bloqade.shuttle.dialects import schedule
-from bloqade.shuttle.dialects.path._dialect import dialect
-from bloqade.shuttle.dialects.path.types import PathType
+from bloqade.shuttle.spec import ArchSpec
+
+from ._dialect import dialect
+from .types import PathType
 
 
 @decl.statement(dialect=dialect)
@@ -13,6 +17,7 @@ class Gen(ir.Statement):
     traits = frozenset({ir.Pure()})
     # not a fixed type here so just any
     device_task: ir.SSAValue = info.argument(schedule.DeviceFunctionType)
+    arch_spec: Optional[ArchSpec] = info.attribute(default=None)
     inputs: tuple[ir.SSAValue, ...] = info.argument()
     kwargs: tuple[str, ...] = info.attribute(default_factory=lambda: ())
     result: ir.ResultValue = info.result(PathType)
