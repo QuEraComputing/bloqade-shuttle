@@ -8,8 +8,8 @@ from kirin.interp import Frame, InterpreterError, MethodTable, impl
 from kirin.ir.method import Method
 from typing_extensions import Self
 
+from bloqade.shuttle.arch import ArchSpecInterpreter
 from bloqade.shuttle.dialects import action
-from bloqade.shuttle.spec import ArchSpecInterpreter
 
 
 class AbstractAction(abc.ABC):

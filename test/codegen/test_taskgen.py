@@ -1,5 +1,6 @@
 from bloqade.geometry.dialects import grid
 
+from bloqade.shuttle.arch import ArchSpec
 from bloqade.shuttle.codegen.taskgen import (
     TraceInterpreter,
     TurnOffXYSliceAction,
@@ -8,7 +9,6 @@ from bloqade.shuttle.codegen.taskgen import (
 )
 from bloqade.shuttle.dialects import action
 from bloqade.shuttle.prelude import tweezer
-from bloqade.shuttle.spec import ArchSpec
 
 
 def test_trace():

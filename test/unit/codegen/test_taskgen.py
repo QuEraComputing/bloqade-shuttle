@@ -3,10 +3,10 @@ from bloqade.geometry.dialects import grid
 from kirin import interp, ir, prelude
 from kirin.dialects import ilist
 
+from bloqade.shuttle.arch import ArchSpec
 from bloqade.shuttle.codegen import taskgen
 from bloqade.shuttle.dialects import action
 from bloqade.shuttle.prelude import tweezer
-from bloqade.shuttle.spec import ArchSpec
 
 
 class TestWaypointsAction:
@@ -83,8 +83,8 @@ class TestActionMethods:
         return grid.Grid.from_positions([1, 2], [3, 4])
 
     def init_interpreter(self):
+        from bloqade.shuttle.arch import ArchSpec
         from bloqade.shuttle.prelude import tweezer
-        from bloqade.shuttle.spec import ArchSpec
 
         interpreter = taskgen.TraceInterpreter(tweezer, ArchSpec())
         interpreter.initialize()

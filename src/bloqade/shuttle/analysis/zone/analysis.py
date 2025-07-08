@@ -4,7 +4,7 @@ from bloqade.geometry.dialects import grid
 from kirin import interp, ir
 from kirin.analysis.forward import Forward, ForwardFrame
 
-from bloqade.shuttle.spec import ArchSpec
+from bloqade.shuttle.arch import ArchSpec
 
 from .lattice import SpecZone, UnknownZone, Zone
 

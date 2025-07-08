@@ -3,8 +3,8 @@ from typing import Optional
 from kirin import decl, ir
 from kirin.decl import info
 
+from bloqade.shuttle.arch import ArchSpec
 from bloqade.shuttle.dialects import schedule
-from bloqade.shuttle.spec import ArchSpec
 
 from ._dialect import dialect
 from .types import PathType

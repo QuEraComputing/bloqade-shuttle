@@ -1,6 +1,6 @@
 from kirin import interp
 
-from bloqade.shuttle.spec import ArchSpecInterpreter
+from bloqade.shuttle.arch import ArchSpecInterpreter
 
 from ._dialect import dialect
 from .stmts import GetStaticTrap

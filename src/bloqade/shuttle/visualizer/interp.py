@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Generic, TypeVar
 
 from typing_extensions import Self
 
-from bloqade.shuttle.spec import ArchSpecInterpreter
+from bloqade.shuttle.arch import ArchSpecInterpreter
 
 if TYPE_CHECKING:
     from bloqade.shuttle.visualizer.renderers import RendererInterface

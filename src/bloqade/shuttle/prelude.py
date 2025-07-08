@@ -65,7 +65,6 @@ def tweezer(self):
         fold: bool = True,
         arch_spec: spec_module.ArchSpec | None = None,
     ) -> None:
-
         if arch_spec is not None:
             InjectSpecsPass(self, arch_spec=arch_spec, fold=False)(mt)
 

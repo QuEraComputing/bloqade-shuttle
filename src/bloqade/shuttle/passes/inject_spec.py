@@ -7,8 +7,8 @@ from kirin.ir.nodes.stmt import Statement
 from kirin.passes import Fold, HintConst, Pass
 from kirin.rewrite.abc import RewriteResult, RewriteRule
 
+from bloqade.shuttle.arch import ArchSpec
 from bloqade.shuttle.dialects import path, spec
-from bloqade.shuttle.spec import ArchSpec
 
 
 @dataclass
