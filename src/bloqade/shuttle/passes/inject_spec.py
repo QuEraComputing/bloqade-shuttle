@@ -12,7 +12,7 @@ from bloqade.shuttle.dialects import path, spec
 
 
 @dataclass
-class InjectStaticTrapsRule(RewriteRule):
+class InjectSpecRule(RewriteRule):
     arch_spec: ArchSpec
     visited: dict[ir.Method, ir.Method]
 
@@ -55,9 +55,7 @@ class InjectSpecsPass(Pass):
     def unsafe_run(self, mt: ir.Method) -> RewriteResult:
         # since we're rewriting `mt` inplace we should make sure it is on the visited list
         # so that recursive calls are handed correctly
-        result = rewrite.Walk(InjectStaticTrapsRule(self.arch_spec, {mt: mt})).rewrite(
-            mt.code
-        )
+        result = rewrite.Walk(InjectSpecRule(self.arch_spec, {mt: mt})).rewrite(mt.code)
         if self.fold:
             result = HintConst(mt.dialects)(mt).join(result)
             result = Fold(mt.dialects)(mt).join(result)
