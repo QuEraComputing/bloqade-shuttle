@@ -17,7 +17,6 @@ class InjectStaticTrapsRule(RewriteRule):
     visited: dict[ir.Method, ir.Method]
 
     def rewrite_Statement(self, node: Statement) -> RewriteResult:
-        print(node)
         if isinstance(node, path.Gen) and node.arch_spec is None:
             node.arch_spec = self.arch_spec
             return RewriteResult(has_done_something=True)
