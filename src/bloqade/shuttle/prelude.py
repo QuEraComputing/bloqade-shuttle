@@ -106,10 +106,10 @@ def move(self):
         typeinfer: bool = True,
         arch_spec: spec.Spec | None = None,
     ) -> None:
+        schedule_to_path(mt)
+
         if arch_spec is not None:
             InjectSpecsPass(self, arch_spec=arch_spec, fold=False)(mt)
-
-        schedule_to_path(mt)
 
         Default(
             self,

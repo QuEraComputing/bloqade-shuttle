@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from kirin import ir, rewrite
 from kirin.dialects import func, py
@@ -13,17 +13,15 @@ from bloqade.shuttle.dialects import spec
 @dataclass
 class InjectStaticTrapsRule(RewriteRule):
     arch_spec: spec.Spec
-    visited: dict[ir.Method, ir.Method] = field(default_factory=dict, init=False)
-    worklist: list[ir.Method] = field(default_factory=list, init=False)
+    visited: dict[ir.Method, ir.Method]
 
     def get(self, mt: ir.Method):
         if mt in self.visited:
             return self.visited[mt]
 
-        # make sure to mark this method as visited
+        # make sure to mark this method as visited to handle recursive calls
         self.visited[mt] = (new_mt := mt.similar())
         rewrite.Walk(self).rewrite(new_mt.code)
-
         return new_mt
 
     def rewrite_Statement(self, node: Statement) -> RewriteResult:
@@ -61,7 +59,11 @@ class InjectSpecsPass(Pass):
     fold: bool = True
 
     def unsafe_run(self, mt: ir.Method) -> RewriteResult:
-        result = rewrite.Walk(InjectStaticTrapsRule(self.arch_spec)).rewrite(mt.code)
+        # since we're rewriting `mt` inplace we should make sure it is on the visited list
+        # so that recursive calls are handed correctly
+        result = rewrite.Walk(InjectStaticTrapsRule(self.arch_spec, {mt: mt})).rewrite(
+            mt.code
+        )
         if self.fold:
             result = HintConst(mt.dialects)(mt).join(result)
             result = Fold(mt.dialects)(mt).join(result)
