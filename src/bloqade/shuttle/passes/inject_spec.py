@@ -44,11 +44,10 @@ class InjectStaticTrapsRule(RewriteRule):
                     purity=node.purity,
                 )
             )
-        elif isinstance(node, spec.GetStaticTrap):
-            zone_id = node.zone_id
-            if zone_id not in self.arch_spec.layout.static_traps:
-                return RewriteResult()
-
+        elif (
+            isinstance(node, spec.GetStaticTrap)
+            and (zone_id := node.zone_id) in self.arch_spec.layout.static_traps
+        ):
             node.replace_by(Constant(self.arch_spec.layout.static_traps[zone_id]))
 
             return RewriteResult(has_done_something=True)
