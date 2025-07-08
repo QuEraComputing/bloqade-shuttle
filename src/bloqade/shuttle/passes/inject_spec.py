@@ -26,7 +26,10 @@ class InjectStaticTrapsRule(RewriteRule):
         return new_mt
 
     def rewrite_Statement(self, node: Statement) -> RewriteResult:
-        if (
+        if isinstance(node, path.Gen) and node.arch_spec is None:
+            node.arch_spec = self.arch_spec
+            return RewriteResult(has_done_something=True)
+        elif (
             isinstance(node, func.Invoke)
             and (callee := self.get(node.callee)) is not node.callee
         ):
@@ -44,9 +47,6 @@ class InjectStaticTrapsRule(RewriteRule):
         ):
             node.replace_by(Constant(self.arch_spec.layout.static_traps[zone_id]))
 
-            return RewriteResult(has_done_something=True)
-        elif isinstance(node, path.Gen) and node.arch_spec is None:
-            node.arch_spec = self.arch_spec
             return RewriteResult(has_done_something=True)
 
         return RewriteResult()
