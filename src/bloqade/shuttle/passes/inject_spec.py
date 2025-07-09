@@ -1,43 +1,61 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
-from kirin import rewrite
+from kirin import ir, rewrite
+from kirin.dialects import func
 from kirin.dialects.py import Constant
-from kirin.ir.method import Method
 from kirin.ir.nodes.stmt import Statement
 from kirin.passes import Fold, HintConst, Pass
 from kirin.rewrite.abc import RewriteResult, RewriteRule
 
-from bloqade.shuttle.dialects import spec
+from bloqade.shuttle.arch import ArchSpec
+from bloqade.shuttle.dialects import path, spec
 
 
 @dataclass
-class InjectStaticTrapsRule(RewriteRule):
-    arch_spec: spec.Spec = field(default_factory=spec.Spec)
-    layout: spec.Layout = field(init=False)
-
-    def __post_init__(self):
-        self.layout = self.arch_spec.layout
+class InjectSpecRule(RewriteRule):
+    arch_spec: ArchSpec
+    visited: dict[ir.Method, ir.Method]
 
     def rewrite_Statement(self, node: Statement) -> RewriteResult:
-        if not isinstance(node, spec.GetStaticTrap):
-            return RewriteResult()
+        if isinstance(node, path.Gen) and node.arch_spec is None:
+            node.arch_spec = self.arch_spec
+            return RewriteResult(has_done_something=True)
+        elif isinstance(node, func.Invoke):
+            # make sure to mark this method as visited to handle recursive calls
+            new_callee = self.visited.get(callee := node.callee)
+            if new_callee is None:
+                self.visited[callee] = (new_callee := callee.similar())
+                rewrite.Walk(self).rewrite(new_callee.code)
 
-        zone_id = node.zone_id
-        if zone_id not in self.layout.static_traps:
-            return RewriteResult()
+            node.replace_by(
+                func.Invoke(
+                    node.inputs,
+                    callee=new_callee,
+                    kwargs=node.kwargs,
+                    purity=node.purity,
+                )
+            )
+            return RewriteResult(has_done_something=True)
+        elif (
+            isinstance(node, spec.GetStaticTrap)
+            and (zone_id := node.zone_id) in self.arch_spec.layout.static_traps
+        ):
+            node.replace_by(Constant(self.arch_spec.layout.static_traps[zone_id]))
 
-        node.replace_by(Constant(self.layout.static_traps[zone_id]))
+            return RewriteResult(has_done_something=True)
 
-        return RewriteResult(has_done_something=True)
+        return RewriteResult()
 
 
 @dataclass
 class InjectSpecsPass(Pass):
-    arch_spec: spec.Spec
+    arch_spec: ArchSpec
     fold: bool = True
 
-    def unsafe_run(self, mt: Method) -> RewriteResult:
-        result = rewrite.Walk(InjectStaticTrapsRule(self.arch_spec)).rewrite(mt.code)
+    def unsafe_run(self, mt: ir.Method) -> RewriteResult:
+        # since we're rewriting `mt` inplace we should make sure it is on the visited list
+        # so that recursive calls are handed correctly
+        result = rewrite.Walk(InjectSpecRule(self.arch_spec, {mt: mt})).rewrite(mt.code)
         if self.fold:
             result = HintConst(mt.dialects)(mt).join(result)
             result = Fold(mt.dialects)(mt).join(result)

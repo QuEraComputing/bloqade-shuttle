@@ -3,6 +3,7 @@ from bloqade.geometry.dialects import grid
 from kirin import interp, ir, prelude
 from kirin.dialects import ilist
 
+from bloqade.shuttle.arch import ArchSpec
 from bloqade.shuttle.codegen import taskgen
 from bloqade.shuttle.dialects import action
 from bloqade.shuttle.prelude import tweezer
@@ -82,9 +83,7 @@ class TestActionMethods:
         return grid.Grid.from_positions([1, 2], [3, 4])
 
     def init_interpreter(self):
-        from bloqade.shuttle.prelude import tweezer
-
-        interpreter = taskgen.TraceInterpreter(tweezer)
+        interpreter = taskgen.TraceInterpreter(tweezer, ArchSpec())
         interpreter.initialize()
         return interpreter
 
@@ -231,7 +230,7 @@ def test_interpreter_trace():
         action.turn_on(action.ALL, action.ALL)
         action.turn_off(action.ALL, action.ALL)
 
-    interpreter = taskgen.TraceInterpreter(tweezer)
+    interpreter = taskgen.TraceInterpreter(tweezer, ArchSpec())
     assert interpreter.run_trace(test_action, (), {}) == [
         taskgen.WayPointsAction([grid.Grid.from_positions([1, 2], [3, 4])]),
         taskgen.TurnOnXYSliceAction(action.ALL, action.ALL),
@@ -246,7 +245,7 @@ def test_interpreter_run_trace_error():
     def test_bad_method():
         return None
 
-    interpreter = taskgen.TraceInterpreter(tweezer)
+    interpreter = taskgen.TraceInterpreter(tweezer, ArchSpec())
 
     with pytest.raises(ValueError):
         interpreter.run_trace(test_bad_method, (), {})

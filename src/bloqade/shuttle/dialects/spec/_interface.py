@@ -3,8 +3,9 @@ from typing import Any
 from bloqade.geometry.dialects import grid
 from kirin.lowering import wraps as _wraps
 
+from bloqade.shuttle.arch import ArchSpec as ArchSpec, Layout as Layout
+
 from .stmts import GetStaticTrap
-from .types import Layout as Layout, Spec as Spec
 
 
 @_wraps(GetStaticTrap)

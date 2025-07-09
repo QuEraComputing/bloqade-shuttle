@@ -5,8 +5,8 @@ from kirin.passes import Pass
 from kirin.rewrite import Walk
 from kirin.rewrite.abc import RewriteResult, RewriteRule
 
+from bloqade.shuttle import spec
 from bloqade.shuttle.analysis.zone import Zone, ZoneAnalysis
-from bloqade.shuttle.dialects import spec
 
 
 @dataclass
@@ -28,7 +28,7 @@ class HintZone(Pass):
     This pass adds zone hints to SSA values based on the analysis results.
     """
 
-    arch_spec: spec.Spec
+    arch_spec: spec.ArchSpec
 
     def unsafe_run(self, mt: ir.Method) -> RewriteResult:
         analysis_frame, _ = ZoneAnalysis(

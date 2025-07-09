@@ -2,7 +2,7 @@ from bloqade.geometry.dialects import grid
 from kirin import ir, lowering, types
 from kirin.decl import info, statement
 
-from bloqade.shuttle.dialects.spec.dialect import dialect
+from bloqade.shuttle.dialects.spec._dialect import dialect
 
 
 @statement(dialect=dialect)

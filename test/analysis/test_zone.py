@@ -15,7 +15,7 @@ def return_stmts(kernel: ir.Method) -> list[func.Return]:
 
 
 def default_spec():
-    arch_spec = spec.Spec(
+    arch_spec = spec.ArchSpec(
         spec.Layout(
             static_traps={"test": grid.Grid.from_positions([0, 1, 2], [0, 1, 2])},
             fillable=set(["test"]),
