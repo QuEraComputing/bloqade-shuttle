@@ -83,9 +83,6 @@ class TestActionMethods:
         return grid.Grid.from_positions([1, 2], [3, 4])
 
     def init_interpreter(self):
-        from bloqade.shuttle.arch import ArchSpec
-        from bloqade.shuttle.prelude import tweezer
-
         interpreter = taskgen.TraceInterpreter(tweezer, ArchSpec())
         interpreter.initialize()
         return interpreter
