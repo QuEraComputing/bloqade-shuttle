@@ -1,13 +1,13 @@
 from bloqade.geometry.dialects import grid
 
-from bloqade.shuttle.dialects import spec
+from bloqade.shuttle import spec
 from bloqade.shuttle.stdlib.spec import single_zone_spec
 
 
 def test_single_zone_spec():
     arch_spec = single_zone_spec(3, 3, 10.0)
 
-    expected_spec = spec.Spec(
+    expected_spec = spec.ArchSpec(
         layout=spec.Layout(
             static_traps={
                 "traps": grid.Grid(

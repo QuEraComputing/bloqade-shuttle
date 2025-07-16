@@ -1,5 +1,6 @@
 from bloqade.geometry.dialects import grid
 
+from bloqade.shuttle.arch import ArchSpec
 from bloqade.shuttle.codegen.taskgen import (
     TraceInterpreter,
     TurnOffXYSliceAction,
@@ -24,7 +25,9 @@ def test_trace():
 
     move_fn.print()
 
-    action_list = TraceInterpreter(tweezer).run_trace(move_fn, (1.0, 2.0), {})
+    action_list = TraceInterpreter(tweezer, ArchSpec()).run_trace(
+        move_fn, (1.0, 2.0), {}
+    )
 
     assert isinstance(action_list, list)
 

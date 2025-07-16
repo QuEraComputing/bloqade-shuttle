@@ -4,8 +4,7 @@ from typing import Any, Literal, TypeVar
 from bloqade.geometry.dialects import grid
 from kirin.dialects import ilist
 
-from bloqade.shuttle import action, gate, init, measure, schedule
-from bloqade.shuttle.dialects import spec
+from bloqade.shuttle import action, gate, init, measure, schedule, spec
 from bloqade.shuttle.prelude import move, tweezer
 from bloqade.shuttle.visualizer import MatplotlibRenderer, PathVisualizer
 
@@ -145,7 +144,7 @@ def run_ghz():
 
     gate = gate.shift(gate_shift, 0.0)
 
-    spec_value = spec.Spec(
+    spec_value = spec.ArchSpec(
         layout=spec.Layout(
             static_traps={
                 "mem": mem,
