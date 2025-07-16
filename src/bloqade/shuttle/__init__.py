@@ -1,5 +1,6 @@
 from .dialects.action import _interface as action
 from .dialects.atom import _interface as atom
+from .dialects.filled import _interface as filled
 from .dialects.gate import _interface as gate
 from .dialects.init import _interface as init
 from .dialects.measure import _interface as measure
@@ -15,4 +16,5 @@ __all__ = [
     "measure",
     "schedule",
     "spec",
+    "filled",
 ]
