@@ -135,9 +135,6 @@ class TraceInterpreter(ArchSpecInterpreter):
     curr_pos: Optional[grid.Grid] = field(init=False, default=None)
     dialects: ir.DialectGroup = field(init=False, default_factory=_default_dialect)
 
-    def __post_init__(self) -> None:
-        return super().__post_init__()
-
     def initialize(self) -> Self:
         self.curr_pos = None
         self.trace = []
