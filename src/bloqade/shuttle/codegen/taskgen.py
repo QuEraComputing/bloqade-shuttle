@@ -1,5 +1,6 @@
 import abc
 from dataclasses import dataclass, field
+from functools import cache
 from typing import Any, ClassVar, Dict, Optional
 
 from bloqade.geometry.dialects import grid
@@ -120,6 +121,7 @@ def reverse_path(path: list[AbstractAction]) -> list[AbstractAction]:
     return [action.inv() for action in reversed(path)]
 
 
+@cache
 def _default_dialect():
     from bloqade.shuttle.prelude import (
         tweezer,  # needs to be here to avoid circular import issues
