@@ -16,8 +16,6 @@ class PathInterpreter(MethodTable):
 
     @impl(stmts.Gen)
     def gen(self, interp: Interpreter, frame: Frame, stmt: stmts.Gen):
-        from bloqade.shuttle.prelude import tweezer
-
         if stmt.arch_spec is None:
             raise InterpreterError("Missing architecture specification")
 
@@ -33,9 +31,7 @@ class PathInterpreter(MethodTable):
         inputs = frame.get_values(stmt.inputs)
         kwargs = stmt.kwargs
         args = interp.permute_values(device_task.move_fn.arg_names, inputs, kwargs)
-        path = TraceInterpreter(tweezer, stmt.arch_spec).run_trace(
-            device_task.move_fn, args, {}
-        )
+        path = TraceInterpreter(stmt.arch_spec).run_trace(device_task.move_fn, args, {})
 
         if reverse:
             path = reverse_path(path)

@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from typing import Any, ClassVar, Dict, Optional
 
 from bloqade.geometry.dialects import grid
+from kirin import ir
 from kirin.dialects import func, ilist
 from kirin.interp import Frame, InterpreterError, MethodTable, impl
 from kirin.ir.method import Method
@@ -124,6 +125,13 @@ class TraceInterpreter(ArchSpecInterpreter):
     keys: ClassVar[list[str]] = ["action.tracer", "spec.interp", "main"]
     trace: list[AbstractAction] = field(init=False, default_factory=list)
     curr_pos: Optional[grid.Grid] = field(init=False, default=None)
+    dialects: ir.DialectGroup = field(init=False)
+
+    def __post_init__(self) -> None:
+        from bloqade.shuttle.prelude import tweezer
+
+        self.dialects = tweezer
+        return super().__post_init__()
 
     def initialize(self) -> Self:
         self.curr_pos = None

@@ -16,7 +16,6 @@ class SpecPathInterpreter(MethodTable):
 
     @impl(stmts.Gen)
     def gen(self, interp: ArchSpecInterpreter, frame: Frame, stmt: stmts.Gen):
-        from bloqade.shuttle.prelude import tweezer
 
         device_task = frame.get(stmt.device_task)
         if isinstance(device_task, schedule.DeviceFunction):
@@ -30,7 +29,7 @@ class SpecPathInterpreter(MethodTable):
         inputs = frame.get_values(stmt.inputs)
         kwargs = stmt.kwargs
         args = interp.permute_values(device_task.move_fn.arg_names, inputs, kwargs)
-        path = TraceInterpreter(tweezer, interp.arch_spec).run_trace(
+        path = TraceInterpreter(interp.arch_spec).run_trace(
             device_task.move_fn, args, {}
         )
 
