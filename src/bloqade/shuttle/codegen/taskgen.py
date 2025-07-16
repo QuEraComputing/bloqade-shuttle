@@ -120,17 +120,22 @@ def reverse_path(path: list[AbstractAction]) -> list[AbstractAction]:
     return [action.inv() for action in reversed(path)]
 
 
+def _default_dialect():
+    from bloqade.shuttle.prelude import (
+        tweezer,  # needs to be here to avoid circular import issues
+    )
+
+    return tweezer
+
+
 @dataclass
 class TraceInterpreter(ArchSpecInterpreter):
     keys: ClassVar[list[str]] = ["action.tracer", "spec.interp", "main"]
     trace: list[AbstractAction] = field(init=False, default_factory=list)
     curr_pos: Optional[grid.Grid] = field(init=False, default=None)
-    dialects: ir.DialectGroup = field(init=False)
+    dialects: ir.DialectGroup = field(init=False, default_factory=_default_dialect)
 
     def __post_init__(self) -> None:
-        from bloqade.shuttle.prelude import tweezer
-
-        self.dialects = tweezer
         return super().__post_init__()
 
     def initialize(self) -> Self:
