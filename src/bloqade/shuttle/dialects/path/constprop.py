@@ -18,8 +18,6 @@ class ConstProp(MethodTable):
         frame: forward.ForwardFrame[const.Result],
         stmt: stmts.Gen,
     ):
-        from bloqade.shuttle.prelude import tweezer
-
         if stmt.arch_spec is None:
             return (const.Result.top(),)
 
@@ -46,7 +44,7 @@ class ConstProp(MethodTable):
         )
 
         try:
-            path = TraceInterpreter(tweezer, stmt.arch_spec).run_trace(
+            path = TraceInterpreter(stmt.arch_spec).run_trace(
                 device_task.move_fn,
                 tuple(
                     cast(const.Value, arg).data if isinstance(arg, const.Value) else arg
