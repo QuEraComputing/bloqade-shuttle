@@ -73,7 +73,8 @@ class FilledGrid(grid.Grid[NumX, NumY]):
                 if x not in grid_obj.vacant_x and y not in grid_obj.vacant_y
             )
 
-        vacant_x, vacant_y = zip(*vacancies)
+        vacancies = list(vacancies)
+        vacant_x, vacant_y = zip(*vacancies) if vacancies else ((), ())
 
         return cls(parent=grid_obj, vacant_x=vacant_x, vacant_y=vacant_y)
 
@@ -89,7 +90,8 @@ class FilledGrid(grid.Grid[NumX, NumY]):
                 if x not in grid_obj.vacant_x and y not in grid_obj.vacant_y
             )
 
-        vacant_x, vacant_y = zip(*sorted(vacant))
+        vacant = sorted(vacant)
+        vacant_x, vacant_y = zip(*vacant) if vacant else ((), ())
 
         return cls(parent=grid_obj, vacant_x=vacant_x, vacant_y=vacant_y)
 
