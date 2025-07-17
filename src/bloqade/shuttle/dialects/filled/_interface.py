@@ -4,24 +4,24 @@ from bloqade.geometry.dialects import grid
 from kirin.dialects import ilist
 from kirin.lowering import wraps as _wraps
 
-from .stmts import Fill, GetParent, Vacat
+from .stmts import Fill, GetParent, Vacate
 from .types import FilledGrid
 
 Nx = TypeVar("Nx")
 Ny = TypeVar("Ny")
 
 
-@_wraps(Vacat)
-def vacat(
+@_wraps(Vacate)
+def vacate(
     zone: grid.Grid[Nx, Ny],
-    vacant: ilist.IList[tuple[int, int], Any],
+    vacancies: ilist.IList[tuple[int, int], Any],
 ) -> FilledGrid[Nx, Ny]: ...
 
 
 @_wraps(Fill)
 def fill(
     zone: grid.Grid[Nx, Ny],
-    filled_x: ilist.IList[tuple[int, int], Any],
+    filled: ilist.IList[tuple[int, int], Any],
 ) -> FilledGrid[Nx, Ny]: ...
 
 

@@ -79,7 +79,7 @@ class FilledGrid(grid.Grid[NumX, NumY]):
         return cls(parent=grid_obj, vacant_x=vacant_x, vacant_y=vacant_y)
 
     @classmethod
-    def vacat(
+    def vacate(
         cls, grid_obj: grid.Grid[NumX, NumY], vacant: Iterable[tuple[int, int]]
     ) -> "FilledGrid[NumX, NumY]":
 
@@ -137,7 +137,7 @@ class FilledGrid(grid.Grid[NumX, NumY]):
             y + y_dim * j
             for _, j, y in product(range(x_times), range(y_times), self.vacant_y)
         )
-        return FilledGrid.vacat(new_parent, zip(new_vacant_x, new_vacant_y))
+        return FilledGrid.vacate(new_parent, zip(new_vacant_x, new_vacant_y))
 
 
 FilledGridType = types.Generic(FilledGrid, types.TypeVar("NumX"), types.TypeVar("NumY"))

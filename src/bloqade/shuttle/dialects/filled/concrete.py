@@ -17,11 +17,11 @@ from .types import FilledGrid
 @dialect.register
 class FilledGridMethods(MethodTable):
 
-    @impl(stmts.Vacat)
-    def vacat(self, interp: Interpreter, frame: Frame, stmt: stmts.Vacat):
+    @impl(stmts.Vacate)
+    def vacat(self, interp: Interpreter, frame: Frame, stmt: stmts.Vacate):
         zone = frame.get_casted(stmt.zone, Grid)
-        vacant = frame.get_casted(stmt.vacant, ilist.IList[tuple[int, int], Any])
-        return (FilledGrid.vacat(zone, vacant),)
+        vacant = frame.get_casted(stmt.vacancies, ilist.IList[tuple[int, int], Any])
+        return (FilledGrid.vacate(zone, vacant),)
 
     @impl(stmts.Fill)
     def fill(self, interp: Interpreter, frame: Frame, stmt: stmts.Fill):

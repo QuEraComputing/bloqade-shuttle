@@ -12,11 +12,11 @@ Ny = types.TypeVar("Ny")
 
 
 @decl.statement(dialect=dialect)
-class Vacat(ir.Statement):
+class Vacate(ir.Statement):
     traits = frozenset({ir.Pure(), lowering.FromPythonCall()})
 
     zone: ir.SSAValue = info.argument(grid.GridType[Nx, Ny])
-    vacant: ir.SSAValue = info.argument(
+    vacancies: ir.SSAValue = info.argument(
         ilist.IListType[types.Tuple[types.Int, types.Int], NumVacant]
     )
     result: ir.ResultValue = info.result(FilledGridType[Nx, Ny])
