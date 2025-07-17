@@ -38,10 +38,9 @@ class FilledGrid(grid.Grid[NumX, NumY]):
         return id(self)
 
     def is_equal(self, other: Any) -> bool:
-        if not isinstance(other, FilledGrid):
-            return False
         return (
-            self.parent.is_equal(other.parent)
+            isinstance(other, FilledGrid)
+            and self.parent.is_equal(other.parent)
             and self.vacant_x == other.vacant_x
             and self.vacant_y == other.vacant_y
         )
