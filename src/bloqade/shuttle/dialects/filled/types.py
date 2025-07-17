@@ -63,14 +63,18 @@ class FilledGrid(grid.Grid[NumX, NumY]):
         cls, grid_obj: grid.Grid[NumX, NumY], filled: Sequence[tuple[int, int]]
     ) -> "FilledGrid[NumX, NumY]":
         num_x, num_y = grid_obj.shape
-        vacant_x, vacant_y = zip(
-            *(
-                (x, y)
-                for x in range(num_x)
-                for y in range(num_y)
-                if (x, y) not in filled
-            )
+        vacancies = (
+            (x, y) for x in range(num_x) for y in range(num_y) if (x, y) not in filled
         )
+
+        if isinstance(grid_obj, FilledGrid):
+            vacancies = (
+                (x, y)
+                for x, y in vacancies
+                if x not in grid_obj.vacant_x and y not in grid_obj.vacant_y
+            )
+
+        vacant_x, vacant_y = zip(*vacancies)
 
         return cls(parent=grid_obj, vacant_x=vacant_x, vacant_y=vacant_y)
 
@@ -78,6 +82,14 @@ class FilledGrid(grid.Grid[NumX, NumY]):
     def vacat(
         cls, grid_obj: grid.Grid[NumX, NumY], vacant: Iterable[tuple[int, int]]
     ) -> "FilledGrid[NumX, NumY]":
+
+        if isinstance(grid_obj, FilledGrid):
+            vacant = (
+                (x, y)
+                for x, y in vacant
+                if x not in grid_obj.vacant_x and y not in grid_obj.vacant_y
+            )
+
         vacant_x, vacant_y = zip(*sorted(vacant))
 
         return cls(parent=grid_obj, vacant_x=vacant_x, vacant_y=vacant_y)

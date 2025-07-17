@@ -1,5 +1,6 @@
 from typing import Any
 
+from bloqade.geometry.dialects.grid.types import Grid
 from kirin.dialects import ilist
 from kirin.interp import (
     Frame,
@@ -18,13 +19,13 @@ class FilledGridMethods(MethodTable):
 
     @impl(stmts.Vacat)
     def vacat(self, interp: Interpreter, frame: Frame, stmt: stmts.Vacat):
-        zone = frame.get(stmt.zone)
+        zone = frame.get_casted(stmt.zone, Grid)
         vacant = frame.get_casted(stmt.vacant, ilist.IList[tuple[int, int], Any])
         return (FilledGrid.vacat(zone, vacant),)
 
     @impl(stmts.Fill)
     def fill(self, interp: Interpreter, frame: Frame, stmt: stmts.Fill):
-        zone = frame.get_casted(stmt.zone, FilledGrid)
+        zone = frame.get_casted(stmt.zone, Grid)
         filled = frame.get_casted(stmt.filled, ilist.IList[tuple[int, int], Any])
         return (FilledGrid.fill(zone, filled),)
 
