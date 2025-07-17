@@ -46,6 +46,18 @@ class FilledGrid(grid.Grid[NumX, NumY]):
             and self.vacant_y == other.vacant_y
         )
 
+    @cached_property
+    def positions(self) -> ilist.IList[tuple[float, float], Any]:
+        positions = tuple(
+            (x, y)
+            for (ix, x), (iy, y) in product(
+                enumerate(self.x_positions), enumerate(self.y_positions)
+            )
+            if ix not in self.vacant_x and iy not in self.vacant_y
+        )
+
+        return ilist.IList(positions)
+
     @classmethod
     def fill(
         cls, grid_obj: grid.Grid[NumX, NumY], filled: Sequence[tuple[int, int]]
@@ -113,18 +125,6 @@ class FilledGrid(grid.Grid[NumX, NumY]):
             for _, j, y in product(range(x_times), range(y_times), self.vacant_y)
         )
         return FilledGrid.vacat(new_parent, zip(new_vacant_x, new_vacant_y))
-
-    @cached_property
-    def positions(self) -> ilist.IList[tuple[float, float], Any]:
-        positions = tuple(
-            (x, y)
-            for (ix, x), (iy, y) in product(
-                enumerate(self.x_positions), enumerate(self.y_positions)
-            )
-            if ix not in self.vacant_x and iy not in self.vacant_y
-        )
-
-        return ilist.IList(positions)
 
 
 FilledGridType = types.Generic(FilledGrid, types.TypeVar("NumX"), types.TypeVar("NumY"))
