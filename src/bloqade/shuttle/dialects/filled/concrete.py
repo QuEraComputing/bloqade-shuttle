@@ -18,7 +18,7 @@ from .types import FilledGrid
 class FilledGridMethods(MethodTable):
 
     @impl(stmts.Vacate)
-    def vacat(self, interp: Interpreter, frame: Frame, stmt: stmts.Vacate):
+    def vacate(self, interp: Interpreter, frame: Frame, stmt: stmts.Vacate):
         zone = frame.get_casted(stmt.zone, Grid)
         vacant = frame.get_casted(stmt.vacancies, ilist.IList[tuple[int, int], Any])
         return (FilledGrid.vacate(zone, vacant),)
@@ -32,4 +32,4 @@ class FilledGridMethods(MethodTable):
     @impl(stmts.GetParent)
     def get_parent(self, interp: Interpreter, frame: Frame, stmt: stmts.GetParent):
         filled_grid = frame.get_casted(stmt.filled_grid, FilledGrid)
-        return (filled_grid.get_parent(),)
+        return (filled_grid.parent,)

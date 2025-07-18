@@ -5,7 +5,7 @@ from bloqade.shuttle import filled
 from bloqade.shuttle.prelude import move
 
 
-def test_vacat():
+def test_vacate():
 
     @move
     def test():
@@ -60,4 +60,14 @@ def test_scale():
     assert test() == filled.FilledGrid.vacate(
         parent.scale(1, 1),
         [(0, 0), (1, 1), (2, 2)],
+    )
+
+
+def test_positions():
+    expected_positions = ilist.IList(((0.3, 0.88), (0.3, 0.99), (0.4, 0.99)))
+    assert (
+        filled.FilledGrid.vacate(
+            grid.Grid.from_positions([0.3, 0.4], [0.88, 0.99]), frozenset([(1, 0)])
+        ).positions
+        == expected_positions
     )
