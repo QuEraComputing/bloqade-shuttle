@@ -20,8 +20,8 @@ class FilledGridMethods(MethodTable):
     @impl(stmts.Vacate)
     def vacate(self, interp: Interpreter, frame: Frame, stmt: stmts.Vacate):
         zone = frame.get_casted(stmt.zone, Grid)
-        vacant = frame.get_casted(stmt.vacancies, ilist.IList[tuple[int, int], Any])
-        return (FilledGrid.vacate(zone, vacant),)
+        vacancies = frame.get_casted(stmt.vacancies, ilist.IList[tuple[int, int], Any])
+        return (FilledGrid.vacate(zone, vacancies),)
 
     @impl(stmts.Fill)
     def fill(self, interp: Interpreter, frame: Frame, stmt: stmts.Fill):

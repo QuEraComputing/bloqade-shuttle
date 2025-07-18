@@ -22,10 +22,8 @@ def test_vacate():
 
     assert test() == filled.FilledGrid.vacate(
         parent,
-        [(0, 0), (1, 1), (2, 2)],
-    ).shift(
-        1, 1
-    ).scale(2, 2).repeat(2, 3, 10, 5)
+        frozenset([(0, 0), (1, 1), (2, 2)]),
+    ).shift(1, 1).scale(2, 2).repeat(2, 3, 10, 5)
 
 
 def test_shift():
@@ -42,7 +40,7 @@ def test_shift():
 
     assert test() == filled.FilledGrid.vacate(
         parent.shift(1, 1),
-        [(0, 0), (1, 1), (2, 2)],
+        frozenset([(0, 0), (1, 1), (2, 2)]),
     )
 
 
@@ -71,3 +69,26 @@ def test_positions():
         ).positions
         == expected_positions
     )
+
+
+def test_repeat():
+    original = filled.FilledGrid.vacate(
+        grid.Grid.from_positions([0.3, 0.4], [0.88, 0.99]), frozenset([(0, 1)])
+    )
+
+    tiled = original.repeat(2, 3, 10, 5)
+    parent = original.parent.repeat(2, 3, 10, 5)
+
+    expected_vacancies = frozenset(
+        [
+            (0, 1),
+            (0, 3),
+            (0, 5),
+            (2, 1),
+            (2, 3),
+            (2, 5),
+        ]
+    )
+
+    assert tiled.parent == parent
+    assert tiled.vacancies == expected_vacancies
