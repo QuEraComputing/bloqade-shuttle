@@ -11,6 +11,7 @@ from bloqade.shuttle import spec as spec_module
 from bloqade.shuttle.dialects import (
     action,
     atom,
+    filled,
     gate,
     init,
     measure,
@@ -23,7 +24,7 @@ from bloqade.shuttle.passes.schedule2path import ScheduleToPath
 from bloqade.shuttle.rewrite.desugar import DesugarTurnOffRewrite, DesugarTurnOnRewrite
 
 
-@ir.dialect_group(structural.union([spec, grid, atom, gate, op, qubit]))
+@ir.dialect_group(structural.union([spec, grid, filled, atom, gate, op, qubit]))
 def kernel(self):
     def run_pass(
         mt: ir.Method,
@@ -50,7 +51,7 @@ def kernel(self):
 
 
 # We dont allow [cf, aod, schedule] appear in move function
-@ir.dialect_group(structural.union([action, spec, grid]))
+@ir.dialect_group(structural.union([action, spec, grid, filled]))
 def tweezer(self):
     fold_pass = Fold(self)
     typeinfer_pass = TypeInfer(self)
@@ -91,7 +92,7 @@ def tweezer(self):
 
 # no action allow. can have cf, with addtional spec
 @ir.dialect_group(
-    structural.union([init, schedule, path, grid, spec, gate, op, measure])
+    structural.union([init, schedule, path, grid, filled, spec, gate, op, measure])
 )
 def move(self):
     schedule_to_path = ScheduleToPath(self)
