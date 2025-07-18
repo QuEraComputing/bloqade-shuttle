@@ -92,3 +92,56 @@ def test_repeat():
 
     assert tiled.parent == parent
     assert tiled.vacancies == expected_vacancies
+
+
+def test_fill_filled():
+
+    zone = grid.Grid.from_positions([0, 1, 2], [0, 1, 2])
+    filled_1 = filled.FilledGrid.fill(zone, [(0, 0)])
+    assert filled_1.vacancies == frozenset(
+        [(1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)]
+    )
+
+    filled_2 = filled.FilledGrid.fill(filled_1, [(1, 1), (1, 2)])
+    assert filled_2.vacancies == frozenset(
+        [(1, 0), (2, 0), (0, 1), (2, 1), (0, 2), (2, 2)]
+    )
+
+
+def test_fill_vacated():
+    zone = grid.Grid.from_positions([0, 1, 2], [0, 1, 2])
+    filled_1 = filled.FilledGrid.vacate(zone, [(0, 0), (0, 1), (0, 2)])
+    assert filled_1.vacancies == frozenset([(0, 0), (0, 1), (0, 2)])
+
+    filled_2 = filled.FilledGrid.fill(filled_1, [(1, 1), (1, 2)])
+    assert filled_1.vacancies == frozenset([(0, 0), (0, 1), (0, 2)])
+
+    filled_3 = filled.FilledGrid.fill(filled_2, [(0, 0)])
+    assert filled_3.vacancies == frozenset([(0, 1), (0, 2)])
+
+
+def test_vacate_filled():
+    zone = grid.Grid.from_positions([0, 1, 2], [0, 1, 2])
+    filled_1 = filled.FilledGrid.fill(zone, [(0, 0), (0, 1), (0, 2)])
+    assert filled_1.vacancies == frozenset(
+        [(1, 0), (2, 0), (1, 1), (2, 1), (1, 2), (2, 2)]
+    )
+
+    filled_2 = filled.FilledGrid.vacate(filled_1, [(1, 1), (1, 2)])
+    assert filled_2.vacancies == frozenset(
+        [(1, 0), (2, 0), (1, 1), (2, 1), (1, 2), (2, 2)]
+    )
+
+    filled_3 = filled.FilledGrid.vacate(filled_2, [(0, 1)])
+    assert filled_3.vacancies == frozenset(
+        [(1, 0), (2, 0), (1, 1), (2, 1), (1, 2), (2, 2), (0, 1)]
+    )
+
+
+def test_get_view():
+    zone = grid.Grid.from_positions([0, 1, 2], [0, 1, 2])
+    filled_1 = filled.FilledGrid.vacate(zone, [(0, 0), (0, 1), (0, 2)])
+
+    view = filled_1.get_view(ilist.IList([0, 2]), ilist.IList([0, 2]))
+
+    assert view.vacancies == frozenset([(0, 0), (0, 1)])

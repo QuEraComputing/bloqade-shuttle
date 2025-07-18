@@ -60,12 +60,13 @@ class FilledGrid(grid.Grid[NumX, NumY]):
         cls, grid_obj: grid.Grid[NumX, NumY], filled: Sequence[tuple[int, int]]
     ) -> "FilledGrid[NumX, NumY]":
         num_x, num_y = grid_obj.shape
-        vacancies = frozenset(
-            ele for ele in product(range(num_x), range(num_y)) if ele not in filled
-        )
 
         if isinstance(grid_obj, FilledGrid):
-            vacancies = vacancies.union(grid_obj.vacancies)
+            vacancies = grid_obj.vacancies
+        else:
+            vacancies = frozenset(product(range(num_x), range(num_y)))
+
+        vacancies = vacancies - frozenset(filled)
 
         return cls(parent=grid_obj, vacancies=vacancies)
 
@@ -73,11 +74,15 @@ class FilledGrid(grid.Grid[NumX, NumY]):
     def vacate(
         cls, grid_obj: grid.Grid[NumX, NumY], vacancies: Iterable[tuple[int, int]]
     ) -> "FilledGrid[NumX, NumY]":
-        vacancies = frozenset(vacancies)
-        if isinstance(grid_obj, FilledGrid):
-            vacancies = vacancies.union(grid_obj.vacancies)
 
-        return cls(parent=grid_obj, vacancies=vacancies)
+        if isinstance(grid_obj, FilledGrid):
+            input_vacancies = grid_obj.vacancies
+        else:
+            input_vacancies = frozenset()
+
+        input_vacancies = input_vacancies.union(vacancies)
+
+        return cls(parent=grid_obj, vacancies=input_vacancies)
 
     def get_view(  # type: ignore
         self, x_indices: ilist.IList[int, Any], y_indices: ilist.IList[int, Any]
