@@ -34,7 +34,7 @@ class FilledGrid(grid.Grid[NumX, NumY]):
         )
 
     def __hash__(self):
-        return hash((FilledGrid, self.parent, self.vacancies))
+        return hash((self.parent, self.vacancies))
 
     def __eq__(self, other: Any) -> bool:
         return (
@@ -42,6 +42,9 @@ class FilledGrid(grid.Grid[NumX, NumY]):
             and self.parent == other.parent
             and self.vacancies == other.vacancies
         )
+
+    def is_equal(self, other: Any) -> bool:
+        return self == other
 
     @cached_property
     def positions(self) -> ilist.IList[tuple[float, float], Any]:
