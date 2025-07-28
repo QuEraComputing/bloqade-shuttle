@@ -16,7 +16,7 @@ nav:
     - blog/index.md
 
   - API Reference:
-    - Flair dialect group:
+    - Shuttle dialect group:
       - Kernel decorator: reference/bloqade/shuttle/prelude.md
       - stdlib: reference/bloqade/shuttle/stdlib/*
 
