@@ -1,3 +1,4 @@
+# type: ignore
 """Generate the code reference pages and navigation."""
 
 from pathlib import Path
