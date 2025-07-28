@@ -18,6 +18,25 @@ nav:
   - API Reference:
     - Shuttle dialect group:
       - Kernel decorator: reference/bloqade/shuttle/prelude.md
+      - Dialects:
+        - action:
+          - statements: reference/bloqade/shuttle/dialects/action/_interface.md
+        - atom:
+          - statements: reference/bloqade/shuttle/dialects/atom/_interface.md
+        - filled:
+          - statements: reference/bloqade/shuttle/dialects/filled/_interface.md
+        - gate:
+          - statements: reference/bloqade/shuttle/dialects/gate/_interface.md
+        - init:
+          - statements: reference/bloqade/shuttle/dialects/init/_interface.md
+        - measure:
+          - statements: reference/bloqade/shuttle/dialects/measure/_interface.md
+        - path:
+          - statements: reference/bloqade/shuttle/dialects/path/_interface.md
+        - schedule:
+          - statements: reference/bloqade/shuttle/dialects/schedule/_interface.md
+        - spec:
+          - statements: reference/bloqade/shuttle/dialects/spec/_interface.md
       - stdlib: reference/bloqade/shuttle/stdlib/*
 
 
