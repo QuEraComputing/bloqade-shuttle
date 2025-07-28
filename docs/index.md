@@ -1,5 +1,5 @@
 
-# Welcome to Bloqade-Shuttle 
+# Welcome to Bloqade-Shuttle
 
 Bloqade-Shuttle is atom moving embedded domain-specific languages (eDSLs) written with kirin-toolchains.
 

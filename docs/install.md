@@ -39,4 +39,3 @@ tool `pre-commit` has been installed as part of the development dependencies. Yo
 ```bash
 pre-commit install
 ```
-
