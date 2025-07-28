@@ -1,7 +1,7 @@
 
 # Welcome to Bloqade-Shuttle
 
-Bloqade-Shuttle is atom moving embedded domain-specific languages (eDSLs) written with kirin-toolchains.
+Bloqade-Shuttle is an atom moving embedded domain-specific language (eDSL) written with kirin-toolchains.
 
 ## Installation
 
