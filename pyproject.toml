@@ -45,9 +45,6 @@ dev-dependencies = [
     "rust-just>=1.36.0",
 ]
 
-[tool.uv.sources]
-bloqade-insight = { workspace = true }
-
 [dependency-groups]
 doc = [
     "griffe-inherited-docstrings>=1.1.1",
