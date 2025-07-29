@@ -1,0 +1,150 @@
+from dataclasses import dataclass, field
+from typing import Any, cast
+
+from bloqade.geometry.dialects import grid
+from bloqade.insight.dialects import trajectory
+from bloqade.insight.prelude import insight
+from bloqade.squin import qubit
+from kirin import ir, rewrite
+from kirin.analysis import const
+from kirin.dialects import cf, func, ilist
+from kirin.ir.nodes.stmt import Statement
+from kirin.passes import Pass
+from kirin.rewrite.abc import RewriteResult, RewriteRule
+
+from bloqade.shuttle import arch
+from bloqade.shuttle.dialects import init, path
+from bloqade.shuttle.passes import fold, inject_spec
+
+
+@insight
+def fill(fill_arguments: ilist.IList[grid.Grid, Any]) -> trajectory.AtomState:
+    locations = []
+    for zone in fill_arguments:
+        for x in grid.get_xpos(zone):
+            for y in grid.get_ypos(zone):
+                locations = locations + [(x, y)]
+
+    return trajectory.initialize(qubit.new(len(locations)), locations)
+
+
+@dataclass
+class ShuttleToInsightRule(RewriteRule):
+    fill_state: ir.SSAValue | None = field(default=None, init=False)
+
+    STMTS = (
+        cf.Branch,
+        cf.ConditionalBranch,
+        path.Play,
+        init.Fill,
+    )
+
+    def path_to_trajectory(self, path: path.AbstractPath) -> ir.SSAValue:
+        raise NotImplementedError("Missing implementation for path_to_trajectory")
+
+    def rewrite_Block(self, node: ir.Block) -> RewriteResult:
+        if (
+            not isinstance(region := node.parent_node, ir.Region)
+            or region._block_idx[node] == 0
+        ):
+            # skip entry block of entry method
+            return RewriteResult()
+
+        self.curr_state = node.args.insert_from(
+            0, trajectory.AtomStateType, name="atom_state"
+        )
+        return RewriteResult(has_done_something=True)
+
+    def rewrite_Statement(self, node: Statement) -> RewriteResult:
+        if not isinstance(node, self.STMTS):
+            return RewriteResult()
+
+        return getattr(self, f"rewrite_{type(node).__name__}", self.default)(node)
+
+    def default(self, node: Statement) -> RewriteResult:
+        return RewriteResult()
+
+    def rewrite_Fill(self, node: Statement) -> RewriteResult:
+        if (
+            self.fill_state is None
+            or not isinstance(node, init.Fill)
+            or (parent_block := node.parent_block) is None
+        ):
+            return RewriteResult()
+
+        # split current block into two blocks, one with the fill statement and one without
+        new_block = ir.Block()
+
+        while (arg := parent_block.args.popfirst()) is not None:
+            new_block.args.append(arg)
+
+        stmt = parent_block.first_stmt
+        while stmt is not node and stmt is not None:
+            next_stmt = stmt.next_stmt
+            stmt.detach()
+            new_block.stmts.append(stmt)
+            stmt = next_stmt
+
+        if len(parent_block.stmts) == 0:
+            return RewriteResult()
+
+        node.replace_by(
+            curr_state_stmt := func.Invoke(tuple(node.args), callee=fill, kwargs=())
+        )
+        self.curr_state = curr_state_stmt.result
+        new_block.stmts.append(
+            cf.Branch(arguments=(self.curr_state,), successor=parent_block)
+        )
+
+        return RewriteResult(has_done_something=True)
+
+    def rewrite_Play(self, node: path.Play) -> RewriteResult:
+        if node.path.type.is_subseteq(path.ParallelPathType):
+            return RewriteResult()
+
+        path_value = node.path.hints.get("const")
+
+        if not isinstance(path_value, const.Value):
+            return RewriteResult()
+
+        traj = self.path_to_trajectory(cast(path.Path, path_value.data))
+
+        node.replace_by(new_node := trajectory.Move(self.curr_state, traj))
+        self.curr_state = new_node.result
+        return RewriteResult(has_done_something=True)
+
+    def rewrite_Branch(self, node: cf.Branch) -> RewriteResult:
+        node.replace_by(
+            cf.Branch(
+                arguments=(self.curr_state, *node.arguments),
+                successor=node.successor,
+            )
+        )
+        return RewriteResult(has_done_something=True)
+
+    def rewrite_ConditionalBranch(self, node: cf.ConditionalBranch) -> RewriteResult:
+        node.replace_by(
+            cf.ConditionalBranch(
+                node.cond,
+                (self.curr_state, *node.then_arguments),
+                (self.curr_state, *node.else_arguments),
+                then_successor=node.then_successor,
+                else_successor=node.else_successor,
+            )
+        )
+        return RewriteResult(has_done_something=True)
+
+
+@dataclass
+class PathToInsight(Pass):
+    arch_spec: arch.ArchSpec
+
+    def unsafe_run(self, mt: ir.Method) -> RewriteResult:
+        result = inject_spec.InjectSpecsPass(
+            mt.dialects, self.arch_spec, fold=False
+        ).unsafe_run(mt)
+        result = result.join(
+            fold.AggressiveUnroll(mt.dialects, no_raise=self.no_raise).unsafe_run(mt)
+        )
+        result = result.join(rewrite.Walk(ShuttleToInsightRule()).rewrite(mt.code))
+        return result
