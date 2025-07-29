@@ -7,7 +7,7 @@ from bloqade.shuttle.arch import ArchSpec
 from bloqade.shuttle.dialects import schedule
 
 from ._dialect import dialect
-from .types import PathType
+from .types import ParallelPathType, PathType
 
 
 @decl.statement(dialect=dialect)
@@ -29,12 +29,12 @@ class Parallel(ir.Statement):
 
     traits = frozenset({ir.Pure()})
     paths: tuple[ir.SSAValue, ...] = info.argument()
-    result: ir.ResultValue = info.result(PathType)
+    result: ir.ResultValue = info.result(ParallelPathType)
 
     def __init__(self, paths: tuple[ir.SSAValue, ...]):
         super().__init__(
             args=paths,
-            result_types=[PathType],
+            result_types=[ParallelPathType],
             args_slice={"paths": slice(0, len(paths), 1)},
         )
 
@@ -45,12 +45,12 @@ class Auto(ir.Statement):
 
     traits = frozenset({ir.Pure()})
     paths: tuple[ir.SSAValue, ...] = info.argument()
-    result: ir.ResultValue = info.result(PathType)
+    result: ir.ResultValue = info.result(ParallelPathType)
 
     def __init__(self, paths: tuple[ir.SSAValue, ...]):
         super().__init__(
             args=paths,
-            result_types=[PathType],
+            result_types=[ParallelPathType],
             args_slice={"paths": slice(0, len(paths), 1)},
         )
 

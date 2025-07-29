@@ -8,4 +8,10 @@ from .stmts import (
     Parallel as Parallel,
     Play as Play,
 )
-from .types import Path as Path, PathType as PathType
+from .types import (
+    AbstractPath as AbstractPath,
+    ParallelPath as ParallelPath,
+    ParallelPathType as ParallelPathType,
+    Path as Path,
+    PathType as PathType,
+)

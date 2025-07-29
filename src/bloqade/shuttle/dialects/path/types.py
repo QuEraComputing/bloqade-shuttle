@@ -7,8 +7,12 @@ from kirin.dialects import ilist
 from bloqade.shuttle.codegen.taskgen import AbstractAction
 
 
+class AbstractPath:
+    pass
+
+
 @dataclass
-class Path:
+class Path(AbstractPath):
     x_tones: ilist.IList[int, Any]
     y_tones: ilist.IList[int, Any]
     path: list[AbstractAction] = field(default_factory=list, repr=False)
@@ -20,4 +24,10 @@ class Path:
         return id(self)
 
 
-PathType = types.PyClass(Path)
+@dataclass
+class ParallelPath(AbstractPath):
+    paths: list[Path]
+
+
+PathType = types.PyClass(AbstractPath)
+ParallelPathType = types.PyClass(ParallelPath)
