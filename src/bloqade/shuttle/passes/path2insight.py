@@ -7,7 +7,7 @@ from bloqade.insight.prelude import insight
 from bloqade.squin import qubit
 from kirin import ir, rewrite
 from kirin.analysis import const
-from kirin.dialects import cf, func, ilist, py
+from kirin.dialects import cf, ilist, py
 from kirin.ir.nodes.stmt import Statement
 from kirin.passes import Pass
 from kirin.rewrite.abc import RewriteResult, RewriteRule
@@ -111,9 +111,21 @@ class ShuttleToInsightRule(RewriteRule):
         if (
             self.fill_state is None
             or not isinstance(node, init.Fill)
+            or not isinstance(
+                locations_hint := node.locations.hints.get("const"), const.Value
+            )
+            or not isinstance(locations := locations_hint.data, ilist.IList)
             or (parent_block := node.parent_block) is None
         ):
             return RewriteResult()
+
+        flattened_locations = []
+        for location in locations:
+            if not isinstance(location, grid.Grid):
+                return RewriteResult()
+            for x in grid.get_xpos(location):
+                for y in grid.get_ypos(location):
+                    flattened_locations.append((x, y))
 
         # split current block into two blocks, one with the fill statement and one without
         new_block = ir.Block()
@@ -131,10 +143,17 @@ class ShuttleToInsightRule(RewriteRule):
         if len(parent_block.stmts) == 0:
             return RewriteResult()
 
-        node.replace_by(
-            curr_state_stmt := func.Invoke(tuple(node.args), callee=fill, kwargs=())
+        # replace the fill statement with a constant that initializes the atom state
+        new_block.stmts.append(num_qubits := py.Constant(len(flattened_locations)))
+        new_block.stmts.append(locations_stmt := py.Constant(flattened_locations))
+        new_block.stmts.append(qubits := qubit.New(num_qubits.result))
+        new_block.stmts.append(
+            curr_state_stmt := trajectory.Initialize(
+                qubits.result, locations_stmt.result
+            )
         )
-        self.curr_state = curr_state_stmt.result
+
+        self.curr_state = curr_state_stmt.state
         new_block.stmts.append(
             cf.Branch(arguments=(self.curr_state,), successor=parent_block)
         )
