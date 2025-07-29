@@ -57,7 +57,13 @@ class AggressiveUnroll(Pass):
 
         self.typeinfer.unsafe_run(mt)
         result = (
-            Walk(Chain(ilist.rewrite.ConstList2IList(), ilist.rewrite.Unroll()))
+            Walk(
+                Chain(
+                    ilist.rewrite.ConstList2IList(),
+                    ilist.rewrite.InlineGetItem(),
+                    ilist.rewrite.Unroll(),
+                )
+            )
             .rewrite(mt.code)
             .join(result)
         )
