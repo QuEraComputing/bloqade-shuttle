@@ -7,12 +7,13 @@ from bloqade.insight.prelude import insight
 from bloqade.squin import qubit
 from kirin import ir, rewrite
 from kirin.analysis import const
-from kirin.dialects import cf, func, ilist
+from kirin.dialects import cf, func, ilist, py
 from kirin.ir.nodes.stmt import Statement
 from kirin.passes import Pass
 from kirin.rewrite.abc import RewriteResult, RewriteRule
 
 from bloqade.shuttle import arch
+from bloqade.shuttle.codegen import taskgen
 from bloqade.shuttle.dialects import init, path
 from bloqade.shuttle.passes import fold, inject_spec
 
@@ -39,8 +40,50 @@ class ShuttleToInsightRule(RewriteRule):
         init.Fill,
     )
 
-    def path_to_trajectory(self, path: path.AbstractPath) -> ir.SSAValue:
-        raise NotImplementedError("Missing implementation for path_to_trajectory")
+    @staticmethod
+    def path_to_trajectory(path: path.Path) -> list[trajectory.Trajectory] | None:
+        active_x_indices: set[int] = set()
+        active_y_indices: set[int] = set()
+
+        x_indices = range(len(path.x_tones))
+        y_indices = range(len(path.y_tones))
+
+        trajectories = []
+        for action in path.path:
+            match action:
+                case taskgen.WayPointsAction(waypoints) if (
+                    len(waypoints) > 1
+                    and len(active_x_indices) > 0
+                    and len(active_y_indices) > 0
+                ):
+                    # do not add trajectory if no traps are generated,
+                    # e.g. the number of active tones are zero for either x or y.
+                    active_waypoints = tuple(
+                        waypoint.get_view(
+                            ilist.IList(sorted(active_x_indices)),
+                            ilist.IList(sorted(active_y_indices)),
+                        )
+                        for waypoint in waypoints
+                    )
+                    trajectories.append(trajectory.Trajectory(active_waypoints))
+                case taskgen.TurnOnAction(x_slice, y_slice):
+                    active_x_indices.update(
+                        x_indices[x_slice] if isinstance(x_slice, slice) else x_slice
+                    )
+                    active_y_indices.update(
+                        y_indices[y_slice] if isinstance(y_slice, slice) else y_slice
+                    )
+                case taskgen.TurnOffAction(x_slice, y_slice):
+                    active_x_indices.difference_update(
+                        x_indices[x_slice] if isinstance(x_slice, slice) else x_slice
+                    )
+                    active_y_indices.difference_update(
+                        y_indices[y_slice] if isinstance(y_slice, slice) else y_slice
+                    )
+                case _:
+                    return None
+
+        return trajectories
 
     def rewrite_Block(self, node: ir.Block) -> RewriteResult:
         if (
@@ -107,10 +150,20 @@ class ShuttleToInsightRule(RewriteRule):
         if not isinstance(path_value, const.Value):
             return RewriteResult()
 
-        traj = self.path_to_trajectory(cast(path.Path, path_value.data))
+        trajectories = self.path_to_trajectory(cast(path.Path, path_value.data))
 
-        node.replace_by(new_node := trajectory.Move(self.curr_state, traj))
-        self.curr_state = new_node.result
+        if trajectories is None:
+            return RewriteResult()
+
+        for traj in trajectories:
+            (traj_stmt := py.Constant(traj)).insert_before(node)
+            (
+                move_stmt := trajectory.Move(self.curr_state, traj_stmt.result)
+            ).insert_before(node)
+            self.curr_state = move_stmt.result
+
+        node.delete()
+
         return RewriteResult(has_done_something=True)
 
     def rewrite_Branch(self, node: cf.Branch) -> RewriteResult:
