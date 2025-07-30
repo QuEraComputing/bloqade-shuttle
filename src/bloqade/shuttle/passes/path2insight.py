@@ -115,9 +115,6 @@ class PathToInsightRule(RewriteRule):
             new_block.stmts.append(stmt)
             stmt = next_stmt
 
-        if len(parent_block.stmts) == 0:
-            return RewriteResult()
-
         # replace the fill statement with a constant that initializes the atom state
         location = cast(ilist.IList[grid.Grid[Any, Any], Any], locations_hint.data)
         flattened_locations = []

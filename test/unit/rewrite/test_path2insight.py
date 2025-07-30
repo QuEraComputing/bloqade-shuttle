@@ -62,6 +62,20 @@ def test_rewrite_fill():
     assert_nodes(test_region, expected_region)
 
 
+def test_rewrite_fill_skip():
+    locations = ir.TestValue()
+
+    test_region = ir.Region(test_block := ir.Block())
+    test_block.stmts.append(init.Fill(locations))
+
+    expected_region = ir.Region([entry_block := ir.Block()])
+    entry_block.stmts.append(init.Fill(locations))
+
+    rewrite.Walk(path2insight.PathToInsightRule()).rewrite(test_region)
+
+    assert_nodes(test_region, expected_region)
+
+
 def generate_path():
     x_tones = ilist.IList([3, 4, 5])
     y_tones = ilist.IList([0, 1, 2])
