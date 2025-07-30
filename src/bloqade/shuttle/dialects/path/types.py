@@ -29,5 +29,6 @@ class ParallelPath(AbstractPath):
     paths: list[Path]
 
 
-PathType = types.PyClass(AbstractPath)
+AbstractPathType = types.PyClass(AbstractPath)
+PathType = types.PyClass(Path)
 ParallelPathType = types.PyClass(ParallelPath)

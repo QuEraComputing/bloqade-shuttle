@@ -22,7 +22,7 @@ class PathToInsightRule(RewriteRule):
     fill_state: ir.SSAValue | None = field(default=None, init=False)
 
     @staticmethod
-    def path_to_trajectory(path: path.Path) -> list[trajectory.Trajectory] | None:
+    def path_to_trajectory(path: path.Path) -> list[trajectory.Trajectory]:
         active_x_indices: set[int] = set()
         active_y_indices: set[int] = set()
 
@@ -32,6 +32,7 @@ class PathToInsightRule(RewriteRule):
         trajectories = []
         for action in path.path:
             match action:
+
                 case taskgen.WayPointsAction(waypoints) if (
                     len(waypoints) > 1
                     and len(active_x_indices) > 0
@@ -61,8 +62,6 @@ class PathToInsightRule(RewriteRule):
                     active_y_indices.difference_update(
                         y_indices[y_slice] if isinstance(y_slice, slice) else y_slice
                     )
-                case _:
-                    return None
 
         return trajectories
 
@@ -147,18 +146,12 @@ class PathToInsightRule(RewriteRule):
         return RewriteResult(has_done_something=True)
 
     def rewrite_Play(self, node: path.Play) -> RewriteResult:
-        if node.path.type.is_subseteq(path.ParallelPathType):
-            return RewriteResult()
-
-        path_value = node.path.hints.get("const")
-
-        if not isinstance(path_value, const.Value):
+        if not node.path.type.is_subseteq(path.PathType) or not isinstance(
+            path_value := node.path.hints.get("const"), const.Value
+        ):
             return RewriteResult()
 
         trajectories = self.path_to_trajectory(cast(path.Path, path_value.data))
-
-        if trajectories is None:
-            return RewriteResult()
 
         for traj in trajectories:
             (traj_stmt := py.Constant(traj)).insert_before(node)

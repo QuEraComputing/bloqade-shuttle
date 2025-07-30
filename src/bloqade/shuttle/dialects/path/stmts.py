@@ -7,7 +7,7 @@ from bloqade.shuttle.arch import ArchSpec
 from bloqade.shuttle.dialects import schedule
 
 from ._dialect import dialect
-from .types import ParallelPathType, PathType
+from .types import AbstractPathType, ParallelPathType, PathType
 
 
 @decl.statement(dialect=dialect)
@@ -60,4 +60,4 @@ class Play(ir.Statement):
     name = "play"
 
     traits = frozenset({})
-    path: ir.SSAValue = info.argument(PathType)
+    path: ir.SSAValue = info.argument(AbstractPathType)

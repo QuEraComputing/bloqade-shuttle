@@ -10,6 +10,7 @@ from .stmts import (
 )
 from .types import (
     AbstractPath as AbstractPath,
+    AbstractPathType as AbstractPathType,
     ParallelPath as ParallelPath,
     ParallelPathType as ParallelPathType,
     Path as Path,
