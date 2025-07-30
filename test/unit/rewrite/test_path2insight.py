@@ -84,15 +84,16 @@ def generate_path_and_trajectories():
     pos_1 = grid.Grid.from_positions([3, 4, 5], [3, 4, 5])
     pos_2 = grid.Grid.from_positions([6, 7, 8], [6, 7, 8])
     pos_3 = grid.Grid.from_positions([9, 10, 11], [9, 10, 11])
+    pos_4 = grid.Grid.from_positions([12, 13, 14], [12, 13, 14])
 
     actions = [
         taskgen.WayPointsAction([pos_0]),
         taskgen.TurnOnYSliceAction(ilist.IList([0]), slice(None)),
         taskgen.WayPointsAction([pos_0, pos_1]),
         taskgen.TurnOnYSliceAction(ilist.IList([1]), slice(None)),
-        taskgen.WayPointsAction([pos_1, pos_2]),
+        taskgen.WayPointsAction([pos_1, pos_2, pos_3]),
         taskgen.TurnOffXYAction(ilist.IList([]), ilist.IList([0])),
-        taskgen.WayPointsAction([pos_2, pos_3]),
+        taskgen.WayPointsAction([pos_3, pos_4]),
     ]
 
     trajectories = [
@@ -106,12 +107,13 @@ def generate_path_and_trajectories():
             waypoints=(
                 pos_1.get_view(ilist.IList([0, 1]), ilist.IList([0, 1, 2])),
                 pos_2.get_view(ilist.IList([0, 1]), ilist.IList([0, 1, 2])),
+                pos_3.get_view(ilist.IList([0, 1]), ilist.IList([0, 1, 2])),
             )
         ),
         trajectory.Trajectory(
             waypoints=(
-                pos_2.get_view(ilist.IList([0, 1]), ilist.IList([1, 2])),
                 pos_3.get_view(ilist.IList([0, 1]), ilist.IList([1, 2])),
+                pos_4.get_view(ilist.IList([0, 1]), ilist.IList([1, 2])),
             )
         ),
     ]
