@@ -7,7 +7,7 @@ from kirin.analysis import const
 from kirin.dialects import cf, ilist, py
 
 from bloqade.shuttle.codegen import taskgen
-from bloqade.shuttle.dialects import init, path
+from bloqade.shuttle.dialects import gate, init, path
 from bloqade.shuttle.passes import path2insight
 
 
@@ -210,10 +210,119 @@ def test_rewrite_conditional_branch():
     assert_nodes(test_region, expected_region)
 
 
-if __name__ == "__main__":
-    test_rewrite_fill()
-    test_rewrite_play()
-    test_rewrite_play_skip()
-    test_rewrite_branch()
-    test_rewrite_conditional_branch()
-    print("Test passed successfully.")
+def test_rewrite_top_hat_cz():
+
+    zone = ir.TestValue()
+    zone.hints["const"] = const.Value(grid.Grid.from_positions([0, 1], [0, 1]))
+
+    test_region = ir.Region([ir.Block(), test_block := ir.Block()])
+    test_block.stmts.append(gate.TopHatCZ(zone))
+
+    expected_region = ir.Region([ir.Block(), expected_block := ir.Block()])
+    curr_state = expected_block.args.append_from(
+        trajectory.AtomStateType, name="atom_state"
+    )
+    expected_block.stmts.append(ymin := py.Constant(0))
+    expected_block.stmts.append(ymax := py.Constant(1))
+    expected_block.stmts.append(ymin_keepout := py.Constant(-3.0))
+    expected_block.stmts.append(ymax_keepout := py.Constant(4.0))
+    expected_block.stmts.append(
+        trajectory.CZTopHat(
+            curr_state,
+            ymin.result,
+            ymax.result,
+            ymin_keepout.result,
+            ymax_keepout.result,
+        )
+    )
+    rewrite.Walk(path2insight.PathToInsightRule()).rewrite(test_region)
+
+    assert_nodes(test_region, expected_region)
+
+
+def test_rewrite_top_hat_skip():
+
+    zone = ir.TestValue()
+
+    test_region = ir.Region([ir.Block(), test_block := ir.Block()])
+    test_block.stmts.append(gate.TopHatCZ(zone))
+
+    expected_region = ir.Region([ir.Block(), expected_block := ir.Block()])
+    expected_block.args.append_from(trajectory.AtomStateType, name="atom_state")
+    expected_block.stmts.append(gate.TopHatCZ(zone))
+
+    rewrite.Walk(path2insight.PathToInsightRule()).rewrite(test_region)
+
+    assert_nodes(test_region, expected_region)
+
+
+def test_rewrite_global_r():
+    axis_angle = ir.TestValue()
+    rotation_angle = ir.TestValue()
+    test_region = ir.Region([ir.Block(), test_block := ir.Block()])
+    test_block.stmts.append(gate.GlobalR(axis_angle, rotation_angle))
+
+    expected_region = ir.Region([ir.Block(), expected_block := ir.Block()])
+    curr_state = expected_block.args.append_from(
+        trajectory.AtomStateType, name="atom_state"
+    )
+    expected_block.stmts.append(
+        trajectory.GlobalR(curr_state, axis_angle, rotation_angle)
+    )
+
+    rewrite.Walk(path2insight.PathToInsightRule()).rewrite(test_region)
+
+    assert_nodes(test_region, expected_region)
+
+
+def test_rewrite_global_rz():
+    rotation_angle = ir.TestValue()
+    test_region = ir.Region([ir.Block(), test_block := ir.Block()])
+    test_block.stmts.append(gate.GlobalRz(rotation_angle))
+
+    expected_region = ir.Region([ir.Block(), expected_block := ir.Block()])
+    curr_state = expected_block.args.append_from(
+        trajectory.AtomStateType, name="atom_state"
+    )
+    expected_block.stmts.append(trajectory.GlobalRz(curr_state, rotation_angle))
+
+    rewrite.Walk(path2insight.PathToInsightRule()).rewrite(test_region)
+
+    assert_nodes(test_region, expected_region)
+
+
+def test_rewrite_local_r():
+    zone = ir.TestValue()
+    axis_angle = ir.TestValue()
+    rotation_angle = ir.TestValue()
+    test_region = ir.Region([ir.Block(), test_block := ir.Block()])
+    test_block.stmts.append(gate.LocalR(axis_angle, rotation_angle, zone))
+
+    expected_region = ir.Region([ir.Block(), expected_block := ir.Block()])
+    curr_state = expected_block.args.append_from(
+        trajectory.AtomStateType, name="atom_state"
+    )
+    expected_block.stmts.append(
+        trajectory.LocalR(curr_state, axis_angle, rotation_angle, zone)
+    )
+
+    rewrite.Walk(path2insight.PathToInsightRule()).rewrite(test_region)
+
+    assert_nodes(test_region, expected_region)
+
+
+def test_rewrite_local_rz():
+    zone = ir.TestValue()
+    rotation_angle = ir.TestValue()
+    test_region = ir.Region([ir.Block(), test_block := ir.Block()])
+    test_block.stmts.append(gate.LocalRz(rotation_angle, zone))
+
+    expected_region = ir.Region([ir.Block(), expected_block := ir.Block()])
+    curr_state = expected_block.args.append_from(
+        trajectory.AtomStateType, name="atom_state"
+    )
+    expected_block.stmts.append(trajectory.LocalRz(curr_state, rotation_angle, zone))
+
+    rewrite.Walk(path2insight.PathToInsightRule()).rewrite(test_region)
+
+    assert_nodes(test_region, expected_region)
