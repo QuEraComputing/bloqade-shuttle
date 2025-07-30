@@ -14,7 +14,7 @@ from kirin.rewrite.abc import RewriteResult, RewriteRule
 
 from bloqade.shuttle import arch
 from bloqade.shuttle.codegen import taskgen
-from bloqade.shuttle.dialects import init, path
+from bloqade.shuttle.dialects import gate, init, path
 from bloqade.shuttle.passes import fold, inject_spec
 
 
@@ -32,13 +32,6 @@ def fill(fill_arguments: ilist.IList[grid.Grid, Any]) -> trajectory.AtomState:
 @dataclass
 class ShuttleToInsightRule(RewriteRule):
     fill_state: ir.SSAValue | None = field(default=None, init=False)
-
-    STMTS = (
-        cf.Branch,
-        cf.ConditionalBranch,
-        path.Play,
-        init.Fill,
-    )
 
     @staticmethod
     def path_to_trajectory(path: path.Path) -> list[trajectory.Trajectory] | None:
@@ -99,9 +92,6 @@ class ShuttleToInsightRule(RewriteRule):
         return RewriteResult(has_done_something=True)
 
     def rewrite_Statement(self, node: Statement) -> RewriteResult:
-        if not isinstance(node, self.STMTS):
-            return RewriteResult()
-
         return getattr(self, f"rewrite_{type(node).__name__}", self.default)(node)
 
     def default(self, node: Statement) -> RewriteResult:
@@ -114,15 +104,13 @@ class ShuttleToInsightRule(RewriteRule):
             or not isinstance(
                 locations_hint := node.locations.hints.get("const"), const.Value
             )
-            or not isinstance(locations := locations_hint.data, ilist.IList)
             or (parent_block := node.parent_block) is None
         ):
             return RewriteResult()
 
+        location = cast(ilist.IList[grid.Grid[Any, Any], Any], locations_hint.data)
         flattened_locations = []
-        for location in locations:
-            if not isinstance(location, grid.Grid):
-                return RewriteResult()
+        for location in location:
             for x in grid.get_xpos(location):
                 for y in grid.get_ypos(location):
                     flattened_locations.append((x, y))
@@ -204,6 +192,83 @@ class ShuttleToInsightRule(RewriteRule):
                 else_successor=node.else_successor,
             )
         )
+        return RewriteResult(has_done_something=True)
+
+    def rewrite_TopHatCZ(self, node: gate.TopHatCZ) -> RewriteResult:
+        if not isinstance(zone_value := node.zone.hints.get("const"), const.Value):
+            return RewriteResult()
+
+        zone = cast(grid.Grid, zone_value.data)
+        ymin, ymax = zone.y_bounds()
+        assert ymin is not None and ymax is not None, "Zone must have y bounds"
+        ymin_keepout = ymin - node.lower_buffer
+        ymax_keepout = ymax + node.upper_buffer
+
+        (ymin_stmt := py.Constant(ymin)).insert_before(node)
+        (ymax_stmt := py.Constant(ymax)).insert_before(node)
+        (ymin_keepout_stmt := py.Constant(ymin_keepout)).insert_before(node)
+        (ymax_keepout_stmt := py.Constant(ymax_keepout)).insert_before(node)
+
+        node.replace_by(
+            cz_stmt := trajectory.CZTopHat(
+                self.curr_state,
+                ymin=ymin_stmt.result,
+                ymax=ymax_stmt.result,
+                ymin_keepout=ymin_keepout_stmt.result,
+                ymax_keepout=ymax_keepout_stmt.result,
+            )
+        )
+
+        self.curr_state = cz_stmt.result
+
+        return RewriteResult(has_done_something=True)
+
+    def rewrite_GlobalR(self, node: gate.GlobalR) -> RewriteResult:
+        node.replace_by(
+            gate_stmt := trajectory.GlobalR(
+                self.curr_state,
+                axes_angle=node.axis_angle,
+                rotation_angle=node.rotation_angle,
+            )
+        )
+        self.curr_state = gate_stmt.result
+
+        return RewriteResult(has_done_something=True)
+
+    def rewrite_GlobalRz(self, node: gate.GlobalRz) -> RewriteResult:
+        node.replace_by(
+            gate_stmt := trajectory.GlobalRz(
+                self.curr_state,
+                rotation_angle=node.rotation_angle,
+            )
+        )
+        self.curr_state = gate_stmt.result
+
+        return RewriteResult(has_done_something=True)
+
+    def rewrite_LocalR(self, node: gate.LocalR) -> RewriteResult:
+        node.replace_by(
+            gate_stmt := trajectory.LocalR(
+                self.curr_state,
+                axes_angle=node.axis_angle,
+                rotation_angle=node.rotation_angle,
+                locations=node.zone,
+            )
+        )
+        self.curr_state = gate_stmt.result
+
+        return RewriteResult(has_done_something=True)
+
+    def rewrite_LocalRz(self, node: gate.LocalRz) -> RewriteResult:
+        node.replace_by(
+            gate_stmt := trajectory.LocalRz(
+                self.curr_state,
+                rotation_angle=node.rotation_angle,
+                locations=node.zone,
+            )
+        )
+        self.curr_state = gate_stmt.result
+
         return RewriteResult(has_done_something=True)
 
 
