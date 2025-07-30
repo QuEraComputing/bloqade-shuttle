@@ -3,7 +3,6 @@ from typing import Any, cast
 
 from bloqade.geometry.dialects import grid
 from bloqade.insight.dialects import trajectory
-from bloqade.insight.prelude import insight
 from bloqade.squin import qubit
 from kirin import ir, rewrite
 from kirin.analysis import const
@@ -18,19 +17,8 @@ from bloqade.shuttle.dialects import gate, init, path
 from bloqade.shuttle.passes import fold, inject_spec
 
 
-@insight
-def fill(fill_arguments: ilist.IList[grid.Grid, Any]) -> trajectory.AtomState:
-    locations = []
-    for zone in fill_arguments:
-        for x in grid.get_xpos(zone):
-            for y in grid.get_ypos(zone):
-                locations = locations + [(x, y)]
-
-    return trajectory.initialize(qubit.new(len(locations)), locations)
-
-
 @dataclass
-class ShuttleToInsightRule(RewriteRule):
+class PathToInsightRule(RewriteRule):
     fill_state: ir.SSAValue | None = field(default=None, init=False)
 
     @staticmethod
@@ -97,30 +85,30 @@ class ShuttleToInsightRule(RewriteRule):
     def default(self, node: Statement) -> RewriteResult:
         return RewriteResult()
 
-    def rewrite_Fill(self, node: Statement) -> RewriteResult:
+    def rewrite_Fill(self, node: init.Fill) -> RewriteResult:
         if (
-            self.fill_state is None
-            or not isinstance(node, init.Fill)
+            self.fill_state is not None
             or not isinstance(
                 locations_hint := node.locations.hints.get("const"), const.Value
             )
             or (parent_block := node.parent_block) is None
+            or (parent_region := parent_block.parent_node) is None
         ):
             return RewriteResult()
 
-        location = cast(ilist.IList[grid.Grid[Any, Any], Any], locations_hint.data)
-        flattened_locations = []
-        for location in location:
-            for x in grid.get_xpos(location):
-                for y in grid.get_ypos(location):
-                    flattened_locations.append((x, y))
+        block_idx = parent_region._block_idx[parent_block]
+        parent_region.blocks.insert(block_idx, new_block := ir.Block())
 
-        # split current block into two blocks, one with the fill statement and one without
-        new_block = ir.Block()
+        for arg in parent_block.args:
+            new_block.args.append_from(arg.type, name=arg.name)
 
-        while (arg := parent_block.args.popfirst()) is not None:
-            new_block.args.append(arg)
+        for old_arg, new_arg in zip(list(parent_block.args), new_block.args):
+            old_arg.replace_by(new_arg)
+            parent_block.args.delete(old_arg)
 
+        parent_block.args.append_from(trajectory.AtomStateType, name="atom_state")
+
+        # split the statements of the parent block
         stmt = parent_block.first_stmt
         while stmt is not node and stmt is not None:
             next_stmt = stmt.next_stmt
@@ -132,9 +120,18 @@ class ShuttleToInsightRule(RewriteRule):
             return RewriteResult()
 
         # replace the fill statement with a constant that initializes the atom state
+        location = cast(ilist.IList[grid.Grid[Any, Any], Any], locations_hint.data)
+        flattened_locations = []
+        for location in location:
+            for x in location.x_positions:
+                for y in location.y_positions:
+                    flattened_locations.append((x, y))
+
         new_block.stmts.append(num_qubits := py.Constant(len(flattened_locations)))
-        new_block.stmts.append(locations_stmt := py.Constant(flattened_locations))
         new_block.stmts.append(qubits := qubit.New(num_qubits.result))
+        new_block.stmts.append(
+            locations_stmt := py.Constant(ilist.IList(flattened_locations))
+        )
         new_block.stmts.append(
             curr_state_stmt := trajectory.Initialize(
                 qubits.result, locations_stmt.result
@@ -145,6 +142,7 @@ class ShuttleToInsightRule(RewriteRule):
         new_block.stmts.append(
             cf.Branch(arguments=(self.curr_state,), successor=parent_block)
         )
+        node.delete()
 
         return RewriteResult(has_done_something=True)
 
@@ -283,5 +281,5 @@ class PathToInsight(Pass):
         result = result.join(
             fold.AggressiveUnroll(mt.dialects, no_raise=self.no_raise).unsafe_run(mt)
         )
-        result = result.join(rewrite.Walk(ShuttleToInsightRule()).rewrite(mt.code))
+        result = result.join(rewrite.Walk(PathToInsightRule()).rewrite(mt.code))
         return result
