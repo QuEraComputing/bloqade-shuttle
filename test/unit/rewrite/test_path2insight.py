@@ -76,7 +76,7 @@ def test_rewrite_fill_skip():
     assert_nodes(test_region, expected_region)
 
 
-def generate_path():
+def generate_path_and_trajectories():
     x_tones = ilist.IList([3, 4, 5])
     y_tones = ilist.IList([0, 1, 2])
 
@@ -129,7 +129,7 @@ def generate_path():
 def test_rewrite_play():
     pth = ir.TestValue()
     pth.type = path.PathType
-    pth_value, trajectories = generate_path()
+    pth_value, trajectories = generate_path_and_trajectories()
     pth.hints["const"] = const.Value(pth_value)
 
     test_region = ir.Region([ir.Block(), ir.Block([path.Play(pth)])])
