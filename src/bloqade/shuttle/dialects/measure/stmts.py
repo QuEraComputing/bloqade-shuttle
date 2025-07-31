@@ -1,12 +1,13 @@
 from typing import cast
 
 from bloqade.geometry.dialects import grid
+from bloqade.squin.qubit import MeasurementResultType
 from kirin import decl, ir, lowering, types
 from kirin.decl import info
 from kirin.dialects import ilist
 
 from ._dialect import dialect
-from .types import MeasurementArrayType, MeasurementResultType
+from .types import MeasurementArrayType
 
 NumX = types.TypeVar("NumX")
 NumY = types.TypeVar("NumY")
@@ -19,7 +20,6 @@ class Measure(ir.Statement):
     name = "measure"
 
     traits = frozenset({lowering.FromPythonCall()})
-
     grids: tuple[ir.SSAValue, ...] = info.argument(grid.GridType[NumX, NumY])
 
     def __init__(self, grids: tuple[ir.SSAValue, ...]):

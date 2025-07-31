@@ -1,12 +1,7 @@
 from typing import Generic, TypeVar
 
+from bloqade.squin.qubit import MeasurementResult
 from kirin import types
-
-
-# TODO: replace this with the squin dialect's MeasurementResultType
-class MeasurementResult:
-    pass
-
 
 NumRows = TypeVar("NumRows")
 NumCols = TypeVar("NumCols")
@@ -23,7 +18,6 @@ class MeasurementArray(Generic[NumRows, NumCols]):
         )
 
 
-MeasurementResultType = types.PyClass(MeasurementResult)
 MeasurementArrayType = types.Generic(
     MeasurementArray, types.TypeVar("NumRows"), types.TypeVar("NumCols")
 )
