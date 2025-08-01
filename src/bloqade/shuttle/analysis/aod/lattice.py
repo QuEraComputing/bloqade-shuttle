@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Any
 
 from bloqade.geometry.dialects import grid
 from kirin import ir
@@ -44,41 +43,10 @@ class Unknown(AODState):
 
 
 @dataclass
-class PythonRuntime(AODState):
-    """
-    AODState that represents a Python runtime value.
-    This is used to represent values that are not known at compile time.
-    """
-
-    value: Any
-
-    def is_subseteq(self, other: AODState) -> bool:
-        return isinstance(other, PythonRuntime) and self.value == other.value
-
-
-@dataclass
 class AOD(AODState):
     x_tones: frozenset[int]
     y_tones: frozenset[int]
     pos: grid.Grid
-
-    def is_subseteq(self, other: AODState) -> bool:
-        return self == other
-
-
-@dataclass
-class AODCollision(AODState):
-    x_tones: dict[int, int]
-    y_tones: dict[int, int]
-
-    def is_subseteq(self, other: AODState) -> bool:
-        return self == other
-
-
-@dataclass
-class AODJump(AODState):
-    x_tones: dict[int, tuple[float, float]]
-    y_tones: dict[int, tuple[float, float]]
 
     def is_subseteq(self, other: AODState) -> bool:
         return self == other
