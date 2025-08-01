@@ -7,7 +7,7 @@ authors = [
 ]
 dependencies = [
     "bloqade-geometry >=0.1.2,<0.2.0-dev",
-    "bloqade-circuit ~= 0.5.0",
+    "bloqade-circuit~=0.6.0",
     "kirin-toolchain ~= 0.17.0",
     "pint>=0.24.3",
     "pyarrow>=17.0.0",
