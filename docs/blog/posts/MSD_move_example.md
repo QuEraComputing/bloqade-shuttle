@@ -6,9 +6,9 @@ categories:
   - Tutorial
 ---
 
-# Programming the move layout for logical magic state distillation
-
 Download script [here](../scripts//MSD_move_example.py){:download="MSD_move_example.py"}.
+
+# Programming the move layout for logical magic state distillation
 
 
 In this example, we program the move layout employed in the demonstration of logical magic state distillation for a distance-5 color code, as presented in QuEra’s recent publication: [**“Experimental demonstration of logical magic state distillation”, Nature, 2025**](https://arxiv.org/pdf/2506.14169).
@@ -20,13 +20,16 @@ As a first step, we import the relevant modules of `bloqade.shuttle` and `kirin`
 
 ```python
 from typing import Any, TypeVar
+
+import matplotlib
 from bloqade.geometry.dialects import grid
+from kirin.dialects import ilist
+
+from bloqade.shuttle import gate, init, spec
 from bloqade.shuttle.prelude import move
-from bloqade.shuttle import spec, init, gate
 from bloqade.shuttle.stdlib.spec import single_zone_spec
 from bloqade.shuttle.stdlib.waypoints import move_by_waypoints
 from bloqade.shuttle.visualizer import PathVisualizer
-from kirin.dialects import ilist
 ```
 
 The primary subroutines used to implement atom transport are the `move` dialect and the `move_by_waypoints` function from the standard library. Programming atom movement in shuttle is centered around atoms arranged on two-dimensional grids. This reflects the capabilities of QuEra’s Gemini-class hardware, which utilizes pairs of acousto-optic deflectors (AODs) to manipulate atom positions independently in the x- and y-directions.
@@ -38,7 +41,7 @@ As a first step, we define three global parameters that govern the geometry and 
 
 - `grid_spacing`: Specifies the lattice spacing of the initial two-dimensional grid. This grid corresponds to the static trap array defined by the spatial light modulator (SLM), which generates the optical tweezers used to hold the atoms.
 
-- `entangling_pair_dist`: Sets the target distance between pairs of atoms that are intended to undergo a two-qubit entangling gate. This distance must be sufficiently small to enable a strong Rydberg-mediated interaction, which is essential for high-fidelity entanglement. A typical value used in experiments is $2 \mu m$.
+- `entangling_pair_dist`: Sets the target distance between pairs of atoms that are intended to undergo a two-qubit entangling gate. This distance must be sufficiently small to enable a strong Rydberg-mediated interaction, which is essential for high-fidelity entanglement. A typical value used in experiments is 2 μm.
 
 - `path_shift_dist`: During atom transport, it is often necessary to temporarily displace atoms off-grid to avoid collisions when crossing rows or columns. This parameter defines the offset applied to atoms during their movement, enabling collision-free shuttling through the array.
 
@@ -147,10 +150,10 @@ def entangle_rows(ctrls: ilist.IList[int, Any], qargs: ilist.IList[int, Any]):
     # get the shape of the trap array
     traps_shape = grid.shape(zone)
     # generate an ilist from 0 to the number of columns in the trap array
-    all_rows = ilist.range(traps_shape[0])
+    all_cols = ilist.range(traps_shape[0])
 
-    src = grid.sub_grid(zone, all_rows, ctrls)
-    dst = grid.sub_grid(zone, all_rows, qargs)
+    src = grid.sub_grid(zone, all_cols, ctrls)
+    dst = grid.sub_grid(zone, all_cols, qargs)
 
     # define the moves
     # shift the src grid to the right along the x-axis
@@ -215,8 +218,6 @@ ker = make_main(entangle_cols, entangle_rows)
 We can verify the correctness of the programmed move layout using the `PathVisualizer` utility provided by `bloqade.shuttle`. This tool displays the atom trajectories between defined waypoints and enables stepwise inspection of the full movement sequence via the `Continue` button. Red flashes are used to indicate the application of two-qubit gate pulses at the entangling zone during the sequence.
 
 ```python
-import matplotlib
-
 matplotlib.use("TkAgg")  # requirement for PathVisualizer
 
 PathVisualizer(ker.dialects, arch_spec=arch_spec).run(ker, ())
@@ -234,7 +235,9 @@ N = TypeVar("N")
 
 
 @move
-def get_final_positions(src, dst, offset: float):
+def get_final_positions(
+    src: ilist.IList[float, N], dst: ilist.IList[float, N], offset: float
+):
     """Helper function to compute the nearest final positions for entanglement."""
 
     assert len(src) == len(
@@ -298,8 +301,6 @@ ker = make_main(entangle_cols_low_dist, entangle_rows)
 Finally, we can once again visualize the optimized move pattern using the PathVisualizer to inspect the resulting trajectories and validate the updated layout.
 
 ```python
-import matplotlib
-
 matplotlib.use("TkAgg")  # requirement for PathVisualizer
 
 PathVisualizer(ker.dialects, arch_spec=arch_spec).run(ker, ())
