@@ -2,11 +2,12 @@
 date: 2025-08-02
 authors:
   - sostermann
+title: "Programming the move layout for logical magic state distillation"
 categories:
   - Tutorial
 ---
 
-Download script [here](../scripts//MSD_move_example.py){:download="MSD_move_example.py"}.
+Download script [here](../scripts//magic_state_distillation_move_example.py){:download="magic_state_distillation_move_example.py"}.
 
 # Programming the move layout for logical magic state distillation
 
