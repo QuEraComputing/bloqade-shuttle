@@ -226,7 +226,9 @@ N = TypeVar("N")
 
 
 @move
-def get_final_positions(src, dst, offset: float):
+def get_final_positions(
+    src: ilist.IList[float, N], dst: ilist.IList[float, N], offset: float
+):
     """Helper function to compute the nearest final positions for entanglement."""
 
     assert len(src) == len(
