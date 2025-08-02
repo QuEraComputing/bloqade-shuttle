@@ -1,5 +1,5 @@
 ---
-date: 2025-08-02
+date: 2025-08-04
 authors:
   - sostermann
 title: "Programming Moves for Logical Magic State Distillation"
