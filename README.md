@@ -9,10 +9,11 @@ stages of development, and we are focusing on building a steering committee for 
 project and gathering feedback on the design of the language and the IR to further the
 development of neutral atom quantum computers and their applications.
 
-The language and IR with [`Kirin`](https://queracomputing.github.io/kirin/latest/)
+The language and IR are built with [`Kirin`](https://queracomputing.github.io/kirin/latest/)
 which provides a easy to use framework for building domain specific languages with a
 built-in python frontend and IR with a focus on lowering the barrier to entry for
 building compilers for more scientific applications.
+
 
 ## Installation
 
