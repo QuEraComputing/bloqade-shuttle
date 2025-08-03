@@ -11,8 +11,8 @@ development of neutral atom quantum computers and their applications.
 
 The IR and language are built with [`Kirin`](https://queracomputing.github.io/kirin/latest/)
 which provides an easy-to-use framework for building domain specific languages with a
-built-in python frontend and IR with a focus on lowering the barrier to entry for
-building compilers for more scientific applications.
+built-in python frontend, unified MLIR like abstractions, and a focus on lowering
+the barrier to entry for building compilers for more scientific applications.
 
 ## Installation
 
