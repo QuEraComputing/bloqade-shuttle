@@ -21,7 +21,7 @@ applications.
 ```bash
 uv add bloqade-shuttle
 ```
-<! TODO: update links to point to documentation website once available. >
-See [Installation](install.md) for more details.
+<!--- TODO: update links to point to documentation website once available. --->
+See [Installation](https://improved-dollop-7j6z8v7.pages.github.io/dev/install) for more details.
 
-Check out new [Blog](blog/index.md) to understand more about tools and shuttle.
+Check out new [Blog](https://improved-dollop-7j6z8v7.pages.github.io/dev/blog/) to understand more about tools and shuttle.
