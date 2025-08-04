@@ -1,20 +1,18 @@
 # Bloqade-Shuttle
 
-Bloqade-shuttle is an SDK for simulation and running neutral atom quantum computers
-with explicit shuttling. The goal of this project is to provide both a frontend language
-for programming neutral atom quantum computers as well as an IR for optimizing
-scheduling of atom shuttling operations. While this project falls under the 
-[`Bloqade`](https://bloqade.quera.com/latest/) umbrella, we are still in the early
-stages of development. We are focusing on building a steering committee for this
-project and gathering feedback on the design of the language and the IR. Our ultimate
-goal is to work together, furthering the development of neutral atom quantum computers
-and their applications.
+Bloqade-shuttle is an SDK for simulation and programming neutral atom quantum computers
+at the level of atom layout and  shuttling.
 
-The IR and language are built with [`Kirin`](https://queracomputing.github.io/kirin/latest/).
-Kirin not only provides composability via an MLIR-like IR but also provides a built-in,
-customizable Python lowering, enabling the ability to embed the DSL in Python. Kirin
-also has tools for static analysis along with a rewrite infrastructure in Python,
-making it an ideal choice for scientific applications like Bloqade-Shuttle.
+The project aims to establish eDSL for programming and optimizing atom layout and
+shuttling operations on neutral atom quantum computers. Our goal is to provide a
+framework for anyone to use with neutral atom quantum technology.
+
+We welcome industry and academic partners to collaborate to develop Bloqade-shuttle to
+further advance neutral atom technology and its applications to quantum computing.
+
+If you are interested in guiding future development of this project, consider becoming a
+member of our open source steering committee!  We also welcome contributions via pull
+requests, bug reports, or feature requests.
 
 ## Installation
 
