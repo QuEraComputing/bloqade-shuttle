@@ -20,6 +20,14 @@ requests, bug reports, or feature requests.
 uv add bloqade-shuttle
 ```
 <!--- TODO: update links to point to documentation website once available. --->
-See [Installation](https://improved-dollop-7j6z8v7.pages.github.io/dev/install) for more details.
+See [Installation](https://queracomputing.github.io/bloqade-shuttle/dev/install) for more details.
 
-Check out new [Blog](https://improved-dollop-7j6z8v7.pages.github.io/dev/blog/) to understand more about tools and shuttle.
+Check out new [Blog](https://queracomputing.github.io/bloqade-shuttle/dev/blog/) to understand more about tools and shuttle.
+
+
+## Other useful links
+
+- [Documentation](https://queracomputing.github.io/bloqade-shuttle/dev/)
+- [Bloqade Geometry](https://queracomputing.github.io/bloqade-geometry/dev/) a related
+project that provides components for defining and manipulating geometric objects in
+Bloqade Shuttle.
