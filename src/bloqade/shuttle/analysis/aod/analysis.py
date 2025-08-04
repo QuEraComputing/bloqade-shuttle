@@ -1,25 +1,36 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Type, TypeVar
 
 from kirin import interp, ir
+from kirin.analysis import const
 from kirin.analysis.forward import Forward, ForwardFrame
 
+from bloqade.shuttle.arch import ArchSpecMixin
 from bloqade.shuttle.dialects import tracking
 
 from .lattice import AODState
 
 
 @dataclass
-class AODAnalysis(Forward[AODState]):
+class AODAnalysis(Forward[AODState], ArchSpecMixin):
 
-    keys = ["aod.analysis"]
+    keys = ["aod.analysis", "spec.interp"]
     lattice = AODState
 
-    max_x_tones: int
-    max_y_tones: int
+    T = TypeVar("T")
 
-    def get_const_value(self, typ, ssa: ir.SSAValue) -> Any | None:
-        raise NotImplementedError
+    def get_const_value(self, typ: Type[T], ssa: ir.SSAValue) -> T:
+        if not isinstance(value := ssa.hints.get("const"), const.Value):
+            raise interp.InterpreterError(
+                "Non-constant value encountered in AOD analysis."
+            )
+
+        if not isinstance(data := value.data, typ):
+            raise interp.InterpreterError(
+                f"Expected constant of type {typ}, got {type(data)}."
+            )
+
+        return data
 
     def eval_stmt_fallback(
         self, frame: ForwardFrame[AODState], stmt: ir.Statement

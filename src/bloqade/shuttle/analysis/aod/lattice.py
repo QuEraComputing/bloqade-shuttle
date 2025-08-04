@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from bloqade.geometry.dialects import grid
 from kirin import ir
+from kirin.dialects import ilist
 from kirin.ir.attrs.abc import LatticeAttributeMeta
 from kirin.lattice.abc import BoundedLattice
 from kirin.lattice.mixin import SimpleJoinMixin, SimpleMeetMixin
@@ -31,7 +32,6 @@ class AODState(
 
 @dataclass
 class NotAOD(AODState):
-
     def is_subseteq(self, other: AODState) -> bool:
         return True
 
@@ -48,5 +48,15 @@ class AOD(AODState):
     y_tones: frozenset[int]
     pos: grid.Grid
 
+    def active_positions(self) -> grid.Grid:
+        x_indices = ilist.IList(sorted(self.x_tones))
+        y_indices = ilist.IList(sorted(self.y_tones))
+        return self.pos.get_view(x_indices, y_indices)
+
     def is_subseteq(self, other: AODState) -> bool:
-        return self == other
+        # only check of the active AOD positions are equal not necessarily
+        # the exact positions
+        return (
+            isinstance(other, AOD)
+            and self.active_positions() == other.active_positions()
+        )

@@ -77,13 +77,15 @@ def _default_layout():
 @dataclass(frozen=True)
 class ArchSpec:
     layout: Layout = field(default_factory=_default_layout)  # type: ignore
+    max_x_tones: int = 16
+    max_y_tones: int = 16
 
 
 @dataclass
 class ArchSpecMixin:
     """Base class for interpreters that require an architecture specification."""
 
-    arch_spec: ArchSpec
+    arch_spec: ArchSpec = field(kw_only=True)
 
 
 @dataclass
