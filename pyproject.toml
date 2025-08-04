@@ -6,7 +6,7 @@ authors = [
     {name = "QuEra Computing Inc.", email = "info@quera.com"},
 ]
 dependencies = [
-    "bloqade-geometry >=0.1.2,<0.2.0-dev",
+    "bloqade-geometry >=0.1.6,<0.2.0-dev",
     "bloqade-circuit~=0.6.0",
     "kirin-toolchain ~= 0.17.0",
     "pint>=0.24.3",
@@ -55,6 +55,7 @@ doc = [
     "mkdocs-material>=9.5.44",
     "mkdocs-minify-plugin>=0.8.0",
     "mkdocstrings[python]>=0.27.0",
+    "jupytext>=1.17.2",
 ]
 
 [tool.hatch.metadata]
