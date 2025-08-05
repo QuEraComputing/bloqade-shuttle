@@ -28,6 +28,6 @@ Check out new [Blog](https://queracomputing.github.io/bloqade-shuttle/dev/blog/)
 ## Other useful links
 
 - [Documentation](https://queracomputing.github.io/bloqade-shuttle/dev/)
-- [Bloqade Geometry](https://queracomputing.github.io/bloqade-geometry/dev/) a related
+- [Bloqade Geometry](https://queracomputing.github.io/bloqade-geometry/dev/): a related
 project that provides components for defining and manipulating geometric objects in
 Bloqade Shuttle.
