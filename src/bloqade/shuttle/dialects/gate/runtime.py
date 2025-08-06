@@ -1,6 +1,6 @@
 from kirin import interp
 
-from bloqade.shuttle.analysis.has_quantum_runtime import (
+from bloqade.shuttle.analysis.runtime import (
     RuntimeAnalysis,
     RuntimeFrame,
 )
@@ -9,7 +9,7 @@ from ._dialect import dialect
 from .stmts import GlobalR, GlobalRz, LocalR, LocalRz, TopHatCZ
 
 
-@dialect.register(key="has_quantum_runtime")
+@dialect.register(key="runtime")
 class HasQuantumRuntimeMethodTable(interp.MethodTable):
 
     @interp.impl(TopHatCZ)
