@@ -189,7 +189,7 @@ def entangle_cols(ctrls: ilist.IList[int, Any], qargs: ilist.IList[int, Any]): #
 8. shift the moving cols to the respective x-positions of the target qubits and add an offset in the x-direction
 9. shift the moving cols back up into the original y-position to form atom pairs that will get a gate
 10. combine the waypoints into an ilist
-11. the revese waypoints defining the reverse path back to the original positions
+11. the reverse waypoints defining the reverse path back to the original positions
 12. move the qubits along the waypoints, True means that the atoms are picked up and False means that they are not dropped at the end of the move
 13. apply the entangling gate to the atoms that are now in the right positions (paired up)
 14. move the atoms back to their original positions, False means that the atoms are not picked up (since they are still in the AOD) and True means that they are dropped back into their static trap site at the end of the move
@@ -229,7 +229,7 @@ def entangle_rows(ctrls: ilist.IList[int, Any], qargs: ilist.IList[int, Any]): #
 5. shift the src grid to the right along the x-axis
 6. move the src grid to the y-positions of the target qubits
 7. combine the waypoints into an ilist
-8. the revese waypoints defining the reverse path back to the original positions
+8. the reverse waypoints defining the reverse path back to the original positions
 9. move the qubits along the waypoints, True means that the atoms are picked up and False means that they are not dropped at the end of the move
 10. apply the entangling gate to the atoms that are now in the right positions (paired up)
 11. move the atoms back to their original positions, False means that the atoms are not picked up (since they are still in the AOD) and True means that they are dropped back into their static trap site at the end of the move
