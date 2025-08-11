@@ -72,16 +72,21 @@ displace atoms off-grid to avoid collisions when crossing rows or columns. This
 parameter defines the offset applied to atoms during their movement, enabling
 collision-free shuttling through the array.
 
-```python
-# define global geometry choices
-grid_spacing = 10.0  # spacing of the grid traps
+As a first step we define the global geometry choices.
 
-entangling_pair_dist = 2.0  # distance between atom pairs getting entangled
+```python
+grid_spacing = 10.0  # (1)!
+
+entangling_pair_dist = 2.0  # (2)!
 
 path_shift_dist = (
-    3.0  # distance that is used to shift the atom path out of the columns or rows
+    3.0  # (3)!
 )
 ```
+1. spacing of the grid traps
+2. distance between atom pairs getting entangled
+3. distance that is used to shift the atom path out of the columns or rows
+
 
 # Basic move pattern
 
@@ -149,51 +154,45 @@ an atom at a site lacking an active trap will result in atom loss.
 
 ```python
 @move
-def entangle_cols(ctrls: ilist.IList[int, Any], qargs: ilist.IList[int, Any]):
-    """Function to entangle columns of atoms."""
+def entangle_cols(ctrls: ilist.IList[int, Any], qargs: ilist.IList[int, Any]): # (1)!
 
-    # fill the defined zone specification with traps
-    zone = spec.get_static_trap(zone_id="traps")
-    # get the shape of the trap array
-    traps_shape = grid.shape(zone)
-    # generate an ilist from 0 to the number of rows in the trap array
-    all_rows = ilist.range(traps_shape[1])
+    # set up zone layout
+    zone = spec.get_static_trap(zone_id="traps") # (2)!
+    traps_shape = grid.shape(zone) # (3)!
+    all_rows = ilist.range(traps_shape[1]) # (4)!
 
-    # subgrid of control qubits that are picked up
-    src = grid.sub_grid(zone, ctrls, all_rows)
-    # subgrid of target qubits that are entangled with the control qubits
-    dst = grid.sub_grid(zone, qargs, all_rows)
+    src = grid.sub_grid(zone, ctrls, all_rows) # (5)!
+    dst = grid.sub_grid(zone, qargs, all_rows) # (6)!
 
     # define the moves
-    # shifting the src grid down along the y-axis
-    first_waypoint = grid.shift(src, 0.0, -path_shift_dist)
+    first_waypoint = grid.shift(src, 0.0, -path_shift_dist) # (7)!
+    second_waypoint = grid.shift(dst, -entangling_pair_dist, -path_shift_dist) # (8)!
+    third_waypoint = grid.shift(dst, -entangling_pair_dist, 0.0) # (9)!
 
-    # shift the to the respective x-positions of the target
-    # qubits and add an offset in the x-direction
-    second_waypoint = grid.shift(dst, -entangling_pair_dist, -path_shift_dist)
-
-    # shift the dst grid back up into the original y-position
-    # to form atom pairs that will get a gate
-    third_waypoint = grid.shift(dst, -entangling_pair_dist, 0.0)
-
-    # combine the waypoints into an ilist
-    waypoints = ilist.IList([src, first_waypoint, second_waypoint, third_waypoint])
-    # the revese waypoints defining the reverse path back to the original positions
+    waypoints = ilist.IList([src, first_waypoint, second_waypoint, third_waypoint]) # (10)!
+    
     reverse_waypoints = ilist.IList(
         [third_waypoint, second_waypoint, first_waypoint, src]
-    )
+    ) # (11)!
 
-    # move the qubits along the waypoints, True means that the atoms are picked up
-    # and False means that they are not dropped at the end of the move
-    move_by_waypoints(waypoints, True, False)
-    # apply the entangling gate to the atoms that are now in the right positions
-    # (paired up)
-    gate.top_hat_cz(zone)
-    # move the atoms back to their original positions, False means that the atoms
-    # are not picked up (since they are still in the AOD) and True means that they
-    # are dropped back into their static trap site at the end of the move
-    move_by_waypoints(reverse_waypoints, False, True)
+    move_by_waypoints(waypoints, True, False) # (12)!
+    gate.top_hat_cz(zone) # (13)!
+    move_by_waypoints(reverse_waypoints, False, True) # (14)!
 ```
+1. kernel function to entangle columns of atoms. `ctrls`...subgrid of atoms to be picked up, `qargs`...subgrid of atoms the ctrl qubits will get entangled with
+2. fill the defined zone specification with traps
+3. get the shape of the trap array
+4. generate an ilist from 0 to the number of rows in the trap array
+5. subgrid of control qubits that are picked up
+6. subgrid of target qubits that are entangled with the control qubits
+7. shifting the src grid down along the y-axis
+8. shift the moving cols to the respective x-positions of the target qubits and add an offset in the x-direction
+9. shift the moving cols back up into the original y-position to form atom pairs that will get a gate
+10. combine the waypoints into an ilist
+11. the revese waypoints defining the reverse path back to the original positions
+12. move the qubits along the waypoints, True means that the atoms are picked up and False means that they are not dropped at the end of the move
+13. apply the entangling gate to the atoms that are now in the right positions (paired up)
+14. move the atoms back to their original positions, False means that the atoms are not picked up (since they are still in the AOD) and True means that they are dropped back into their static trap site at the end of the move
 
 
 In an analogous manner, we can now define parallel transport operations for atoms
@@ -202,41 +201,38 @@ along rows of the grid.
 
 ```python
 @move
-def entangle_rows(ctrls: ilist.IList[int, Any], qargs: ilist.IList[int, Any]):
-    """Function to entangle rows of atoms."""
+def entangle_rows(ctrls: ilist.IList[int, Any], qargs: ilist.IList[int, Any]): # (1)!
 
-    # get the positions of the static traps in the entangling zone
-    zone = spec.get_static_trap(zone_id="traps")
-    # get the shape of the trap array
-    traps_shape = grid.shape(zone)
-    # generate an ilist from 0 to the number of columns in the trap array
-    all_cols = ilist.range(traps_shape[0])
+    # set up zone layout
+    zone = spec.get_static_trap(zone_id="traps") # (2)!
+    traps_shape = grid.shape(zone) # (3)!
+    all_cols = ilist.range(traps_shape[0]) # (4)!
 
     src = grid.sub_grid(zone, all_cols, ctrls)
     dst = grid.sub_grid(zone, all_cols, qargs)
 
     # define the moves
-    # shift the src grid to the right along the x-axis
-    first_waypoint = grid.shift(src, entangling_pair_dist, 0.0)
-    # move the src grid to the y-positions of the target qubits
-    second_waypoint = grid.shift(dst, entangling_pair_dist, 0.0)
+    first_waypoint = grid.shift(src, entangling_pair_dist, 0.0) # (5)!
+    second_waypoint = grid.shift(dst, entangling_pair_dist, 0.0) # (6)!
 
-    # combine the waypoints into an ilist
-    waypoints = ilist.IList([src, first_waypoint, second_waypoint])
-    # the revese waypoints defining the reverse path back to the original positions
-    reverse_waypoints = ilist.IList([second_waypoint, first_waypoint, src])
+    waypoints = ilist.IList([src, first_waypoint, second_waypoint]) # (7)!
+    reverse_waypoints = ilist.IList([second_waypoint, first_waypoint, src]) # (8)!
 
-    # move the qubits along the waypoints, True means that the atoms are picked up
-    # and False means that they are not dropped at the end of the move
-    move_by_waypoints(waypoints, True, False)
-    # apply the entangling gate to the atoms that are now in the right positions
-    # (paired up)
-    gate.top_hat_cz(zone)
-    # move the atoms back to their original positions, False means that the atoms
-    # are not picked up (since they are still in the AOD) and True means that they
-    # are dropped back into their static trap site at the end of the move
-    move_by_waypoints(reverse_waypoints, False, True)
+    move_by_waypoints(waypoints, True, False) # (9)!
+    gate.top_hat_cz(zone) # (10)!
+    move_by_waypoints(reverse_waypoints, False, True) # (11)!
 ```
+1. kernel function to entangle rows of atoms. `ctrls`...subgrid of atoms to be picked up, `qargs`...subgrid of atoms the ctrl qubits will get entangled with
+2. get the positions of the static traps in the entangling zone
+3. get the shape of the trap array
+4. generate an ilist from 0 to the number of columns in the trap array
+5. shift the src grid to the right along the x-axis
+6. move the src grid to the y-positions of the target qubits
+7. combine the waypoints into an ilist
+8. the revese waypoints defining the reverse path back to the original positions
+9. move the qubits along the waypoints, True means that the atoms are picked up and False means that they are not dropped at the end of the move
+10. apply the entangling gate to the atoms that are now in the right positions (paired up)
+11. move the atoms back to their original positions, False means that the atoms are not picked up (since they are still in the AOD) and True means that they are dropped back into their static trap site at the end of the move
 
 
 Using these helper functions, we can now specify the complete move pattern in just a
@@ -249,25 +245,10 @@ a closure and returned as a first-class move kernel function.
 
 
 ```python
-def make_main(entangle_cols, entangle_rows):
-    """Helper function to create the main move kernel for logical magic state
-    distillation.
-
-    Args
-        entangle_cols: Function to entangle columns of atoms.
-        entangle_rows: Function to entangle rows of atoms.
-
-    Returns
-        main: The main move kernel function that defines the entire move pattern.
-
-    """
+def make_main(entangle_cols, entangle_rows): # (1)!
 
     @move
-    def main():
-        """Main move kernel function that defines the entire move pattern for the
-        logical magic state distillation experiment.
-
-        """
+    def main(): # (2)!
 
         init.fill([spec.get_static_trap(zone_id="traps")])
 
@@ -288,6 +269,9 @@ def make_main(entangle_cols, entangle_rows):
 
 ker = make_main(entangle_cols, entangle_rows)
 ```
+1. Helper function to create the main move kernel for logical magic state distillation. `entangle_cols`: Function to entangle columns of atoms. `entangle_rows`: Function to entangle rows of atoms. Returns `main`: The main move kernel function that defines the entire move pattern.
+2. Main move kernel function that defines the entire move pattern for the logical magic state distillation experiment.
+
 
 We can verify the correctness of the programmed move layout using the `PathVisualizer`
 utility provided by `bloqade.shuttle`. This tool displays the atom trajectories
@@ -296,10 +280,11 @@ sequence via the `Continue` button. Red flashes are used to indicate the applica
 of two-qubit gate pulses at the entangling zone during the sequence.
 
 ```python
-matplotlib.use("TkAgg")  # requirement for PathVisualizer
+matplotlib.use("TkAgg")  # (1)!
 
 PathVisualizer(ker.dialects, arch_spec=arch_spec).run(ker, ())
 ```
+1. requirement for PathVisualizer
 
 # Further refining the move pattern
 
@@ -323,8 +308,7 @@ N = TypeVar("N")
 @move
 def get_final_positions(
     src: ilist.IList[float, N], dst: ilist.IList[float, N], offset: float
-):
-    """Helper function to compute the nearest final positions for entanglement."""
+): # (1)!
 
     assert len(src) == len(
         dst
@@ -341,6 +325,7 @@ def get_final_positions(
 
     return ilist.map(get_last_pos, ilist.range(len(src)))
 ```
+1. Helper function to compute the nearest final positions for entanglement.
 
 
 Using this helper function, we can now construct new waypoint sequences that
@@ -349,11 +334,7 @@ incorporate the nearest final positions for the control qubits.
 
 ```python
 @move
-def entangle_cols_low_dist(ctrls: ilist.IList[int, Any], qargs: ilist.IList[int, Any]):
-    """Helper function to entangle columns of atoms on a grid in a single entangling
-    zone with optimized final positions (nearest location).
-
-    """
+def entangle_cols_low_dist(ctrls: ilist.IList[int, Any], qargs: ilist.IList[int, Any]): # (1)!
 
     zone = spec.get_static_trap(zone_id="traps")
     traps_shape = grid.shape(zone)
@@ -369,7 +350,7 @@ def entangle_cols_low_dist(ctrls: ilist.IList[int, Any], qargs: ilist.IList[int,
 
     last_x = get_final_positions(
         src_x, dst_x, entangling_pair_dist
-    )  # get the nearest final positions for the control qubits
+    )  # (2)!
 
     second_pos = grid.from_positions(last_x, grid.get_ypos(first_waypoint))
     last_pos = grid.from_positions(last_x, grid.get_ypos(dst))
@@ -381,6 +362,8 @@ def entangle_cols_low_dist(ctrls: ilist.IList[int, Any], qargs: ilist.IList[int,
     gate.top_hat_cz(zone)
     move_by_waypoints(reverse_waypoints, False, True)
 ```
+1. Helper function to entangle columns of atoms on a grid in a single entangling zone with optimized final positions (nearest location). `ctrls`...subgrid of atoms to be picked up, `qargs`...subgrid of atoms the ctrl qubits will get entangled with
+2. get the nearest final positions for the control qubits
 
 We can now define a new move kernel that implements the optimized column-wise
 transport pattern using the updated waypoint assignments.
@@ -394,7 +377,8 @@ PathVisualizer to inspect the resulting trajectories and validate the
 updated layout.
 
 ```python
-matplotlib.use("TkAgg")  # requirement for PathVisualizer
+matplotlib.use("TkAgg") # (1)!
 
 PathVisualizer(ker.dialects, arch_spec=arch_spec).run(ker, ())
 ```
+1. requirement for PathVisualizer
