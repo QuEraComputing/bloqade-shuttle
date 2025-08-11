@@ -83,6 +83,7 @@ path_shift_dist = (
     3.0  # (3)!
 )
 ```
+
 1. spacing of the grid traps
 2. distance between atom pairs getting entangled
 3. distance that is used to shift the atom path out of the columns or rows
@@ -170,7 +171,7 @@ def entangle_cols(ctrls: ilist.IList[int, Any], qargs: ilist.IList[int, Any]): #
     third_waypoint = grid.shift(dst, -entangling_pair_dist, 0.0) # (9)!
 
     waypoints = ilist.IList([src, first_waypoint, second_waypoint, third_waypoint]) # (10)!
-    
+
     reverse_waypoints = ilist.IList(
         [third_waypoint, second_waypoint, first_waypoint, src]
     ) # (11)!
@@ -179,6 +180,7 @@ def entangle_cols(ctrls: ilist.IList[int, Any], qargs: ilist.IList[int, Any]): #
     gate.top_hat_cz(zone) # (13)!
     move_by_waypoints(reverse_waypoints, False, True) # (14)!
 ```
+
 1. kernel function to entangle columns of atoms. `ctrls`...subgrid of atoms to be picked up, `qargs`...subgrid of atoms the ctrl qubits will get entangled with
 2. fill the defined zone specification with traps
 3. get the shape of the trap array
@@ -222,6 +224,7 @@ def entangle_rows(ctrls: ilist.IList[int, Any], qargs: ilist.IList[int, Any]): #
     gate.top_hat_cz(zone) # (10)!
     move_by_waypoints(reverse_waypoints, False, True) # (11)!
 ```
+
 1. kernel function to entangle rows of atoms. `ctrls`...subgrid of atoms to be picked up, `qargs`...subgrid of atoms the ctrl qubits will get entangled with
 2. get the positions of the static traps in the entangling zone
 3. get the shape of the trap array
@@ -269,6 +272,7 @@ def make_main(entangle_cols, entangle_rows): # (1)!
 
 ker = make_main(entangle_cols, entangle_rows)
 ```
+
 1. Helper function to create the main move kernel for logical magic state distillation. `entangle_cols`: Function to entangle columns of atoms. `entangle_rows`: Function to entangle rows of atoms. Returns `main`: The main move kernel function that defines the entire move pattern.
 2. Main move kernel function that defines the entire move pattern for the logical magic state distillation experiment.
 
@@ -284,6 +288,7 @@ matplotlib.use("TkAgg")  # (1)!
 
 PathVisualizer(ker.dialects, arch_spec=arch_spec).run(ker, ())
 ```
+
 1. requirement for PathVisualizer
 
 # Further refining the move pattern
@@ -325,6 +330,7 @@ def get_final_positions(
 
     return ilist.map(get_last_pos, ilist.range(len(src)))
 ```
+
 1. Helper function to compute the nearest final positions for entanglement.
 
 
@@ -362,6 +368,7 @@ def entangle_cols_low_dist(ctrls: ilist.IList[int, Any], qargs: ilist.IList[int,
     gate.top_hat_cz(zone)
     move_by_waypoints(reverse_waypoints, False, True)
 ```
+
 1. Helper function to entangle columns of atoms on a grid in a single entangling zone with optimized final positions (nearest location). `ctrls`...subgrid of atoms to be picked up, `qargs`...subgrid of atoms the ctrl qubits will get entangled with
 2. get the nearest final positions for the control qubits
 
@@ -381,4 +388,5 @@ matplotlib.use("TkAgg") # (1)!
 
 PathVisualizer(ker.dialects, arch_spec=arch_spec).run(ker, ())
 ```
+
 1. requirement for PathVisualizer
