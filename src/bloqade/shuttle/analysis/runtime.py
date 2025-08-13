@@ -28,24 +28,6 @@ class RuntimeAnalysis(ForwardExtra[RuntimeFrame, EmptyLattice]):
     lattice = EmptyLattice
 
     def eval_stmt_fallback(self, frame: RuntimeFrame, stmt: ir.Statement):
-
-        is_quantum = False
-        stmts = set()
-
-        for region in stmt.regions:
-            with self.new_frame(stmt, has_parent_access=True) as new_frame:
-                args = tuple(EmptyLattice.top() for _ in region.blocks[0].args)
-                self.run_callable_region(new_frame, stmt, region, args)
-
-            stmts |= new_frame.quantum_stmts
-            is_quantum |= new_frame.is_quantum
-
-        frame.quantum_stmts |= stmts
-        frame.is_quantum |= is_quantum
-
-        if is_quantum:
-            frame.quantum_stmts.add(stmt)
-
         return tuple(EmptyLattice.top() for _ in stmt.results)
 
     def initialize_frame(
