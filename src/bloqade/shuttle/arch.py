@@ -15,7 +15,9 @@ class Layout:
     """ The set of trap names that are fillable by the sorter. """
 
     def __hash__(self):
-        return hash(frozenset((self.static_traps.items(), frozenset(self.fillable))))
+        return hash(
+            frozenset((frozenset(self.static_traps.items()), frozenset(self.fillable)))
+        )
 
     @staticmethod
     def _plot_zone(zone: Grid, ax, name: str, **plot_options):
