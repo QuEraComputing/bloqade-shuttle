@@ -1,3 +1,4 @@
+from . import arch as arch, passes as passes, stdlib as stdlib
 from .dialects.action import _interface as action
 from .dialects.atom import _interface as atom
 from .dialects.filled import _interface as filled
