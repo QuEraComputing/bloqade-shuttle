@@ -87,6 +87,9 @@ def default_move_cz_impl(
     """Move atoms from the start ids and run cz gate with the atoms at the end ids.
 
     Args:
+        zone (grid.Grid[Any, Any]): The grid representing the trap layout (zone) in which atoms are moved.
+        x_shift (float): The amount to shift atoms in the x direction during the move.
+        y_shift (float): The amount to shift atoms in the y direction during the move.
         ctrl_x_ids (ilist.IList[int, NumX]): The x-indices of the starting positions.
         ctrl_y_ids (ilist.IList[int, NumY]): The y-indices of the starting positions.
         qarg_x_ids (ilist.IList[int, NumX]): The x-indices of the ending positions.

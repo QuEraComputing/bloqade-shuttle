@@ -7,7 +7,7 @@ from bloqade.shuttle import spec
 
 warnings.warn(
     (
-        "This modules contents have been moved to `stdlib.layouts.single_col_zone` submodule and"
+        "This module's contents have been moved to `stdlib.layouts.single_col_zone` submodule and"
         " will be removed in 0.8.0"
     ),
     DeprecationWarning,
