@@ -19,8 +19,6 @@ visualization = [
     "matplotlib>=3.9.4",
 ]
 
-
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
