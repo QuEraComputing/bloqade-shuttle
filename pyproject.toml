@@ -7,12 +7,8 @@ authors = [
 ]
 dependencies = [
     "bloqade-geometry ~=0.3.0",
-    "bloqade-circuit ~=0.6.0",
+    "bloqade-circuit >=0.6.0,<0.8.0-dev",
     "kirin-toolchain >= 0.17.17,<0.18.0-dev",
-    "pint>=0.24.3",
-    "pyarrow>=17.0.0",
-    "pytest>=8.3.2",
-    "numpy>=1.26.4",
 ]
 
 readme = "README.md"
@@ -22,8 +18,6 @@ requires-python = ">= 3.10"
 visualization = [
     "matplotlib>=3.9.4",
 ]
-
-
 
 [build-system]
 requires = ["hatchling"]
