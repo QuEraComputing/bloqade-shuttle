@@ -19,16 +19,14 @@ requests, bug reports, or feature requests.
 ```bash
 uv add bloqade-shuttle
 ```
-<!--- TODO: update links to point to documentation website once available. --->
-See [Installation](https://queracomputing.github.io/bloqade-shuttle/dev/install) for more details.
+<! TODO: update links to point to documentation website once available. >
+See [Installation](install.md) for more details.
 
-Check out new [Blog](https://queracomputing.github.io/bloqade-shuttle/dev/blog/) to understand more about tools and shuttle.
-
+Check out new [Blog](blog/index.md) to understand more about tools and shuttle.
 
 ## Other useful links
 
-- [Documentation](https://queracomputing.github.io/bloqade-shuttle/dev/)
-- [Bloqade Geometry](https://queracomputing.github.io/bloqade-geometry/dev/): a related
+- [Bloqade Geometry](https://queracomputing.github.io/bloqade-geometry/dev/) a related
 project that provides components for defining and manipulating geometric objects in
 Bloqade Shuttle.
 

@@ -18,3 +18,9 @@ coverage-unit:
     coverage report --include="**/types.py","**/taskgen.py","**/concrete.py"
 
 coverage: coverage-run coverage-xml coverage-report
+
+doc:
+    mkdocs serve
+
+doc-build:
+    mkdocs build

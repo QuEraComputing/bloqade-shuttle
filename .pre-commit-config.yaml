@@ -26,13 +26,13 @@ repos:
   hooks:
     - id: pyright-check
       name: pyright-check
-      entry: pyright .
+      entry: uv run pyright .
       language: system
       pass_filenames: false
       always_run: true
     - id: pytest-check
       name: pytest-check
-      entry: pytest test
+      entry: uv run pytest test
       language: system
       pass_filenames: false
       always_run: true
