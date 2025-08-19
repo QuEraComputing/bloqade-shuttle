@@ -79,7 +79,6 @@ def run_qcrank(filename: str):
             x *= 2
         grid_init_quibt_location.append((x,y))
     
-    @move
     def main():
         # init.fill([spec.get_static_trap(zone_id="mem")])
         init.fill(shuttle_builder.grid_mapping) # !

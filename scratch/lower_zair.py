@@ -15,7 +15,7 @@ def _simple_region() -> ir.Region:
 
 @dataclass
 class ShuttleBuilder:
-    # move_kernel: ir.Method[[IList[tuple[int, int]], IList[tuple[int, int]]], None]
+    move_kernel: ir.Method[[IList[tuple[int, int]], IList[tuple[int, int]]], None]
     num_qubits: int
 
     body: ir.Region = field(default_factory=_simple_region, init=False)
@@ -81,13 +81,13 @@ class ShuttleBuilder:
         else:
             self.entangle_rows(y_src, y_dst)
                 
-        # self.push_stmt(
-        #     func.Invoke(
-        #         inputs=(x_src_ref, y_src_ref, x_dst_ref, y_dst_ref),
-        #         callee=self.move_kernel,
-        #         kwargs=(),
-        #     )
-        # )
+        self.push_stmt(
+            func.Invoke(
+                inputs=(x_src_ref, y_src_ref, x_dst_ref, y_dst_ref),
+                callee=self.move_kernel,
+                kwargs=(),
+            )
+        )
     
     def entangle_cols(self, ctrls: ilist.IList[int, Any], qargs: ilist.IList[int, Any]): 
 
@@ -106,7 +106,7 @@ class ShuttleBuilder:
         second_waypoint = grid.shift(dst, -entangling_pair_dist, -path_shift_dist) 
         third_waypoint = grid.shift(dst, -entangling_pair_dist, 0.0) 
 
-        waypoints = ilist.IList([src, first_waypoint, second_waypoint, third_waypoint]) 
+        waypoints = ilist.IList([src, first_waypoint, second_waypoint, third_waypoint])  # need to do push constant and get reference to make it runtime
 
         move_by_waypoints(waypoints, True, False) 
 
@@ -172,4 +172,5 @@ class ShuttleBuilder:
         self.push_stmt(gate.GlobalR(0, 0.5))
         self.push_stmt(gate.GlobalRz(0.25))
 
-
+        
+# todo: make all lists to IList
