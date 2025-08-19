@@ -4,6 +4,7 @@ from bloqade.geometry.dialects import grid
 from kirin.dialects import ilist
 
 from bloqade.shuttle import action, gate, init, measure, schedule, spec
+from bloqade.shuttle.stdlib.layouts.two_col_zone import rearrange
 from bloqade.shuttle.prelude import move, tweezer
 from bloqade.shuttle.visualizer import MatplotlibRenderer, PathVisualizer
 from lower_zair import ShuttleBuilder
@@ -53,7 +54,7 @@ def run_qcrank(filename: str):
     inst_init = compiled_qcrank["instructions"][0]
     init_quibt_location = inst_init["init_locs"]
     
-    shuttle_builder = ShuttleBuilder(num_qubits = len(init_quibt_location))
+    shuttle_builder = ShuttleBuilder(num_qubits = len(init_quibt_location), move_kernel=rearrange)
     shuttle_builder.construct_grid(entanglement_zone_spec['zone_id'],
                                    entanglement_zone_spec["offset"],
                                    x_spacing,
@@ -105,12 +106,5 @@ def run_qcrank(filename: str):
     return main, spec_value
 
 
-def run_plotter(filename: str):
-    main, spec_value = run_qcrank(filename)
-    renderer = MatplotlibRenderer()
-    PathVisualizer(main.dialects, renderer=renderer, arch_spec=spec_value).run(main, ())
-
-
 if __name__ == "__main__":
     filename = "scratch/qcr_4a8d_quera_circ_code.json"
-    run_plotter(filename)
