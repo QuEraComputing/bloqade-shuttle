@@ -72,19 +72,22 @@ def rearrange_impl(
     def parking_y_start(index: int):
         start_y = grid.get_ypos(start)[index]
         end_y = grid.get_ypos(end)[index]
-        shift = 3.0
-        if start_y != end_y:
-            shift = 3.0 * (end_y - start_y) / abs(end_y - start_y)
+        if start_y <= end_y:
+            start_y = start_y + 3.0
+        else:
+            start_y = start_y - 3.0
 
-        return start_y + shift
+        return start_y
 
     def parking_y_end(index: int):
         start_y = grid.get_ypos(start)[index]
         end_y = grid.get_ypos(end)[index]
-        shift = 3.0
-        if start_y != end_y:
-            shift = -3.0 * (end_y - start_y) / abs(end_y - start_y)
-        return end_y + shift
+        if start_y < end_y:
+            end_y = end_y - 3.0
+        else:
+            end_y = end_y + 3.0
+
+        return end_y
 
     num_y = len(src_y)
 
