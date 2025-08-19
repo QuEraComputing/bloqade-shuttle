@@ -65,14 +65,38 @@ def rearrange_impl(
     start = grid.sub_grid(zone, src_x, src_y)
     end = grid.sub_grid(zone, dst_x, dst_y)
 
-    x_positions = grid.get_xpos(start)
-
     def parking_x(index: int):
+        x_positions = grid.get_xpos(zone)
         return x_positions[index] + 3.0 * (2 * (index % 2) - 1)
 
-    src_parking = grid.from_positions(ilist.map(parking_x, src_x), grid.get_ypos(zone))
+    def parking_y_start(index: int):
+        start_y = grid.get_ypos(start)[index]
+        end_y = grid.get_ypos(end)[index]
+        if start_y <= end_y:
+            start_y = start_y + 3.0
+        else:
+            start_y = start_y - 3.0
 
-    dst_parking = grid.shift(end, 0.0, 3.0)
+        return start_y
+
+    def parking_y_end(index: int):
+        start_y = grid.get_ypos(start)[index]
+        end_y = grid.get_ypos(end)[index]
+        if start_y < end_y:
+            end_y = end_y - 3.0
+        else:
+            end_y = end_y + 3.0
+
+        return end_y
+
+    num_y = len(src_y)
+
+    src_parking = grid.from_positions(
+        ilist.map(parking_x, src_x), ilist.map(parking_y_start, ilist.range(num_y))
+    )
+    dst_parking = grid.from_positions(
+        ilist.map(parking_x, dst_x), ilist.map(parking_y_end, ilist.range(num_y))
+    )
     mid_pos = grid.from_positions(
         grid.get_xpos(src_parking), grid.get_ypos(dst_parking)
     )
