@@ -39,6 +39,7 @@ class AggressiveUnroll(Pass):
             Call2Invoke(),
             InlineGetField(),
             InlineGetItem(),
+            ilist.rewrite.InlineGetItem(),
             DeadCodeElimination(),
             CommonSubexpressionElimination(),
         )
