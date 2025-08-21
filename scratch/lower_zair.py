@@ -171,6 +171,14 @@ class ShuttleBuilder:
                 self.lower_rearrange(begin_locs, end_locs)
 
     def lower(self, program: dict[str, Any]) -> ir.Method:
+        """Entry point for lowering a ZAIR program
+
+        Args:
+            program (dict[str, Any]): JSON representation of the ZAIR program
+
+        Returns:
+            ir.Method: Lowered IR method
+        """
         sym_name = program["name"]
         signature = func.Signature((), types.NoneType)
 
