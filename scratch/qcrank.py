@@ -1,28 +1,29 @@
+import json
 from typing import Any, Literal, TypeVar
 
+import numpy as np
 from bloqade.geometry.dialects import grid
 from kirin.dialects import ilist
+from lower_zair import ShuttleBuilder
 
 from bloqade.shuttle import action, gate, init, measure, schedule, spec
-from bloqade.shuttle.stdlib.layouts.two_col_zone import rearrange
 from bloqade.shuttle.prelude import move, tweezer
+from bloqade.shuttle.stdlib.layouts.two_col_zone import rearrange
 from bloqade.shuttle.visualizer import MatplotlibRenderer, PathVisualizer
-from lower_zair import ShuttleBuilder
-import json
-import numpy as np
+
 
 def run_qcrank(filename: str):
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         compiled_qcrank = json.load(f)
-    
+
     arch_filename = compiled_qcrank["architecture_spec_path"]
 
-    with open(arch_filename, 'r') as f:
+    with open(arch_filename, "r") as f:
         architecture_spec = json.load(f)
 
     # set architecture
     # assume single entagnlement zone
-    entanglement_zone_spec =  architecture_spec["entanglement_zones"][0]
+    entanglement_zone_spec = architecture_spec["entanglement_zones"][0]
     slms = entanglement_zone_spec["slms"]
     assert len(slms) == 2
     slm0 = slms[0]
@@ -50,21 +51,25 @@ def run_qcrank(filename: str):
             x_spacing.append(dis_trap)
             x_spacing.append(dis_site)
         x_spacing = x_spacing
-    
+
     inst_init = compiled_qcrank["instructions"][0]
     init_quibt_location = inst_init["init_locs"]
-    
-    shuttle_builder = ShuttleBuilder(num_qubits = len(init_quibt_location), move_kernel=rearrange)
-    shuttle_builder.construct_grid(entanglement_zone_spec['zone_id'],
-                                   entanglement_zone_spec["offset"],
-                                   x_spacing,
-                                   y_spacing,
-                                   entanglement_zone_spec["dimension"])
+
+    shuttle_builder = ShuttleBuilder(
+        num_qubits=len(init_quibt_location), move_kernel=rearrange
+    )
+    shuttle_builder.construct_grid(
+        entanglement_zone_spec["zone_id"],
+        entanglement_zone_spec["offset"],
+        x_spacing,
+        y_spacing,
+        entanglement_zone_spec["dimension"],
+    )
 
     spec_value = spec.ArchSpec(
         layout=spec.Layout(
             static_traps={
-                "mem": shuttle_builder.grid_mapping,
+                "mem": shuttle_builder.spec_mapping,
             },
             fillable=set(["mem"]),
         )
@@ -78,11 +83,11 @@ def run_qcrank(filename: str):
             y *= 2
         else:
             x *= 2
-        grid_init_quibt_location.append((x,y))
-    
+        grid_init_quibt_location.append((x, y))
+
     def main():
         # init.fill([spec.get_static_trap(zone_id="mem")])
-        init.fill(shuttle_builder.grid_mapping) # !
+        init.fill(shuttle_builder.spec_mapping)  # !
         insts = compiled_qcrank["instructions"][1:]
         for inst in insts:
             if inst["type"] == "1qGate":
@@ -93,7 +98,7 @@ def run_qcrank(filename: str):
                             locs = [(loc[0], 2 * loc[2], loc[3])]
                         else:
                             locs = [(loc[0], loc[2], loc[3])]
-                        shuttle_builder.r_gate(0, rotation_angle, locs)
+                        shuttle_builder.lower_r_gate(0, rotation_angle, locs)
                 elif inst["unitary"] == "h":
                     shuttle_builder.lower_h(inst["locs"])
 
@@ -101,7 +106,7 @@ def run_qcrank(filename: str):
                 shuttle_builder.entangle(inst["zone_id"])
             elif inst["type"] == "rearrangeJob":
                 shuttle_builder.insert_move(inst["begin_locs"], inst["end_locs"])
-        return measure.measure((shuttle_builder.grid_mapping,))
+        return measure.measure((shuttle_builder.spec_mapping,))
 
     return main, spec_value
 
