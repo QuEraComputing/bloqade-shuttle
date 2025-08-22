@@ -22,8 +22,8 @@ class ShuttleBuilder:
     move_kernel: ir.Method[
         [IList[int, Any], IList[int, Any], IList[int, Any], IList[int, Any]], None
     ]
+    num_qubits: int
 
-    num_qubits: int = field(init=False)
     body: ir.Region = field(default_factory=_simple_region, init=False)
 
     def push_stmt(self, stmt: ir.Statement):
@@ -74,9 +74,8 @@ class ShuttleBuilder:
     def rydberg(self, zone_id: int):
         self.push_stmt(gate.TopHatCZ(self.get_zone(zone_id)))
 
-    def lower_r_gate(
+    def lower_ry_gate(
         self,
-        axis_angle: float,
         rotation_angle: float,
         locs: Sequence[tuple[int, int, int, int]],
     ):
@@ -95,11 +94,11 @@ class ShuttleBuilder:
                 ).expect_one_result()
             )
 
-        axis_angle_ref = self.push_constant(axis_angle / (2 * math.pi))
+        axis_angle = self.push_constant(0.5)
         rotation_angle_ref = self.push_constant(rotation_angle / (2 * math.pi))
 
         for filled_ref in filled_loc_refs:
-            self.push_stmt(gate.LocalR(axis_angle_ref, rotation_angle_ref, filled_ref))
+            self.push_stmt(gate.LocalR(axis_angle, rotation_angle_ref, filled_ref))
 
     def lower_rz_gate(
         self, rotation_angle: float, locations: Sequence[tuple[int, int, int, int]]
@@ -157,8 +156,8 @@ class ShuttleBuilder:
         match instruction:
             case {"type": "init", "locs": locs}:
                 self.lower_init(locs)
-            case {"type": "1qGate", "unitary": "ry", "locs": locs}:
-                raise NotImplementedError
+            case {"type": "1qGate", "unitary": "ry", "locs": locs, "angle": angle}:
+                self.lower_ry_gate(angle, locs)
             case {"type": "1qGate", "unitary": "h", "locs": locs}:
                 self.lower_h(locs)
             case {"type": "rydberg", "zone_id": zone_id}:

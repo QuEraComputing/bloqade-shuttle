@@ -26,90 +26,64 @@ def run_qcrank(filename: str):
     entanglement_zone_spec = architecture_spec["entanglement_zones"][0]
     slms = entanglement_zone_spec["slms"]
     assert len(slms) == 2
-    slm0 = slms[0]
-    slm1 = slms[1]
-    assert slm0["r"] == slm1["r"]
-    assert slm0["c"] == slm1["c"]
-    assert slm0["site_seperation"] == slm1["site_seperation"]
-    put_vertical = True
-    if slm0["location"][1] == slm1["location"][1]:
-        put_vertical = False
-    if put_vertical:
-        dis_trap = abs(slm0["location"][1] - slm1["location"][1])
-        dis_site = slm0["site_seperation"][1] - dis_trap
-        x_spacing = [slm0["site_seperation"][0] * (slm0["r"] - 1)]
-        y_spacing = []
-        for _ in range(slm0["c"]):
-            y_spacing.append(dis_trap)
-            y_spacing.append(dis_site)
-    else:
-        dis_trap = abs(slm0["location"][0] - slm1["location"][0])
-        dis_site = slm0["site_seperation"][0] - dis_trap
-        y_spacing = [slm0["site_seperation"][1] * (slm0["r"] - 1)]
-        x_spacing = []
-        for _ in range(slm0["c"]):
-            x_spacing.append(dis_trap)
-            x_spacing.append(dis_site)
-        x_spacing = x_spacing
+    slm1 = slms[0]
+    slm2 = slms[1]
+    assert slm1["r"] == slm2["r"]
+    assert slm1["c"] == slm2["c"]
+    assert slm1["site_seperation"] == slm2["site_seperation"]
+    assert slm1["location"][0] == slm2["location"][0]
+    dis_trap = abs(slm1["location"][1] - slm1["location"][1])
+    dis_site = slm1["site_seperation"][1] - dis_trap
+    x_spacing = [slm1["site_seperation"][0] * (slm1["r"] - 1)]
+    y_spacing = []
+    for _ in range(slm1["c"]):
+        y_spacing.append(dis_trap)
+        y_spacing.append(dis_site)
 
-    inst_init = compiled_qcrank["instructions"][0]
-    init_quibt_location = inst_init["init_locs"]
-
-    shuttle_builder = ShuttleBuilder(
-        num_qubits=len(init_quibt_location), move_kernel=rearrange
+    slm0 = grid.Grid(
+        x_spacing=tuple(x_spacing),
+        y_spacing=tuple(y_spacing),
+        x_init=slm1["location"][0],
+        y_init=slm1["location"][1],
     )
-    shuttle_builder.construct_grid(
-        entanglement_zone_spec["zone_id"],
-        entanglement_zone_spec["offset"],
-        x_spacing,
-        y_spacing,
-        entanglement_zone_spec["dimension"],
+    
+    slm1 = grid.Grid(
+        x_spacing=tuple(x_spacing),
+        y_spacing=tuple(y_spacing),
+        x_init=slm1["location"][0],
+        y_init=slm1["location"][1],
+    )
+
+    x_spacing = [slm2["site_seperation"][0]] * (slm2["c"] - 1)
+    y_spacing = [slm2["site_seperation"][1]] * (slm2["r"] - 1)
+    slm2 = grid.Grid(
+        x_spacing=tuple(x_spacing),
+        y_spacing=tuple(y_spacing),
+        x_init=slm2["location"][0],
+        y_init=slm2["location"][1],
     )
 
     spec_value = spec.ArchSpec(
         layout=spec.Layout(
             static_traps={
-                "mem": shuttle_builder.spec_mapping,
+                "slm0": slm0,
+                "slm1": slm1,
+                "slm2": slm2,
             },
-            fillable=set(["mem"]),
+            fillable=set(["slm1", "slm2"]),
         )
     )
 
-    grid_init_quibt_location = []
-    for loc in init_quibt_location:
-        x = loc[2]
-        y = loc[3]
-        if put_vertical:
-            y *= 2
-        else:
-            x *= 2
-        grid_init_quibt_location.append((x, y))
-
-    def main():
-        # init.fill([spec.get_static_trap(zone_id="mem")])
-        init.fill(shuttle_builder.spec_mapping)  # !
-        insts = compiled_qcrank["instructions"][1:]
-        for inst in insts:
-            if inst["type"] == "1qGate":
-                if inst["unitary"] == "ry":
-                    for loc in inst["locs"]:
-                        rotation_angle = np.random.random()
-                        if loc[1] == 1:
-                            locs = [(loc[0], 2 * loc[2], loc[3])]
-                        else:
-                            locs = [(loc[0], loc[2], loc[3])]
-                        shuttle_builder.lower_r_gate(0, rotation_angle, locs)
-                elif inst["unitary"] == "h":
-                    shuttle_builder.lower_h(inst["locs"])
-
-            elif inst["type"] == "rydberg":
-                shuttle_builder.entangle(inst["zone_id"])
-            elif inst["type"] == "rearrangeJob":
-                shuttle_builder.insert_move(inst["begin_locs"], inst["end_locs"])
-        return measure.measure((shuttle_builder.spec_mapping,))
-
-    return main, spec_value
+    spec_mapping = {0: "slms", 1: "slm1", 2: "slm2"}
+    num_qubits = len(compiled_qcrank["instructions"][0]["init_locs"])
+    shuttle_builder = ShuttleBuilder(
+        spec_mapping=spec_mapping,
+        move_kernel=rearrange,
+        num_qubits=num_qubits
+    )
+    shuttle_builder.lower(compiled_qcrank)
 
 
 if __name__ == "__main__":
     filename = "scratch/qcr_4a8d_quera_circ_code.json"
+    run_qcrank(filename)
