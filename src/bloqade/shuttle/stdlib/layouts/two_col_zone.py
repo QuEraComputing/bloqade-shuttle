@@ -26,7 +26,7 @@ def get_spec(
         spec.Spec: A specification object containing the layout with a single zone.
 
     """
-    x_spacing = sum(repeat((gate_spacing, spacing), num_x - 1), ())
+    x_spacing = sum(repeat((gate_spacing, spacing), num_x - 1), ()) + (gate_spacing,)
     y_spacing = tuple(repeat(spacing, num_y - 1))
 
     return spec.ArchSpec(
