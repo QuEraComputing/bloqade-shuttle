@@ -44,7 +44,7 @@
 <span class=sd>        spec.Spec: A specification object containing the layout with a single zone.</span>
 
 <span class=sd>    &quot;&quot;&quot;</span>
-    <span class=n>x_spacing</span> <span class=o>=</span> <span class=nb>sum</span><span class=p>(</span><span class=n>repeat</span><span class=p>((</span><span class=n>gate_spacing</span><span class=p>,</span> <span class=n>spacing</span><span class=p>),</span> <span class=n>num_x</span> <span class=o>-</span> <span class=mi>1</span><span class=p>),</span> <span class=p>())</span>
+    <span class=n>x_spacing</span> <span class=o>=</span> <span class=nb>sum</span><span class=p>(</span><span class=n>repeat</span><span class=p>((</span><span class=n>gate_spacing</span><span class=p>,</span> <span class=n>spacing</span><span class=p>),</span> <span class=n>num_x</span> <span class=o>-</span> <span class=mi>1</span><span class=p>),</span> <span class=p>())</span> <span class=o>+</span> <span class=p>(</span><span class=n>gate_spacing</span><span class=p>,)</span>
     <span class=n>y_spacing</span> <span class=o>=</span> <span class=nb>tuple</span><span class=p>(</span><span class=n>repeat</span><span class=p>(</span><span class=n>spacing</span><span class=p>,</span> <span class=n>num_y</span> <span class=o>-</span> <span class=mi>1</span><span class=p>))</span>
 
     <span class=k>return</span> <span class=n>spec</span><span class=o>.</span><span class=n>ArchSpec</span><span class=p>(</span>
