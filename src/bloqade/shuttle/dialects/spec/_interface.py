@@ -9,11 +9,13 @@ from .stmts import GetFloatConstant, GetIntConstant, GetStaticTrap
 
 
 @_wraps(GetStaticTrap)
-def get_static_trap(*, zone_id: str) -> grid.Grid[Any, Any]: ...
+def get_static_trap(*, zone_id: str) -> grid.Grid[Any, Any]:
+    """Get a static trap by its zone ID."""
+    ...
 
 
 @_wraps(GetIntConstant)
-def get_int_constant(*, constant_id: str) -> float: ...
+def get_int_constant(*, constant_id: str) -> int: ...
 
 
 @_wraps(GetFloatConstant)
