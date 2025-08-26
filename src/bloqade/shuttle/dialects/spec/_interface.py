@@ -5,8 +5,16 @@ from kirin.lowering import wraps as _wraps
 
 from bloqade.shuttle.arch import ArchSpec as ArchSpec, Layout as Layout
 
-from .stmts import GetStaticTrap
+from .stmts import GetFloatConstant, GetIntConstant, GetStaticTrap
 
 
 @_wraps(GetStaticTrap)
 def get_static_trap(*, zone_id: str) -> grid.Grid[Any, Any]: ...
+
+
+@_wraps(GetIntConstant)
+def get_int_constant(*, constant_id: str) -> float: ...
+
+
+@_wraps(GetFloatConstant)
+def get_float_constant(*, constant_id: str) -> float: ...
