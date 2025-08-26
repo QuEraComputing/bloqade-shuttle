@@ -32,11 +32,11 @@ def run_qcrank(filename: str):
     assert slm1["c"] == slm2["c"]
     assert slm1["site_seperation"] == slm2["site_seperation"]
     assert slm1["location"][0] == slm2["location"][0]
-    dis_trap = abs(slm1["location"][1] - slm1["location"][1])
+    dis_trap = abs(slm1["location"][1] - slm2["location"][1])
     dis_site = slm1["site_seperation"][1] - dis_trap
-    x_spacing = [slm1["site_seperation"][0] * (slm1["r"] - 1)]
+    x_spacing = [slm1["site_seperation"][0] * (slm1["c"] - 1)]
     y_spacing = []
-    for _ in range(slm1["c"]):
+    for _ in range(slm1["r"]):
         y_spacing.append(dis_trap)
         y_spacing.append(dis_site)
 
@@ -46,14 +46,15 @@ def run_qcrank(filename: str):
         x_init=slm1["location"][0],
         y_init=slm1["location"][1],
     )
-    
+
+    x_spacing = [slm1["site_seperation"][0]] * (slm1["c"] - 1)
+    y_spacing = [slm1["site_seperation"][1]] * (slm1["r"] - 1)
     slm1 = grid.Grid(
         x_spacing=tuple(x_spacing),
         y_spacing=tuple(y_spacing),
         x_init=slm1["location"][0],
         y_init=slm1["location"][1],
     )
-
     x_spacing = [slm2["site_seperation"][0]] * (slm2["c"] - 1)
     y_spacing = [slm2["site_seperation"][1]] * (slm2["r"] - 1)
     slm2 = grid.Grid(
@@ -62,7 +63,6 @@ def run_qcrank(filename: str):
         x_init=slm2["location"][0],
         y_init=slm2["location"][1],
     )
-
     spec_value = spec.ArchSpec(
         layout=spec.Layout(
             static_traps={
@@ -73,6 +73,7 @@ def run_qcrank(filename: str):
             fillable=set(["slm1", "slm2"]),
         )
     )
+    # print(spec_value)
 
     spec_mapping = {0: "slms", 1: "slm1", 2: "slm2"}
     num_qubits = len(compiled_qcrank["instructions"][0]["init_locs"])
@@ -81,7 +82,8 @@ def run_qcrank(filename: str):
         move_kernel=rearrange,
         num_qubits=num_qubits
     )
-    shuttle_builder.lower(compiled_qcrank)
+    method = shuttle_builder.lower(compiled_qcrank)
+    # print(method.print())
 
 
 if __name__ == "__main__":
