@@ -18,6 +18,8 @@ def test_single_zone_spec():
                 )
             },
             fillable=set(["traps"]),
+            has_cz=set(["traps"]),
+            has_local=set(["traps"]),
         )
     )
 

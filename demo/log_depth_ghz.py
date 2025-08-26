@@ -149,7 +149,12 @@ def run_ghz():
             static_traps={
                 "mem": mem,
             },
+            special_grid={
+                "gate": gate,
+            },
             fillable=set(["mem"]),
+            has_cz=set(["gate"]),
+            has_local=set(["mem"]),
         )
     )
 

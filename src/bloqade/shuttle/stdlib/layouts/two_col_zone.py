@@ -31,8 +31,10 @@ def get_spec(
 
     return spec.ArchSpec(
         layout=spec.Layout(
-            static_traps={"traps": grid.Grid(x_spacing, y_spacing, 0.0, 0.0)},
-            fillable=set(["traps"]),
+            {"traps": grid.Grid(x_spacing, y_spacing, 0.0, 0.0)},
+            set(["traps"]),
+            set(["traps"]),
+            set(["traps"]),
         )
     )
 
