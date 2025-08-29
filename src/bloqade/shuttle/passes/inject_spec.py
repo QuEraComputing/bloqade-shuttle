@@ -26,6 +26,18 @@ class InjectSpecRule(RewriteRule):
             node.replace_by(Constant(self.arch_spec.layout.static_traps[zone_id]))
 
             return RewriteResult(has_done_something=True)
+        elif (
+            isinstance(node, spec.GetIntConstant)
+            and node.constant_id in self.arch_spec.int_constants
+        ):
+            node.replace_by(Constant(self.arch_spec.int_constants[node.constant_id]))
+            return RewriteResult(has_done_something=True)
+        elif (
+            isinstance(node, spec.GetFloatConstant)
+            and node.constant_id in self.arch_spec.float_constants
+        ):
+            node.replace_by(Constant(self.arch_spec.float_constants[node.constant_id]))
+            return RewriteResult(has_done_something=True)
 
         return RewriteResult()
 
