@@ -12,10 +12,27 @@ class Layout:
     """Abstract base class for layout."""
 
     fillable: set[str]
-    """ The set of trap names that are fillable by the sorter. """
+    """The set of trap names that are fillable by the sorter."""
+
+    has_cz: set[str]
+    """The set of trap names that can have a CZ gates applied."""
+
+    has_local: set[str]
+    """The set of trap names that can have local single qubit gates applied."""
+
+    special_grid: dict[str, Grid] = field(default_factory=dict, kw_only=True)
+    """Set of special grid values that are not static traps, but can be used for specific purposes."""
 
     def __hash__(self):
-        return hash((frozenset(self.static_traps.items()), frozenset(self.fillable)))
+        return hash(
+            (
+                frozenset(self.static_traps.items()),
+                frozenset(self.fillable),
+                frozenset(self.has_cz),
+                frozenset(self.has_local),
+                frozenset(self.special_grid.items()),
+            )
+        )
 
     def __eq__(self, other):
         if not isinstance(other, Layout):
@@ -81,7 +98,12 @@ def _default_layout():
         range(16),
     ).scale(10.0, 10.0)
 
-    return Layout(static_traps={"traps": zone}, fillable={"traps"})
+    return Layout(
+        static_traps={"traps": zone},
+        fillable={"traps"},
+        has_cz={"traps"},
+        has_local={"traps"},
+    )
 
 
 @dataclass(frozen=True)

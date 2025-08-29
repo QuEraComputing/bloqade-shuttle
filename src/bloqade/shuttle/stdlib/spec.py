@@ -33,5 +33,7 @@ def single_zone_spec(num_x: int, num_y: int, spacing: float = 10.0) -> spec.Arch
         layout=spec.Layout(
             static_traps={"traps": grid.Grid(x_spacing, y_spacing, 0.0, 0.0)},
             fillable=set(["traps"]),
+            has_cz=set(["traps"]),
+            has_local=set(["traps"]),
         )
     )
