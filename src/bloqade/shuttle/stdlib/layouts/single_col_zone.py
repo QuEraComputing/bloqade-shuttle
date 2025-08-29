@@ -1,4 +1,4 @@
-import warnings
+from itertools import repeat
 from typing import Any, TypeVar
 
 from bloqade.geometry.dialects import grid
@@ -7,22 +7,34 @@ from kirin.dialects import ilist
 from bloqade.shuttle import action, gate, schedule, spec
 from bloqade.shuttle.prelude import move, tweezer
 
-warnings.warn(
-    (
-        "This module has been moved to `stdlib.layouts.single_col_zone` submodule and"
-        " will be removed in 0.8.0"
-    ),
-    DeprecationWarning,
-)
+from .asserts import assert_sorted
+
+
+def get_spec(num_x: int, num_y: int, spacing: float = 10.0) -> spec.ArchSpec:
+    """Create a static trap spec with a single zone. compatible with the stdlib
+
+    Args:
+        num_x (int): Number of traps in the x direction.
+        num_y (int): Number of traps in the y direction.
+        spacing (float): Spacing between traps in both directions. Default is 10.0.
+
+    Returns:
+        spec.Spec: A specification object containing the layout with a single zone.
+
+    """
+    x_spacing = tuple(repeat(spacing, num_x - 1))
+    y_spacing = tuple(repeat(spacing, num_y - 1))
+
+    return spec.ArchSpec(
+        layout=spec.Layout(
+            static_traps={"traps": grid.Grid(x_spacing, y_spacing, 0.0, 0.0)},
+            fillable=set(["traps"]),
+        )
+    )
+
 
 NumX = TypeVar("NumX")
 NumY = TypeVar("NumY")
-
-
-@tweezer
-def assert_sorted(indices):
-    for i in range(1, len(indices)):
-        assert indices[i - 1] < indices[i], "Indices must be sorted in ascending order."
 
 
 @tweezer
@@ -75,6 +87,9 @@ def default_move_cz_impl(
     """Move atoms from the start ids and run cz gate with the atoms at the end ids.
 
     Args:
+        zone (grid.Grid[Any, Any]): The grid representing the trap layout (zone) in which atoms are moved.
+        x_shift (float): The amount to shift atoms in the x direction during the move.
+        y_shift (float): The amount to shift atoms in the y direction during the move.
         ctrl_x_ids (ilist.IList[int, NumX]): The x-indices of the starting positions.
         ctrl_y_ids (ilist.IList[int, NumY]): The y-indices of the starting positions.
         qarg_x_ids (ilist.IList[int, NumX]): The x-indices of the ending positions.
@@ -100,7 +115,7 @@ DEFAULT_Y_SHIFT = 2.0
 
 
 @move
-def default_move_cz(
+def cz_move(
     ctrl_x_ids: ilist.IList[int, NumX],
     ctrl_y_ids: ilist.IList[int, NumY],
     qarg_x_ids: ilist.IList[int, NumX],

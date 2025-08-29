@@ -14,6 +14,16 @@ class Layout:
     fillable: set[str]
     """ The set of trap names that are fillable by the sorter. """
 
+    def __hash__(self):
+        return hash((frozenset(self.static_traps.items()), frozenset(self.fillable)))
+
+    def __eq__(self, other):
+        if not isinstance(other, Layout):
+            return NotImplemented
+        return (
+            self.static_traps == other.static_traps and self.fillable == other.fillable
+        )
+
     @staticmethod
     def _plot_zone(zone: Grid, ax, name: str, **plot_options):
         from matplotlib.axes import Axes  # type: ignore
@@ -77,6 +87,8 @@ def _default_layout():
 @dataclass(frozen=True)
 class ArchSpec:
     layout: Layout = field(default_factory=_default_layout)  # type: ignore
+    float_constants: dict[str, float] = field(default_factory=dict)
+    int_constants: dict[str, int] = field(default_factory=dict)
 
 
 @dataclass

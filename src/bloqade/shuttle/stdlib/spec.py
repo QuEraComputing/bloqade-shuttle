@@ -1,8 +1,17 @@
+import warnings
 from itertools import repeat
 
 from bloqade.geometry.dialects import grid
 
 from bloqade.shuttle import spec
+
+warnings.warn(
+    (
+        "This module's contents have been moved to `stdlib.layouts.single_col_zone` submodule and"
+        " will be removed in 0.8.0"
+    ),
+    DeprecationWarning,
+)
 
 
 def single_zone_spec(num_x: int, num_y: int, spacing: float = 10.0) -> spec.ArchSpec:
