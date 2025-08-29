@@ -1,7 +1,7 @@
 from typing import cast
 
 from kirin.analysis import const, forward
-from kirin.interp import InterpreterError, MethodTable, impl
+from kirin.interp import MethodTable, impl
 
 from bloqade.shuttle.codegen import TraceInterpreter, reverse_path
 from bloqade.shuttle.dialects import schedule
@@ -43,17 +43,14 @@ class ConstProp(MethodTable):
             device_task.move_fn.arg_names, inputs_results, kwargs
         )
 
-        try:
-            path = TraceInterpreter(arch_spec=stmt.arch_spec).run_trace(
-                device_task.move_fn,
-                tuple(
-                    cast(const.Value, arg).data if isinstance(arg, const.Value) else arg
-                    for arg in args
-                ),
-                {},
-            )
-        except InterpreterError:
-            return (const.Result.top(),)
+        path = TraceInterpreter(arch_spec=stmt.arch_spec).run_trace(
+            device_task.move_fn,
+            tuple(
+                cast(const.Value, arg).data if isinstance(arg, const.Value) else arg
+                for arg in args
+            ),
+            {},
+        )
 
         if reverse:
             path = reverse_path(path)

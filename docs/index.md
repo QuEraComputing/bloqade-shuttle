@@ -23,3 +23,16 @@ uv add bloqade-shuttle
 See [Installation](install.md) for more details.
 
 Check out new [Blog](blog/index.md) to understand more about tools and shuttle.
+
+## Other useful links
+
+- [Bloqade Geometry](https://queracomputing.github.io/bloqade-geometry/dev/) a related
+project that provides components for defining and manipulating geometric objects in
+Bloqade Shuttle.
+
+## Stability
+
+Bloqade-Shuttle is currently in active development, while we are gathering feedback from
+early users and refining the language design. We can work with our partners to provide
+support for transitioning to the new language as well as ongoing maintenance and
+updates.
