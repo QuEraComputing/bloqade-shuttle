@@ -109,6 +109,8 @@ def _default_layout():
 @dataclass(frozen=True)
 class ArchSpec:
     layout: Layout = field(default_factory=_default_layout)  # type: ignore
+    float_constants: dict[str, float] = field(default_factory=dict)
+    int_constants: dict[str, int] = field(default_factory=dict)
 
 
 @dataclass

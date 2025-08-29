@@ -58,3 +58,21 @@ def test_inject_spac_callgraph():
     assert (
         test() == slm_grid
     ), "The injected static trap should match the expected grid."
+
+
+def test_inject_constants():
+    test_spec = spec.ArchSpec(
+        int_constants={"my_int": 42},
+        float_constants={"my_float": 3.14},
+    )
+
+    @move(arch_spec=test_spec)
+    def test():
+        return spec.get_int_constant(constant_id="my_int"), spec.get_float_constant(
+            constant_id="my_float"
+        )
+
+    assert test() == (
+        42,
+        3.14,
+    ), "The injected constants should match the expected values."
