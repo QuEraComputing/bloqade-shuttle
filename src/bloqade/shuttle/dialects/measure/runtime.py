@@ -19,4 +19,5 @@ class HasQuantumRuntimeMethodTable(interp.MethodTable):
     ) -> interp.StatementResult[EmptyLattice]:
         """Handle gate statements and mark the frame as quantum."""
         frame.is_quantum = True
+        frame.quantum_stmts.add(stmt)
         return (EmptyLattice.top(),)
