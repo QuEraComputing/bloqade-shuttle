@@ -1,8 +1,7 @@
 from dataclasses import dataclass, field
 
-from kirin import interp, ir
+from kirin import ir
 from kirin.analysis import ForwardExtra, ForwardFrame
-from kirin.dialects import func, scf
 from kirin.lattice import EmptyLattice
 
 
