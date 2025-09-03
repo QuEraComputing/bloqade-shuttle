@@ -19,6 +19,8 @@ def default_spec():
         spec.Layout(
             static_traps={"test": grid.Grid.from_positions([0, 1, 2], [0, 1, 2])},
             fillable=set(["test"]),
+            has_cz=set(["test"]),
+            has_local=set(["test"]),
         )
     )
 
