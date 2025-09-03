@@ -24,6 +24,7 @@ class HasQuantumRuntimeMethodTable(interp.MethodTable):
         stmt: TopHatCZ | LocalRz | LocalR | GlobalR | GlobalRz,
     ) -> interp.StatementResult[RuntimeFrame]:
         """Handle gate statements and mark the frame as quantum."""
+        print(f"Quantum gate encountered: {stmt}")
         frame.is_quantum = True
         frame.quantum_stmts.add(stmt)
         return ()

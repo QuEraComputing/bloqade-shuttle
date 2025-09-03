@@ -1,3 +1,4 @@
+from . import runtime as runtime
 from ._dialect import dialect as dialect
 from ._interface import (
     global_r as global_r,

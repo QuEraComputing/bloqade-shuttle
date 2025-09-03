@@ -37,6 +37,9 @@ class RuntimeAnalysis(ForwardExtra[RuntimeFrame, EmptyLattice]):
     ) -> RuntimeFrame:
         return RuntimeFrame(code, has_parent_access=has_parent_access)
 
+    def run_method(self, method: ir.Method, args: tuple[EmptyLattice, ...]):
+        return self.run_callable(method.code, (self.lattice.bottom(),) + args)
+
 
 @scf.dialect.register(key="runtime")
 class Scf(interp.MethodTable):
