@@ -10,11 +10,7 @@ from ._dialect import dialect
 class Fill(ir.Statement):
     name = "fill"
 
-    traits = frozenset(
-        {
-            lowering.FromPythonCall(),
-        }
-    )
+    traits = frozenset({lowering.FromPythonCall()})
     locations: ir.SSAValue = info.argument(
         ilist.IListType[grid.GridType[types.Any, types.Any], types.Any]
     )
