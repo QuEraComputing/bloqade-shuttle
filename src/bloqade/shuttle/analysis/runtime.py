@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import cast
 
 from kirin import interp, ir
 from kirin.analysis import ForwardExtra, ForwardFrame, const
@@ -61,7 +60,6 @@ class Scf(interp.MethodTable):
             frame.is_quantum or then_frame.is_quantum or else_frame.is_quantum
         )
         frame.quantum_stmts.update(then_frame.quantum_stmts, else_frame.quantum_stmts)
-
         match (then_result, else_result):
             case (interp.ReturnValue(), tuple()):
                 return else_result
@@ -85,25 +83,34 @@ class Scf(interp.MethodTable):
 
         frame.is_quantum = frame.is_quantum or body_frame.is_quantum
         frame.quantum_stmts.update(body_frame.quantum_stmts)
-
         if isinstance(result, interp.ReturnValue) or result is None:
             return args[1:]
         else:
             return tuple(arg.join(res) for arg, res in zip(args[1:], result))
 
+    @interp.impl(scf.Yield)
+    def yield_stmt(
+        self, _interp: RuntimeAnalysis, frame: RuntimeFrame, stmt: scf.Yield
+    ):
+        return interp.YieldValue(frame.get_values(stmt.args))
+
 
 @func.dialect.register(key="runtime")
-class Func(func.typeinfer.TypeInfer):
+class Func(interp.MethodTable):
+
+    @interp.impl(func.Invoke)
+    def invoke(self, _interp: RuntimeAnalysis, frame: RuntimeFrame, stmt: func.Invoke):
+        args = (EmptyLattice.top(),) * len(stmt.inputs)
+        callee_frame, result = _interp.run_method(stmt.callee, args)
+        frame.is_quantum = frame.is_quantum or callee_frame.is_quantum
+        return (result,)
 
     @interp.impl(func.Call)
     def call(self, _interp: RuntimeAnalysis, frame: RuntimeFrame, stmt: func.Call):
         # Check if the called method is quantum
         callee_result = stmt.callee.hints.get("const")
         args = (EmptyLattice.top(),) * len(stmt.inputs)
-        if isinstance(callee_result, const.Value):
-            mt = cast(ir.Method, callee_result.data)
-            callee_frame, result = _interp.run_method(mt, args)
-        elif (
+        if (
             isinstance(callee_result, const.PartialLambda)
             and (trait := callee_result.code.get_trait(ir.CallableStmtInterface))
             is not None
@@ -116,3 +123,9 @@ class Func(func.typeinfer.TypeInfer):
 
         frame.is_quantum = frame.is_quantum or callee_frame.is_quantum
         return (result,)
+
+    @interp.impl(func.Return)
+    def return_stmt(
+        self, _interp: RuntimeAnalysis, frame: RuntimeFrame, stmt: func.Return
+    ):
+        return interp.ReturnValue(frame.get_values(stmt.results))
