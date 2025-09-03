@@ -39,6 +39,11 @@ class RuntimeAnalysis(ForwardExtra[RuntimeFrame, EmptyLattice]):
     def run_method(self, method: ir.Method, args: tuple[EmptyLattice, ...]):
         return self.run_callable(method.code, (self.lattice.bottom(),) + args)
 
+    def has_quantum_runtime(self, method: ir.Method) -> bool:
+        """Return True if the method has quantum runtime operations, False otherwise."""
+        frame, _ = self.run_analysis(method)
+        return frame.is_quantum
+
 
 @scf.dialect.register(key="runtime")
 class Scf(interp.MethodTable):

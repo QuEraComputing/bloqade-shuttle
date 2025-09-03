@@ -10,9 +10,7 @@ def test_simple_true():
         gate.top_hat_cz(spec.get_static_trap(zone_id="test"))
         return i
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert frame.is_quantum
+    assert RuntimeAnalysis(move).has_quantum_runtime(main)
 
 
 def test_simple_false():
@@ -20,9 +18,7 @@ def test_simple_false():
     def main():
         return 1
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert not frame.is_quantum
+    assert not RuntimeAnalysis(move).has_quantum_runtime(main)
 
 
 def test_if_1():
@@ -32,9 +28,7 @@ def test_if_1():
         if i % 2 == 0:
             gate.top_hat_cz(spec.get_static_trap(zone_id="test"))
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert frame.is_quantum
+    assert RuntimeAnalysis(move).has_quantum_runtime(main)
 
 
 def test_if_2():
@@ -44,9 +38,7 @@ def test_if_2():
         if i % 2 == 0:
             gate.top_hat_cz(spec.get_static_trap(zone_id="test"))
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert frame.is_quantum
+    assert RuntimeAnalysis(move).has_quantum_runtime(main)
 
 
 def test_if_3():
@@ -61,9 +53,7 @@ def test_if_3():
 
         return i
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert frame.is_quantum
+    assert RuntimeAnalysis(move).has_quantum_runtime(main)
 
 
 def test_if_4():
@@ -76,9 +66,7 @@ def test_if_4():
         else:
             return i + 1
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert frame.is_quantum
+    assert RuntimeAnalysis(move).has_quantum_runtime(main)
 
 
 def test_if_5():
@@ -93,9 +81,7 @@ def test_if_5():
 
         return i
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert frame.is_quantum
+    assert RuntimeAnalysis(move).has_quantum_runtime(main)
 
 
 def test_loop_1():
@@ -106,9 +92,7 @@ def test_loop_1():
             if i % 2 == 0:
                 gate.top_hat_cz(spec.get_static_trap(zone_id="test"))
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert not frame.is_quantum
+    assert not RuntimeAnalysis(move).has_quantum_runtime(main)
 
 
 def test_loop_2():
@@ -118,9 +102,7 @@ def test_loop_2():
         for i in range(0, 9, 2):
             gate.top_hat_cz(spec.get_static_trap(zone_id="test"))
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert frame.is_quantum
+    assert RuntimeAnalysis(move).has_quantum_runtime(main)
 
 
 def test_loop_3():
@@ -131,9 +113,7 @@ def test_loop_3():
             gate.top_hat_cz(spec.get_static_trap(zone_id="test"))
             return i
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert frame.is_quantum
+    assert RuntimeAnalysis(move).has_quantum_runtime(main)
 
 
 def test_subroutine_1():
@@ -147,9 +127,7 @@ def test_subroutine_1():
         subroutine()
         return i
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert frame.is_quantum
+    assert RuntimeAnalysis(move).has_quantum_runtime(main)
 
 
 def test_subroutine_2():
@@ -161,9 +139,7 @@ def test_subroutine_2():
     def main(i: int):
         return subroutine(i)
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert not frame.is_quantum
+    assert not RuntimeAnalysis(move).has_quantum_runtime(main)
 
 
 def test_lambda_1():
@@ -174,9 +150,7 @@ def test_lambda_1():
 
         inner()
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert frame.is_quantum
+    assert RuntimeAnalysis(move).has_quantum_runtime(main)
 
 
 def test_lambda_2():
@@ -187,9 +161,7 @@ def test_lambda_2():
 
         return inner(a)
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert not frame.is_quantum
+    assert not RuntimeAnalysis(move).has_quantum_runtime(main)
 
 
 def test_lambda_3():
@@ -201,9 +173,7 @@ def test_lambda_3():
 
         return inner
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert not frame.is_quantum
+    assert not RuntimeAnalysis(move).has_quantum_runtime(main)
 
 
 def test_lambda_4():
@@ -220,6 +190,4 @@ def test_lambda_4():
         f = subroutine(i)
         return f(i)
 
-    analysis = RuntimeAnalysis(move)
-    frame, _ = analysis.run_analysis(main)
-    assert frame.is_quantum
+    assert RuntimeAnalysis(move).has_quantum_runtime(main)
