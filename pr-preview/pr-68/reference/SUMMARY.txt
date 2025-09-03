@@ -26,7 +26,6 @@
                 * [\_dialect](bloqade/shuttle/dialects/filled/_dialect.md)
                 * [\_interface](bloqade/shuttle/dialects/filled/_interface.md)
                 * [concrete](bloqade/shuttle/dialects/filled/concrete.md)
-                * [runtime](bloqade/shuttle/dialects/filled/runtime.md)
                 * [stmts](bloqade/shuttle/dialects/filled/stmts.md)
                 * [types](bloqade/shuttle/dialects/filled/types.md)
             * [gate](bloqade/shuttle/dialects/gate/index.md)
