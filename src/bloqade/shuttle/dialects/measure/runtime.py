@@ -1,5 +1,4 @@
 from kirin import interp
-from kirin.lattice import EmptyLattice
 
 from bloqade.shuttle.analysis.runtime import (
     RuntimeAnalysis,
@@ -14,10 +13,8 @@ from .stmts import Measure
 class HasQuantumRuntimeMethodTable(interp.MethodTable):
 
     @interp.impl(Measure)
-    def gate(
-        self, interp: RuntimeAnalysis, frame: RuntimeFrame, stmt: Measure
-    ) -> interp.StatementResult[EmptyLattice]:
+    def gate(self, _interp: RuntimeAnalysis, frame: RuntimeFrame, stmt: Measure):
         """Handle gate statements and mark the frame as quantum."""
         frame.is_quantum = True
         frame.quantum_stmts.add(stmt)
-        return (EmptyLattice.top(),)
+        return (_interp.lattice.top(),)

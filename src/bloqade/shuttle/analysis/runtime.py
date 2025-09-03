@@ -29,7 +29,7 @@ class RuntimeAnalysis(ForwardExtra[RuntimeFrame, EmptyLattice]):
     lattice = EmptyLattice
 
     def eval_stmt_fallback(self, frame: RuntimeFrame, stmt: ir.Statement):
-        return tuple(EmptyLattice.top() for _ in stmt.results)
+        return tuple(self.lattice.top() for _ in stmt.results)
 
     def initialize_frame(
         self, code: ir.Statement, *, has_parent_access: bool = False
@@ -53,12 +53,12 @@ class Scf(interp.MethodTable):
         # If either branch is quantum, the whole ifelse is quantum
         with _interp.new_frame(stmt, has_parent_access=True) as then_frame:
             then_result = _interp.run_ssacfg_region(
-                then_frame, stmt.then_body, (EmptyLattice.top(),)
+                then_frame, stmt.then_body, (_interp.lattice.top(),)
             )
 
         with _interp.new_frame(stmt, has_parent_access=True) as else_frame:
             else_result = _interp.run_ssacfg_region(
-                else_frame, stmt.else_body, (EmptyLattice.top(),)
+                else_frame, stmt.else_body, (_interp.lattice.top(),)
             )
 
         frame.is_quantum = (
@@ -76,14 +76,14 @@ class Scf(interp.MethodTable):
                     for then_result, else_result in zip(then_result, else_result)
                 )
             case _:
-                return tuple(EmptyLattice.top() for _ in stmt.results)
+                return tuple(_interp.lattice.top() for _ in stmt.results)
 
     @interp.impl(scf.For)
     def for_loop(self, _interp: RuntimeAnalysis, frame: RuntimeFrame, stmt: scf.For):
-        args = (EmptyLattice.top(),) * (len(stmt.initializers) + 1)
+        args = (_interp.lattice.top(),) * (len(stmt.initializers) + 1)
         with _interp.new_frame(stmt, has_parent_access=True) as body_frame:
             result = _interp.run_ssacfg_region(
-                body_frame, stmt.body, (EmptyLattice.bottom(),)
+                body_frame, stmt.body, (_interp.lattice.bottom(),)
             )
 
         frame.is_quantum = frame.is_quantum or body_frame.is_quantum
@@ -105,7 +105,7 @@ class Func(interp.MethodTable):
 
     @interp.impl(func.Invoke)
     def invoke(self, _interp: RuntimeAnalysis, frame: RuntimeFrame, stmt: func.Invoke):
-        args = (EmptyLattice.top(),) * len(stmt.inputs)
+        args = (_interp.lattice.top(),) * len(stmt.inputs)
         callee_frame, result = _interp.run_method(stmt.callee, args)
         frame.is_quantum = frame.is_quantum or callee_frame.is_quantum
         return (result,)
@@ -114,7 +114,7 @@ class Func(interp.MethodTable):
     def call(self, _interp: RuntimeAnalysis, frame: RuntimeFrame, stmt: func.Call):
         # Check if the called method is quantum
         callee_result = stmt.callee.hints.get("const")
-        args = (EmptyLattice.top(),) * len(stmt.inputs)
+        args = (_interp.lattice.top(),) * len(stmt.inputs)
         if (
             isinstance(callee_result, const.PartialLambda)
             and (trait := callee_result.code.get_trait(ir.CallableStmtInterface))
