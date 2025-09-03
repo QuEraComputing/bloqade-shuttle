@@ -10,7 +10,7 @@ from ._dialect import dialect
 from .stmts import Measure
 
 
-@dialect.register(key="has_quantum_runtime")
+@dialect.register(key="runtime")
 class HasQuantumRuntimeMethodTable(interp.MethodTable):
 
     @interp.impl(Measure)

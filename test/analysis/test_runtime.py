@@ -1,13 +1,17 @@
-from bloqade.shuttle import gate, spec
+from bloqade.geometry.dialects import grid
+from kirin.dialects import ilist
+
+from bloqade.shuttle import gate, init, measure, spec
 from bloqade.shuttle.analysis.runtime import RuntimeAnalysis
 from bloqade.shuttle.prelude import move
+from bloqade.shuttle.stdlib.waypoints import move_by_waypoints
 
 
 def test_simple_true():
     @move
     def main():
         i = 2
-        gate.top_hat_cz(spec.get_static_trap(zone_id="test"))
+        init.fill([spec.get_static_trap(zone_id="test")])
         return i
 
     assert RuntimeAnalysis(move).has_quantum_runtime(main)
@@ -26,7 +30,7 @@ def test_if_1():
     def main():
         i = 0
         if i % 2 == 0:
-            gate.top_hat_cz(spec.get_static_trap(zone_id="test"))
+            return measure.measure((spec.get_static_trap(zone_id="test"),))
 
     assert RuntimeAnalysis(move).has_quantum_runtime(main)
 
@@ -45,8 +49,10 @@ def test_if_3():
     @move
     def main(cond: bool):
         i = 0
+        start = spec.get_static_trap(zone_id="test")
+        end = grid.shift(start, 1, 0)
         if cond:
-            gate.top_hat_cz(spec.get_static_trap(zone_id="test"))
+            move_by_waypoints(ilist.IList([start, end]))
             i = i + 1
         else:
             return 1
