@@ -1,7 +1,9 @@
 from dataclasses import dataclass, field
+from typing import cast
 
-from kirin import ir
-from kirin.analysis import ForwardExtra, ForwardFrame
+from kirin import interp, ir
+from kirin.analysis import ForwardExtra, ForwardFrame, const
+from kirin.dialects import func, scf
 from kirin.lattice import EmptyLattice
 
 
@@ -34,3 +36,80 @@ class RuntimeAnalysis(ForwardExtra[RuntimeFrame, EmptyLattice]):
         self, code: ir.Statement, *, has_parent_access: bool = False
     ) -> RuntimeFrame:
         return RuntimeFrame(code, has_parent_access=has_parent_access)
+
+
+@scf.dialect.register(key="runtime")
+class Scf(interp.MethodTable):
+
+    @interp.impl(scf.IfElse)
+    def ifelse(self, _interp: RuntimeAnalysis, frame: RuntimeFrame, stmt: scf.IfElse):
+        # If either branch is quantum, the whole ifelse is quantum
+        with _interp.new_frame(stmt, has_parent_access=True) as then_frame:
+            then_result = _interp.run_ssacfg_region(
+                then_frame, stmt.then_body, (EmptyLattice.top(),)
+            )
+
+        with _interp.new_frame(stmt, has_parent_access=True) as else_frame:
+            else_result = _interp.run_ssacfg_region(
+                else_frame, stmt.else_body, (EmptyLattice.top(),)
+            )
+
+        frame.is_quantum = (
+            frame.is_quantum or then_frame.is_quantum or else_frame.is_quantum
+        )
+        frame.quantum_stmts.update(then_frame.quantum_stmts, else_frame.quantum_stmts)
+
+        match (then_result, else_result):
+            case (interp.ReturnValue(), tuple()):
+                return else_result
+            case (tuple(), interp.ReturnValue()):
+                return then_result
+            case (tuple(), tuple()):
+                return tuple(
+                    then_result.join(else_result)
+                    for then_result, else_result in zip(then_result, else_result)
+                )
+            case _:
+                return tuple(EmptyLattice.top() for _ in stmt.results)
+
+    @interp.impl(scf.For)
+    def for_loop(self, _interp: RuntimeAnalysis, frame: RuntimeFrame, stmt: scf.For):
+        args = (EmptyLattice.top(),) * (len(stmt.initializers) + 1)
+        with _interp.new_frame(stmt, has_parent_access=True) as body_frame:
+            result = _interp.run_ssacfg_region(
+                body_frame, stmt.body, (EmptyLattice.bottom(),)
+            )
+
+        frame.is_quantum = frame.is_quantum or body_frame.is_quantum
+        frame.quantum_stmts.update(body_frame.quantum_stmts)
+
+        if isinstance(result, interp.ReturnValue) or result is None:
+            return args[1:]
+        else:
+            return tuple(arg.join(res) for arg, res in zip(args[1:], result))
+
+
+@func.dialect.register(key="runtime")
+class Func(func.typeinfer.TypeInfer):
+
+    @interp.impl(func.Call)
+    def call(self, _interp: RuntimeAnalysis, frame: RuntimeFrame, stmt: func.Call):
+        # Check if the called method is quantum
+        callee_result = stmt.callee.hints.get("const")
+        args = (EmptyLattice.top(),) * len(stmt.inputs)
+        if isinstance(callee_result, const.Value):
+            mt = cast(ir.Method, callee_result.data)
+            callee_frame, result = _interp.run_method(mt, args)
+        elif (
+            isinstance(callee_result, const.PartialLambda)
+            and (trait := callee_result.code.get_trait(ir.CallableStmtInterface))
+            is not None
+        ):
+            body = trait.get_callable_region(callee_result.code)
+            with _interp.new_frame(stmt) as callee_frame:
+                result = _interp.run_ssacfg_region(callee_frame, body, args)
+        else:
+            raise InterruptedError("Dynamic method calls are not supported")
+
+        frame.is_quantum = frame.is_quantum or callee_frame.is_quantum
+        return (result,)
