@@ -112,6 +112,15 @@ class ArchSpec:
     float_constants: dict[str, float] = field(default_factory=dict)
     int_constants: dict[str, int] = field(default_factory=dict)
 
+    def __hash__(self):
+        return hash(
+            (
+                self.layout,
+                frozenset(self.float_constants.items()),
+                frozenset(self.int_constants.items()),
+            )
+        )
+
 
 @dataclass
 class ArchSpecMixin:
