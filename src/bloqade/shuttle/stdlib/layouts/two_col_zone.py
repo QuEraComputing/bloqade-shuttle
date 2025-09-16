@@ -9,9 +9,13 @@ from bloqade.shuttle.prelude import move, tweezer
 
 from .asserts import assert_sorted
 
+# Define type variables for generic programming
+NumX = TypeVar('NumX', bound=int)
+NumY = TypeVar('NumY', bound=int)
+
 
 def get_spec(
-    num_x: int, num_y: int, spacing: float = 10.0, gate_spacing: float = 2.0
+        num_x: int, num_y: int, spacing: float = 10.0, gate_spacing: float = 2.0
 ) -> spec.ArchSpec:
     """Create a static trap spec with a single zone with pairs of traps oriented
     horizontally.
@@ -28,27 +32,31 @@ def get_spec(
     """
     x_spacing = sum(repeat((gate_spacing, spacing), num_x - 1), ()) + (gate_spacing,)
     y_spacing = tuple(repeat(spacing, num_y - 1))
+    all_traps = grid.Grid(x_spacing, y_spacing, 0.0, 0.0)
+    left_trap_x_indices = ilist.IList(range(0, num_x * 2, 2))
+    right_trap_x_indices = ilist.IList(range(1, num_x * 2, 2))
+    all_y_indices = ilist.IList(range(num_y))
+    left_traps = all_traps.get_view(left_trap_x_indices, all_y_indices)
+    right_traps = all_traps.get_view(right_trap_x_indices, all_y_indices)
 
     return spec.ArchSpec(
         layout=spec.Layout(
-            {"traps": grid.Grid(x_spacing, y_spacing, 0.0, 0.0)},
-            set(["traps"]),
+            {"traps": all_traps,
+             "left_traps": left_traps,
+             "right_traps": right_traps},
+            set(["left_traps"]),
             set(["traps"]),
             set(["traps"]),
         )
     )
 
 
-NumX = TypeVar("NumX")
-NumY = TypeVar("NumY")
-
-
 @tweezer
 def rearrange_impl(
-    src_x: ilist.IList[int, NumX],
-    src_y: ilist.IList[int, NumY],
-    dst_x: ilist.IList[int, NumX],
-    dst_y: ilist.IList[int, NumY],
+        src_x: ilist.IList[int, NumX],
+        src_y: ilist.IList[int, NumY],
+        dst_x: ilist.IList[int, NumX],
+        dst_y: ilist.IList[int, NumY],
 ):
     assert len(src_x) == len(
         dst_x
@@ -114,10 +122,10 @@ def rearrange_impl(
 
 @move
 def rearrange(
-    src_x: ilist.IList[int, NumX],
-    src_y: ilist.IList[int, NumY],
-    dst_x: ilist.IList[int, NumX],
-    dst_y: ilist.IList[int, NumY],
+        src_x: ilist.IList[int, NumX],
+        src_y: ilist.IList[int, NumY],
+        dst_x: ilist.IList[int, NumX],
+        dst_y: ilist.IList[int, NumY],
 ):
     if len(src_x) < 1 or len(dst_x) < 1:
         return
