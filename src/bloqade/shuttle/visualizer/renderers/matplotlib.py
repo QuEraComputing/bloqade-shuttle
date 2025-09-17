@@ -203,7 +203,7 @@ class MatplotlibRenderer(RendererInterface):
 
         color_map = plt.get_cmap("viridis")
 
-        num_steps = len(set(all_waypoints)) - 2
+        num_steps = max(len(set(all_waypoints)) - 2, 1)
         step = 0
 
         x_tones = np.array(pth.x_tones)
@@ -211,12 +211,15 @@ class MatplotlibRenderer(RendererInterface):
 
         x = all_waypoints[0].x_positions
         y = all_waypoints[0].y_positions
+        self.show()
 
         for action in pth.path:
             if isinstance(action, taskgen.WayPointsAction):
-                for way_point in action.way_points:
-                    x = way_point.x_positions
-                    y = way_point.y_positions
+                for start, end in zip(action.way_points[:-1], action.way_points[1:]):
+                    x = end.x_positions
+                    y = end.y_positions
+                    curr_x = start.x_positions
+                    curr_y = start.y_positions
 
                     for (x_tone, x_start, x_end), (y_tone, y_start, y_end) in product(
                         zip(pth.x_tones, curr_x, x), zip(pth.y_tones, curr_y, y)
@@ -254,9 +257,7 @@ class MatplotlibRenderer(RendererInterface):
 
                     if curr_x != x or curr_y != y:
                         step += 1
-
-                    curr_x = x
-                    curr_y = y
+                        self.show()
 
             elif isinstance(action, taskgen.TurnOnAction):
                 self.active_x_tones.update(x_tones[action.x_tone_indices])

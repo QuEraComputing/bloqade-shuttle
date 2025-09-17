@@ -40,7 +40,6 @@ class PathVisualizerMethods(interp.MethodTable):
                 f"Expected a Path or tuple of Paths, got {path}"
             )
 
-        _interp.renderer.show()
         return ()
 
     @interp.impl(Parallel)
