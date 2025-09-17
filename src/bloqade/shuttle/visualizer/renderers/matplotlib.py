@@ -211,6 +211,7 @@ class MatplotlibRenderer(RendererInterface):
 
         x = all_waypoints[0].x_positions
         y = all_waypoints[0].y_positions
+        self.clear_paths()
         self.show()
 
         for action in pth.path:
