@@ -37,6 +37,7 @@ class MatplotlibRenderer(RendererInterface):
     ax: Axes = field(default_factory=default_ax, repr=False)
 
     gate_display_options: GateDisplayOptions = field(default_factory=GateDisplayOptions)
+    arrow_rescale: float = field(default=1.0, kw_only=True)
 
     active_x_tones: set[int] = field(default_factory=set, repr=False, init=False)
     active_y_tones: set[int] = field(default_factory=set, repr=False, init=False)
@@ -58,6 +59,14 @@ class MatplotlibRenderer(RendererInterface):
         self.continue_button = Button(continue_ax, "Continue")
         self.exit_button = Button(exit_ax, "Exit")
         self.exit_button.on_clicked(lambda event: exit())
+
+    @property
+    def fov_size(self) -> float:
+        return np.sqrt((self.xmax - self.xmin) ** 2 + (self.ymax - self.ymin) ** 2)
+
+    @property
+    def arrow_scale(self) -> float:
+        return self.fov_size / 400.0 * self.arrow_rescale
 
     def update_x_bounds(self, y: float) -> None:
         xmin = min(curr_xmin := getattr(self, "xmin", float("inf")), y - 3)
@@ -194,7 +203,7 @@ class MatplotlibRenderer(RendererInterface):
 
         color_map = plt.get_cmap("viridis")
 
-        num_steps = len(all_waypoints) - 1
+        num_steps = len(set(all_waypoints)) - 2
         step = 0
 
         x_tones = np.array(pth.x_tones)
@@ -232,7 +241,7 @@ class MatplotlibRenderer(RendererInterface):
                             y_start,
                             dx,
                             dy,
-                            width=0.1,
+                            width=self.arrow_scale,
                             color=color_map(step / num_steps),
                             length_includes_head=True,
                             linestyle="-" if is_on else (0, (5, 10)),
@@ -243,9 +252,11 @@ class MatplotlibRenderer(RendererInterface):
                         line.set_edgecolor(line.get_facecolor())
                         self.curr_path_lines.append(line)
 
+                    if curr_x != x or curr_y != y:
+                        step += 1
+
                     curr_x = x
                     curr_y = y
-                    step += 1
 
             elif isinstance(action, taskgen.TurnOnAction):
                 self.active_x_tones.update(x_tones[action.x_tone_indices])
