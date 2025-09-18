@@ -194,16 +194,17 @@ class MatplotlibRenderer(RendererInterface):
             for way_point in path_action.way_points
         ]
 
-        if len(all_waypoints) == 0:
+        num_unique_waypoints = len(set(all_waypoints))
+        if num_unique_waypoints < 2:
             return
 
+        num_arrows = num_unique_waypoints - 1
         first_waypoint = all_waypoints[0]
         curr_x = first_waypoint.x_positions
         curr_y = first_waypoint.y_positions
 
         color_map = plt.get_cmap("viridis")
 
-        num_steps = max(len(set(all_waypoints)) - 2, 1)
         step = 0
 
         x_tones = np.array(pth.x_tones)
@@ -239,14 +240,14 @@ class MatplotlibRenderer(RendererInterface):
                             x_tone in self.active_x_tones
                             and y_tone in self.active_y_tones
                         )
-
+                        p = step / (num_arrows - 1) if num_arrows > 1 else 0.0
                         line = self.ax.arrow(
                             x_start,
                             y_start,
                             dx,
                             dy,
                             width=self.arrow_scale,
-                            color=color_map(step / num_steps),
+                            color=color_map(p),
                             length_includes_head=True,
                             linestyle="-" if is_on else (0, (5, 10)),
                             alpha=1.0 if is_on else 0.5,
