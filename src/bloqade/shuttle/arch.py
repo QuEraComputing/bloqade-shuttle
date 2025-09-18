@@ -114,6 +114,15 @@ class ArchSpec:
     max_x_tones: int = field(default=16, kw_only=True)
     max_y_tones: int = field(default=16, kw_only=True)
 
+    def __hash__(self):
+        return hash(
+            (
+                self.layout,
+                frozenset(self.float_constants.items()),
+                frozenset(self.int_constants.items()),
+            )
+        )
+
 
 @dataclass
 class ArchSpecMixin:
