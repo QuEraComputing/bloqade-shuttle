@@ -21,6 +21,7 @@ NumY = TypeVar('NumY', bound=int)
 def interzone_move(
     storage_grid: grid.Grid[Any, Literal[1]],
     entangling_grid: grid.Grid[Any, Literal[1]],
+    left:bool
 ):
 
     start_x = grid.get_xpos(storage_grid)
@@ -32,8 +33,31 @@ def interzone_move(
     pos_1 = grid.from_positions(start_x, start_y)
     pos_2 = grid.from_positions(end_x, end_y)
 
+    if left:
+        shift = 3
+    else:
+        shift = -3
+
+    if start_y > end_y:
+        shift_y = 5
+    else:
+        shift_y = -5
+
+    mid_1 = grid.shift(pos_1, shift, 0)
+    mid_2 = grid.shift(pos_2, -3, 0)
+    mid_3 = grid.shift(pos_2, start_x[0] - end_x[0] + shift, shift_y)
+    mid_4 = grid.shift(pos_2,0,shift_y)
+
     action.set_loc(pos_1)
     action.turn_on(action.ALL, [0])
+    action.move(mid_1)
+
+    if ((start_x[0] - end_x[0]) > -7) and ((start_x[0] - end_x[0]) < 7):
+        action.move(mid_2)
+    else:
+        action.move(mid_3)
+        action.move(mid_4)
+
     action.move(pos_2)
 
 @tweezer
@@ -51,9 +75,28 @@ def entangle_move_ltor(
     pos_1 = grid.from_positions(start_x, start_y)
     pos_2 = grid.from_positions(end_x, end_y)
 
-    action.set_loc(pos_1)
-    action.turn_on(action.ALL, [0])
-    action.move(pos_2)
+    if start_y == end_y:
+        action.set_loc(pos_1)
+        action.turn_on(action.ALL, [0])
+        action.move(pos_2)
+    else:
+        if start_y < end_y:
+            # moving up
+            y_shift = 5
+        else:
+            # moving down
+            y_shift = -5
+
+        mid_1 = grid.shift(pos_1, 0, y_shift)
+        mid_2 = grid.shift(pos_1, 6, y_shift)
+        mid_3 = grid.shift(pos_2, 4, 0)
+
+        action.set_loc(pos_1)
+        action.turn_on(action.ALL, [0])
+        action.move(mid_1)
+        action.move(mid_2)
+        action.move(mid_3)
+        action.move(pos_2)
 
 @tweezer
 def entangle_move_rtor(
@@ -70,14 +113,20 @@ def entangle_move_rtor(
     pos_1 = grid.from_positions(start_x, start_y)
     pos_2 = grid.from_positions(end_x, end_y)
 
+    mid_1 = grid.shift(pos_1, 0, 5)
+    mid_2 = grid.shift(pos_2, 0, 5)
+
     action.set_loc(pos_1)
     action.turn_on(action.ALL, [0])
+    action.move(mid_1)
+    action.move(mid_2)
     action.move(pos_2)
 
 @move
 def run_interzone_move(
     storage_grid: grid.Grid[Any, Literal[1]],
     entangling_grid: grid.Grid[Any, Literal[1]],
+    left:bool
 ):
     xtones = ilist.range(len(storage_grid.x_positions))
     ytones = ilist.range(len(storage_grid.y_positions))
@@ -85,8 +134,8 @@ def run_interzone_move(
     dtask = schedule.device_fn(interzone_move, xtones, ytones)
     rev_dtask = schedule.reverse(dtask)
 
-    dtask(storage_grid, entangling_grid)
-    rev_dtask(storage_grid, entangling_grid)
+    dtask(storage_grid, entangling_grid, left)
+    rev_dtask(storage_grid, entangling_grid, left)
 
 @move
 def run_entangle_move_ltor(
@@ -274,7 +323,7 @@ def generate_moves():
         has_local=set(["left_traps"]),
     )
 
-    layout.show()
+    # layout.show()
 
     spec_value = spec.ArchSpec(
         layout=layout
@@ -363,67 +412,67 @@ def generate_moves():
 
         controls = spec.get_static_trap(zone_id="SL0_block")
         targets = spec.get_static_trap(zone_id="GL0_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, True)
 
         controls = spec.get_static_trap(zone_id="SR0_block")
         targets = spec.get_static_trap(zone_id="GL0_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, False)
 
         controls = spec.get_static_trap(zone_id="SL1_block")
         targets = spec.get_static_trap(zone_id="GL0_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, True)
 
         controls = spec.get_static_trap(zone_id="SR1_block")
         targets = spec.get_static_trap(zone_id="GL0_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, False)
 
         controls = spec.get_static_trap(zone_id="SL0_block")
         targets = spec.get_static_trap(zone_id="GL1_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, True)
 
         controls = spec.get_static_trap(zone_id="SR0_block")
         targets = spec.get_static_trap(zone_id="GL1_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, False)
 
         controls = spec.get_static_trap(zone_id="SL1_block")
         targets = spec.get_static_trap(zone_id="GL1_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, True)
 
         controls = spec.get_static_trap(zone_id="SR1_block")
         targets = spec.get_static_trap(zone_id="GL1_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, False)
 
         controls = spec.get_static_trap(zone_id="ML0_block")
         targets = spec.get_static_trap(zone_id="GL0_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, True)
 
         controls = spec.get_static_trap(zone_id="MR0_block")
         targets = spec.get_static_trap(zone_id="GL0_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, False)
 
         controls = spec.get_static_trap(zone_id="ML1_block")
         targets = spec.get_static_trap(zone_id="GL0_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, True)
 
         controls = spec.get_static_trap(zone_id="MR1_block")
         targets = spec.get_static_trap(zone_id="GL0_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, False)
 
         controls = spec.get_static_trap(zone_id="ML0_block")
         targets = spec.get_static_trap(zone_id="GL1_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, True)
 
         controls = spec.get_static_trap(zone_id="MR0_block")
         targets = spec.get_static_trap(zone_id="GL1_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, False)
 
         controls = spec.get_static_trap(zone_id="ML1_block")
         targets = spec.get_static_trap(zone_id="GL1_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, True)
 
         controls = spec.get_static_trap(zone_id="MR1_block")
         targets = spec.get_static_trap(zone_id="GL1_block")
-        run_interzone_move(controls, targets)
+        run_interzone_move(controls, targets, False)
 
         return measure.measure((left_traps,))
 
