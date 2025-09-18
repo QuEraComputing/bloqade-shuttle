@@ -37,6 +37,7 @@ class MatplotlibRenderer(RendererInterface):
     ax: Axes = field(default_factory=default_ax, repr=False)
 
     gate_display_options: GateDisplayOptions = field(default_factory=GateDisplayOptions)
+    arrow_rescale: float = field(default=1.0, kw_only=True)
 
     active_x_tones: set[int] = field(default_factory=set, repr=False, init=False)
     active_y_tones: set[int] = field(default_factory=set, repr=False, init=False)
@@ -58,6 +59,14 @@ class MatplotlibRenderer(RendererInterface):
         self.continue_button = Button(continue_ax, "Continue")
         self.exit_button = Button(exit_ax, "Exit")
         self.exit_button.on_clicked(lambda event: exit())
+
+    @property
+    def fov_size(self) -> float:
+        return np.sqrt((self.xmax - self.xmin) ** 2 + (self.ymax - self.ymin) ** 2)
+
+    @property
+    def arrow_scale(self) -> float:
+        return self.fov_size / 400.0 * self.arrow_rescale
 
     def update_x_bounds(self, y: float) -> None:
         xmin = min(curr_xmin := getattr(self, "xmin", float("inf")), y - 3)
@@ -185,16 +194,17 @@ class MatplotlibRenderer(RendererInterface):
             for way_point in path_action.way_points
         ]
 
-        if len(all_waypoints) == 0:
+        num_unique_waypoints = len(set(all_waypoints))
+        if num_unique_waypoints < 2:
             return
 
+        num_arrows = num_unique_waypoints - 1
         first_waypoint = all_waypoints[0]
         curr_x = first_waypoint.x_positions
         curr_y = first_waypoint.y_positions
 
         color_map = plt.get_cmap("viridis")
 
-        num_steps = len(all_waypoints) - 1
         step = 0
 
         x_tones = np.array(pth.x_tones)
@@ -202,12 +212,16 @@ class MatplotlibRenderer(RendererInterface):
 
         x = all_waypoints[0].x_positions
         y = all_waypoints[0].y_positions
+        self.clear_paths()
+        self.show()
 
         for action in pth.path:
             if isinstance(action, taskgen.WayPointsAction):
-                for way_point in action.way_points:
-                    x = way_point.x_positions
-                    y = way_point.y_positions
+                for start, end in zip(action.way_points[:-1], action.way_points[1:]):
+                    x = end.x_positions
+                    y = end.y_positions
+                    curr_x = start.x_positions
+                    curr_y = start.y_positions
 
                     for (x_tone, x_start, x_end), (y_tone, y_start, y_end) in product(
                         zip(pth.x_tones, curr_x, x), zip(pth.y_tones, curr_y, y)
@@ -226,14 +240,14 @@ class MatplotlibRenderer(RendererInterface):
                             x_tone in self.active_x_tones
                             and y_tone in self.active_y_tones
                         )
-
+                        p = step / (num_arrows - 1) if num_arrows > 1 else 0.0
                         line = self.ax.arrow(
                             x_start,
                             y_start,
                             dx,
                             dy,
-                            width=0.1,
-                            color=color_map(step / num_steps),
+                            width=self.arrow_scale,
+                            color=color_map(p),
                             length_includes_head=True,
                             linestyle="-" if is_on else (0, (5, 10)),
                             alpha=1.0 if is_on else 0.5,
@@ -243,9 +257,9 @@ class MatplotlibRenderer(RendererInterface):
                         line.set_edgecolor(line.get_facecolor())
                         self.curr_path_lines.append(line)
 
-                    curr_x = x
-                    curr_y = y
-                    step += 1
+                    if curr_x != x or curr_y != y:
+                        step += 1
+                        self.show()
 
             elif isinstance(action, taskgen.TurnOnAction):
                 self.active_x_tones.update(x_tones[action.x_tone_indices])
