@@ -99,6 +99,44 @@ def entangle_move_ltor(
         action.move(pos_2)
 
 @tweezer
+def entangle_move_ltoaom(
+    controls: grid.Grid[Any, Literal[1]],
+    targets: grid.Grid[Any, Literal[1]],
+):
+
+    start_x = grid.get_xpos(controls)
+    start_y = grid.get_ypos(controls)
+
+    end_x = grid.get_xpos(grid.shift(targets, -2, 0))
+    end_y = grid.get_ypos(targets)
+
+    pos_1 = grid.from_positions(start_x, start_y)
+    pos_2 = grid.from_positions(end_x, end_y)
+
+    if start_y == end_y:
+        action.set_loc(pos_1)
+        action.turn_on(action.ALL, [0])
+        action.move(pos_2)
+    else:
+        if start_y < end_y:
+            # moving up
+            y_shift = 5
+        else:
+            # moving down
+            y_shift = -5
+
+        mid_1 = grid.shift(pos_1, 0, y_shift)
+        mid_2 = grid.shift(pos_1, -4, y_shift)
+        mid_3 = grid.shift(pos_2, -2, 0)
+
+        action.set_loc(pos_1)
+        action.turn_on(action.ALL, [0])
+        action.move(mid_1)
+        action.move(mid_2)
+        action.move(mid_3)
+        action.move(pos_2)
+
+@tweezer
 def entangle_move_rtor(
     controls: grid.Grid[Any, Literal[1]],
     targets: grid.Grid[Any, Literal[1]],
@@ -108,6 +146,30 @@ def entangle_move_rtor(
     start_y = grid.get_ypos(controls)
 
     end_x = grid.get_xpos(grid.shift(targets, 2, 0))
+    end_y = grid.get_ypos(targets)
+
+    pos_1 = grid.from_positions(start_x, start_y)
+    pos_2 = grid.from_positions(end_x, end_y)
+
+    mid_1 = grid.shift(pos_1, 0, 5)
+    mid_2 = grid.shift(pos_2, 0, 5)
+
+    action.set_loc(pos_1)
+    action.turn_on(action.ALL, [0])
+    action.move(mid_1)
+    action.move(mid_2)
+    action.move(pos_2)
+
+@tweezer
+def entangle_move_rtoaom(
+    controls: grid.Grid[Any, Literal[1]],
+    targets: grid.Grid[Any, Literal[1]],
+):
+
+    start_x = grid.get_xpos(grid.shift(controls, 2, 0))
+    start_y = grid.get_ypos(controls)
+
+    end_x = grid.get_xpos(grid.shift(targets, -2, 0))
     end_y = grid.get_ypos(targets)
 
     pos_1 = grid.from_positions(start_x, start_y)
@@ -153,6 +215,21 @@ def run_entangle_move_ltor(
     rev_dtask(controls, targets)
 
 @move
+def run_entangle_move_ltoaom(
+    controls: grid.Grid[Any, Literal[1]],
+    targets: grid.Grid[Any, Literal[1]],
+):
+    xtones = ilist.range(len(controls.x_positions))
+    ytones = ilist.range(len(controls.y_positions))
+
+    dtask = schedule.device_fn(entangle_move_ltoaom, xtones, ytones)
+    rev_dtask = schedule.reverse(dtask)
+
+    dtask(controls, targets)
+    # apply_cx(gate_zone)
+    rev_dtask(controls, targets)
+
+@move
 def run_entangle_move_rtor(
     controls: grid.Grid[Any, Literal[1]],
     targets: grid.Grid[Any, Literal[1]],
@@ -161,6 +238,21 @@ def run_entangle_move_rtor(
     ytones = ilist.range(len(controls.y_positions))
 
     dtask = schedule.device_fn(entangle_move_rtor, xtones, ytones)
+    rev_dtask = schedule.reverse(dtask)
+
+    dtask(controls, targets)
+    # apply_cx(gate_zone)
+    rev_dtask(controls, targets)
+
+@move
+def run_entangle_move_rtoaom(
+    controls: grid.Grid[Any, Literal[1]],
+    targets: grid.Grid[Any, Literal[1]],
+):
+    xtones = ilist.range(len(controls.x_positions))
+    ytones = ilist.range(len(controls.y_positions))
+
+    dtask = schedule.device_fn(entangle_move_rtoaom, xtones, ytones)
     rev_dtask = schedule.reverse(dtask)
 
     dtask(controls, targets)
@@ -177,12 +269,14 @@ def generate_moves():
 
     x_spacing = sum(repeat((gate_spacing, column_spacing), num_x - 1), ()) + (gate_spacing,)
     y_spacing = tuple(repeat(row_spacing, num_y - 1))
-    all_entanglinz_zone_traps = grid.Grid(x_spacing, y_spacing, -81.0, -20.0) # offset to center the grid such that 0,0 is the middle of the AOD.
+    all_entangling_zone_traps = grid.Grid(x_spacing, y_spacing, -81.0, -20.0) # offset to center the grid such that 0,0 is the middle of the AOD.
     left_trap_x_indices = ilist.IList(range(0, num_x * 2, 2))
     right_trap_x_indices = ilist.IList(range(1, num_x * 2, 2))
     all_y_indices = ilist.IList(range(num_y))
-    left_traps = all_entanglinz_zone_traps.get_view(left_trap_x_indices, all_y_indices)
-    right_traps = all_entanglinz_zone_traps.get_view(right_trap_x_indices, all_y_indices)
+    left_traps = all_entangling_zone_traps.get_view(left_trap_x_indices, all_y_indices)
+    right_traps = all_entangling_zone_traps.get_view(right_trap_x_indices, all_y_indices)
+
+    aom_sites = left_traps.shift(-2,0)
 
     reservoir_ally_width = 6.0
     reservoir_column_spacing = column_spacing+gate_spacing-reservoir_ally_width
@@ -236,7 +330,7 @@ def generate_moves():
     GR1_block_traps = right_traps.get_view(G1_block_x_indices, all_y_indices)
 
     static_traps = {
-        "traps": all_entanglinz_zone_traps,
+        "traps": all_entangling_zone_traps,
         "left_traps": left_traps,
         "right_traps": right_traps,
         "top_reservoir": top_reservoir,
@@ -321,6 +415,7 @@ def generate_moves():
         fillable=set(["GL0_block","GL1_block","SL0_block","SR0_block","SL1_block","SR1_block", "ML0_block","MR0_block","ML1_block","MR1_block"]),
         has_cz=set(["traps"]),
         has_local=set(["left_traps"]),
+        special_grid ={"aom_sites": aom_sites}
     )
 
     # layout.show()
@@ -473,6 +568,74 @@ def generate_moves():
         controls = spec.get_static_trap(zone_id="MR1_block")
         targets = spec.get_static_trap(zone_id="GL1_block")
         run_interzone_move(controls, targets, False)
+
+        controls = spec.get_static_trap(zone_id="controls_0")
+        targets = spec.get_static_trap(zone_id="targets_0")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_1")
+        targets = spec.get_static_trap(zone_id="targets_1")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_2")
+        targets = spec.get_static_trap(zone_id="targets_2")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_3")
+        targets = spec.get_static_trap(zone_id="targets_3")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_4")
+        targets = spec.get_static_trap(zone_id="targets_4")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_5")
+        targets = spec.get_static_trap(zone_id="targets_5")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_6")
+        targets = spec.get_static_trap(zone_id="targets_6")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_7")
+        targets = spec.get_static_trap(zone_id="targets_7")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_8")
+        targets = spec.get_static_trap(zone_id="targets_8")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_9")
+        targets = spec.get_static_trap(zone_id="targets_9")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_10")
+        targets = spec.get_static_trap(zone_id="targets_10")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_11")
+        targets = spec.get_static_trap(zone_id="targets_11")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_12")
+        targets = spec.get_static_trap(zone_id="targets_12")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_13")
+        targets = spec.get_static_trap(zone_id="targets_13")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_14")
+        targets = spec.get_static_trap(zone_id="targets_14")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_15")
+        targets = spec.get_static_trap(zone_id="targets_15")
+        run_entangle_move_ltoaom(controls, targets)
+
+        controls = spec.get_static_trap(zone_id="controls_16")
+        targets = spec.get_static_trap(zone_id="targets_16")
+        run_entangle_move_rtoaom(controls, targets)
 
         return measure.measure((left_traps,))
 
