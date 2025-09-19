@@ -24,12 +24,10 @@ from kirin.rewrite.cse import CommonSubexpressionElimination
 @dataclass
 class Fold(Pass):
     hint_const: HintConst = field(init=False)
-    
-    
+
     def __post_init__(self):
         self.hint_const = HintConst(self.dialects, no_raise=self.no_raise)
-        
-        
+
     def unsafe_run(self, mt: Method) -> RewriteResult:
         result = RewriteResult()
         result = self.hint_const.unsafe_run(mt).join(result)
@@ -43,9 +41,10 @@ class Fold(Pass):
             DeadCodeElimination(),
             CommonSubexpressionElimination(),
         )
-        result =  Fixpoint(Walk(rule)).rewrite(mt.code).join(result)
-        
+        result = Fixpoint(Walk(rule)).rewrite(mt.code).join(result)
+
         return result
+
 
 @dataclass
 class AggressiveUnroll(Pass):
@@ -60,7 +59,9 @@ class AggressiveUnroll(Pass):
 
     def unsafe_run(self, mt: Method) -> RewriteResult:
         result = RewriteResult()
-        result = UnrollScf(self.dialects, no_raise=self.no_raise).unsafe_run(mt).join(result)
+        result = (
+            UnrollScf(self.dialects, no_raise=self.no_raise).unsafe_run(mt).join(result)
+        )
         result = (
             Walk(Chain(ilist.rewrite.ConstList2IList(), ilist.rewrite.Unroll()))
             .rewrite(mt.code)
@@ -78,5 +79,6 @@ class AggressiveUnroll(Pass):
         inside loops and if-else, only inline simple functions, i.e.
         functions with a single block
         """
-        return not isinstance(node.parent_stmt, (scf.For, scf.IfElse))  # always inline calls outside of loops and if-else
-
+        return not isinstance(
+            node.parent_stmt, (scf.For, scf.IfElse)
+        )  # always inline calls outside of loops and if-else
