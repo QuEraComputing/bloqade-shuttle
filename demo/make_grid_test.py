@@ -38,7 +38,7 @@ def interzone_move(
     else:
         shift = -3
 
-    if start_y > end_y:
+    if start_y[0] > end_y[0]:
         shift_y = 5
     else:
         shift_y = -5
@@ -80,7 +80,7 @@ def entangle_move_ltor(
         action.turn_on(action.ALL, [0])
         action.move(pos_2)
     else:
-        if start_y < end_y:
+        if start_y[0] < end_y[0]:
             # moving up
             y_shift = 5
         else:
@@ -118,7 +118,7 @@ def entangle_move_ltoaom(
         action.turn_on(action.ALL, [0])
         action.move(pos_2)
     else:
-        if start_y < end_y:
+        if start_y[0] < end_y[0]:
             # moving up
             y_shift = 5
         else:
