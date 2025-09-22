@@ -52,16 +52,16 @@ class AggressiveUnroll(Pass):
 
     fold: Fold = field(init=False)
     typeinfer: TypeInfer = field(init=False)
+    scf_unroll: UnrollScf = field(init=False)
 
     def __post_init__(self):
         self.fold = Fold(self.dialects, no_raise=self.no_raise)
         self.typeinfer = TypeInfer(self.dialects, no_raise=self.no_raise)
+        self.scf_unroll = UnrollScf(self.dialects, no_raise=self.no_raise)
 
     def unsafe_run(self, mt: Method) -> RewriteResult:
         result = RewriteResult()
-        result = (
-            UnrollScf(self.dialects, no_raise=self.no_raise).unsafe_run(mt).join(result)
-        )
+        result = self.scf_unroll.unsafe_run(mt).join(result)
         result = (
             Walk(Chain(ilist.rewrite.ConstList2IList(), ilist.rewrite.Unroll()))
             .rewrite(mt.code)
