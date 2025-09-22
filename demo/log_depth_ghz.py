@@ -111,7 +111,7 @@ def ghz_prep_steps(
         ctrl_ids = layers[i][0]
         qarg_ids = layers[i][1]
         n_gates = len(ctrl_ids)
-        num_groups = (n_gates + gate_width) // gate_width
+        num_groups = (n_gates + gate_width - 1) // gate_width
 
         for group in range(num_groups):
             start = group * gate_width
