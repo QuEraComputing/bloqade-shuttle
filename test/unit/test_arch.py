@@ -1,3 +1,4 @@
+import pytest
 from bloqade.geometry.dialects.grid import Grid
 
 from bloqade.shuttle.arch import Layout
@@ -28,3 +29,16 @@ def test_layout():
         {"test"},
     )
     assert layout != 1
+    assert layout.bounding_box() == (0.0, 15.0, 0.0, 15.0)
+
+
+def bounding_box_no_positions():
+    layout = Layout(
+        {"test": Grid.from_positions([], [])},
+        {"test"},
+        {"test"},
+        {"test"},
+    )
+
+    with pytest.raises(ValueError):
+        layout.bounding_box()

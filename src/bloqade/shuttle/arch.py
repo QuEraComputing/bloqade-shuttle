@@ -42,8 +42,8 @@ class Layout:
             self.static_traps == other.static_traps and self.fillable == other.fillable
         )
 
-    def fov(self) -> tuple[float, float, float, float]:
-        """Get the field of view (xmin, xmax, ymin, ymax) of the layout."""
+    def bounding_box(self) -> tuple[float, float, float, float]:
+        """Get the bounding box (xmin, xmax, ymin, ymax) of the layout."""
         xmin = float("inf")
         xmax = float("-inf")
         ymin = float("inf")
