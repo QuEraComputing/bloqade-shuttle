@@ -10,6 +10,7 @@ dependencies = [
     "bloqade-circuit >=0.6.0,<0.8.0-dev",
     "kirin-toolchain >= 0.17.17,<0.18.0-dev",
     "notebook>=7.4.5",
+    "bloqade-insight>=0.2.0",
 ]
 
 readme = "README.md"
