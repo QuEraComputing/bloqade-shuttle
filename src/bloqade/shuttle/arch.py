@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from itertools import chain
 from typing import cast
 
 import numpy as np
@@ -40,6 +41,23 @@ class Layout:
         return (
             self.static_traps == other.static_traps and self.fillable == other.fillable
         )
+
+    def fov(self) -> tuple[float, float, float, float]:
+        """Get the field of view (xmin, xmax, ymin, ymax) of the layout."""
+        xmin = float("inf")
+        xmax = float("-inf")
+        ymin = float("inf")
+        ymax = float("-inf")
+
+        for zone in chain(self.static_traps.values(), self.special_grid.values()):
+            if zone.x_init is not None:
+                xmin = min(xmin, zone.x_init)
+                xmax = max(xmax, zone.x_init + zone.width)
+            if zone.y_init is not None:
+                ymin = min(ymin, zone.y_init)
+                ymax = max(ymax, zone.y_init + zone.height)
+
+        return xmin, xmax, ymin, ymax
 
     @staticmethod
     def _plot_zone(zone: Grid, ax, name: str, **plot_options):
