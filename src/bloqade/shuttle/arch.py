@@ -57,6 +57,9 @@ class Layout:
                 ymin = min(ymin, zone.y_init)
                 ymax = max(ymax, zone.y_init + zone.height)
 
+        if xmax < xmin or ymax < ymin:
+            raise ValueError("Layout has no defined positions.")
+
         return xmin, xmax, ymin, ymax
 
     @staticmethod
