@@ -57,8 +57,11 @@ class Layout:
                 ymin = min(ymin, zone.y_init)
                 ymax = max(ymax, zone.y_init + zone.height)
 
-        if xmin == float("inf") or ymin == float("inf"):
-            raise ValueError("Layout has no defined positions.")
+        if (
+            xmin == float("inf") or xmax == float("-inf") or
+            ymin == float("inf") or ymax == float("-inf")
+        ):
+            raise ValueError("Layout has incomplete bounding box data.")
 
         return xmin, xmax, ymin, ymax
 
