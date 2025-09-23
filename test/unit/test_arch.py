@@ -32,7 +32,7 @@ def test_layout():
     assert layout.bounding_box() == (0.0, 15.0, 0.0, 15.0)
 
 
-def bounding_box_no_positions():
+def test_bounding_box_no_positions():
     layout = Layout(
         {"test": Grid.from_positions([], [])},
         {"test"},
