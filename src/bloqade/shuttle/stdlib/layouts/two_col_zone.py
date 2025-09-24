@@ -109,6 +109,66 @@ def rearrange_impl(
     action.move(end)
     action.turn_off(action.ALL, action.ALL)
 
+@tweezer
+def rearrange_impl_horizontal_vertical(
+    src_x: ilist.IList[int, NumX],
+    src_y: ilist.IList[int, NumY],
+    dst_x: ilist.IList[int, NumX],
+    dst_y: ilist.IList[int, NumY],
+):
+    assert len(src_x) == len(
+        dst_x
+    ), "Source and destination x indices must have the same length."
+    assert len(src_y) == len(
+        dst_y
+    ), "Source and destination y indices must have the same length."
+
+    assert_sorted(src_x)
+    assert_sorted(src_y)
+    assert_sorted(dst_x)
+    assert_sorted(dst_y)
+
+    zone = spec.get_static_trap(zone_id="traps")
+
+    start = grid.sub_grid(zone, src_x, src_y)
+    end = grid.sub_grid(zone, dst_x, dst_y)
+
+    # the direction for x displacement is decided based on the left (index % 2 == 0) or right site (index % 2 == 1)
+    def parking_x(index: int):
+        x_positions = grid.get_xpos(zone)
+        return x_positions[index] + 3.0 * (2 * (index % 2) - 1)
+
+    def parking_y_end(index: int):
+        start_y = grid.get_ypos(start)[index]
+        end_y = grid.get_ypos(end)[index]
+        if start_y < end_y:
+            end_y = end_y - 3.0
+        else:
+            end_y = end_y + 3.0
+
+        return end_y
+
+    num_y = len(src_y)
+
+    src_horizontal_parking = grid.from_positions(
+        ilist.map(parking_x, src_x), src_y
+    )
+    parking_y = ilist.map(parking_y_end, ilist.range(num_y))
+    mid_pos_after_vertical_move = grid.from_positions(
+        grid.get_xpos(src_horizontal_parking), parking_y
+    )
+    mid_pos_after_horizontal_move = grid.from_positions(
+        dst_x, parking_y
+    )
+
+    action.set_loc(start)
+    action.turn_on(action.ALL, action.ALL)
+    action.move(src_horizontal_parking)
+    action.move(mid_pos_after_vertical_move)
+    action.move(mid_pos_after_horizontal_move)
+    action.move(end)
+    action.turn_off(action.ALL, action.ALL)
+
 
 @move
 def rearrange(
@@ -124,4 +184,20 @@ def rearrange(
     y_tones = ilist.range(len(src_y))
 
     device_fn = schedule.device_fn(rearrange_impl, x_tones, y_tones)
+    device_fn(src_x, src_y, dst_x, dst_y)
+
+@move
+def rearrange_horizontal_vertical_move(
+    src_x: ilist.IList[int, NumX],
+    src_y: ilist.IList[int, NumY],
+    dst_x: ilist.IList[int, NumX],
+    dst_y: ilist.IList[int, NumY],
+):
+    if len(src_x) < 1 or len(dst_x) < 1:
+        return
+
+    x_tones = ilist.range(len(src_x))
+    y_tones = ilist.range(len(src_y))
+
+    device_fn = schedule.device_fn(rearrange_impl_horizontal_vertical, x_tones, y_tones)
     device_fn(src_x, src_y, dst_x, dst_y)
