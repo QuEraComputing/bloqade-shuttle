@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 
+from bloqade.shuttle.analysis.runtime import RuntimeFrame, RuntimeAnalysis
 from kirin import ir, rewrite, types
 from kirin.dialects import cf, func, scf
 from kirin.passes import Pass
@@ -12,8 +13,9 @@ from bloqade.shuttle.dialects.tracking.types import SystemStateType
 @dataclass
 class PathToTrackingRewrite(RewriteRule):
     entry_code: func.Function
-    curr_state: ir.SSAValue | None = None
-    call_graph: dict[ir.Method, ir.Method] = field(default_factory=dict)
+    runtime_frame: RuntimeFrame
+    curr_state: ir.SSAValue | None = field(default=None, init=False)
+    call_graph: dict[ir.Method, ir.Method] = field(default_factory=dict, init=False)
 
     stmt_types = (
         path.Play,
@@ -57,9 +59,8 @@ class PathToTrackingRewrite(RewriteRule):
         return method(node)
 
     def rewrite_Fill(self, node: init.Fill) -> RewriteResult:
-        assert (
-            self.curr_state is None
-        ), "curr_state should not be set before Fill is rewritten"
+        if self.curr_state is not None:
+            return RewriteResult()
 
         node.replace_by(new_node := tracking.Fill(node.locations))
 
@@ -68,9 +69,8 @@ class PathToTrackingRewrite(RewriteRule):
         return RewriteResult(has_done_something=True)
 
     def rewrite_Play(self, node: path.Play) -> RewriteResult:
-        assert (
-            self.curr_state is not None
-        ), "curr_state should be set before Play is rewritten"
+        if self.curr_state is None:
+            return RewriteResult()
 
         node.replace_by(
             new_node := tracking.Play(state=self.curr_state, path=node.path)
@@ -79,9 +79,8 @@ class PathToTrackingRewrite(RewriteRule):
         return RewriteResult(has_done_something=True)
 
     def rewrite_TopHatCZ(self, node: gate.TopHatCZ) -> RewriteResult:
-        assert (
-            self.curr_state is not None
-        ), "curr_state should be set before TopHatCZ is rewritten"
+        if self.curr_state is None:
+            return RewriteResult()
 
         node.replace_by(
             new_node := tracking.TopHatCZ(state=self.curr_state, zone=node.zone)
@@ -91,9 +90,8 @@ class PathToTrackingRewrite(RewriteRule):
         return RewriteResult(has_done_something=True)
 
     def rewrite_GlobalR(self, node: gate.GlobalR) -> RewriteResult:
-        assert (
-            self.curr_state is not None
-        ), "curr_state should be set before GlobalR is rewritten"
+        if self.curr_state is None:
+            return RewriteResult()
 
         node.replace_by(
             new_node := tracking.GlobalR(
@@ -107,9 +105,8 @@ class PathToTrackingRewrite(RewriteRule):
         return RewriteResult(has_done_something=True)
 
     def rewrite_LocalR(self, node: gate.LocalR) -> RewriteResult:
-        assert (
-            self.curr_state is not None
-        ), "curr_state should be set before LocalR is rewritten"
+        if self.curr_state is None:
+            return RewriteResult()
 
         node.replace_by(
             new_node := tracking.LocalR(
@@ -260,11 +257,14 @@ class PathToTrackingRewrite(RewriteRule):
 
         callee = node.callee
         if callee not in self.call_graph:
-            new_callee = callee.similar()
-            self.call_graph[callee] = new_callee
-            new_callee.arg_names = ["system_state", *callee.arg_names]
-
-            rewrite.Walk(self).rewrite(new_callee.code)
+            if node in self.runtime_frame.quantum_call:
+                new_callee = callee.similar()
+                self.call_graph[callee] = new_callee
+                new_callee.arg_names = ["system_state", *callee.arg_names]
+                rewrite.Walk(self).rewrite(new_callee.code)
+            else:
+                self.call_graph[callee] = callee
+                new_callee = callee
         else:
             new_callee = self.call_graph[callee]
 
@@ -281,8 +281,16 @@ class PathToTrackingRewrite(RewriteRule):
 
 @dataclass
 class PathToTracking(Pass):
+    runtime: RuntimeAnalysis = field(init=False)
+
+    def __post_init__(self):
+        self.runtime = RuntimeAnalysis(self.dialects)
+
     def unsafe_run(self, mt: ir.Method) -> RewriteResult:
         if not isinstance(mt.code, func.Function):
             return RewriteResult()
 
-        return rewrite.Walk(PathToTrackingRewrite(mt.code)).rewrite(mt.code)
+        runtime_frame, _ = self.runtime.run_analysis(mt)
+        return rewrite.Walk(PathToTrackingRewrite(mt.code, runtime_frame)).rewrite(
+            mt.code
+        )

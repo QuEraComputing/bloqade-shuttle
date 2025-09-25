@@ -16,5 +16,5 @@ class HasQuantumRuntimeMethodTable(interp.MethodTable):
     def gate(self, _interp: RuntimeAnalysis, frame: RuntimeFrame, stmt: Measure):
         """Handle gate statements and mark the frame as quantum."""
         frame.is_quantum = True
-        frame.quantum_stmts.add(stmt)
+        frame.quantum_call.add(stmt)
         return (_interp.lattice.top(),)
