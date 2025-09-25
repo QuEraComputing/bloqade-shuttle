@@ -25,7 +25,9 @@ def test_trace():
 
     move_fn.print()
 
-    action_list = TraceInterpreter(ArchSpec()).run_trace(move_fn, (1.0, 2.0), {})
+    action_list = TraceInterpreter(arch_spec=ArchSpec()).run_trace(
+        move_fn, (1.0, 2.0), {}
+    )
 
     assert isinstance(action_list, list)
 

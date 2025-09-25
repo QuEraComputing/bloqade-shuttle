@@ -137,6 +137,8 @@ class ArchSpec:
     layout: Layout = field(default_factory=_default_layout)  # type: ignore
     float_constants: dict[str, float] = field(default_factory=dict)
     int_constants: dict[str, int] = field(default_factory=dict)
+    max_x_tones: int = field(default=16, kw_only=True)
+    max_y_tones: int = field(default=16, kw_only=True)
 
     def __hash__(self):
         return hash(
@@ -152,7 +154,7 @@ class ArchSpec:
 class ArchSpecMixin:
     """Base class for interpreters that require an architecture specification."""
 
-    arch_spec: ArchSpec
+    arch_spec: ArchSpec = field(kw_only=True)
 
 
 @dataclass

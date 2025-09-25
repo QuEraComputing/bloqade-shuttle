@@ -6,7 +6,6 @@ from typing import Any, ClassVar, Dict, Optional
 from bloqade.geometry.dialects import grid
 from kirin import ir
 from kirin.dialects import func, ilist
-from kirin.interp import Frame, InterpreterError, MethodTable, impl
 from kirin.ir.method import Method
 from typing_extensions import Self
 
@@ -152,74 +151,3 @@ class TraceInterpreter(ArchSpecInterpreter):
         # TODO: use permute_values to get correct order.
         super().run(mt, args=args, kwargs=kwargs)
         return self.trace.copy()
-
-
-@action.dialect.register(key="action.tracer")
-class ActionTracer(MethodTable):
-
-    intensity_actions = {
-        action.TurnOnXY: TurnOnXYAction,
-        action.TurnOffXY: TurnOffXYAction,
-        action.TurnOnXSlice: TurnOnXSliceAction,
-        action.TurnOffXSlice: TurnOffXSliceAction,
-        action.TurnOnYSlice: TurnOnYSliceAction,
-        action.TurnOffYSlice: TurnOffYSliceAction,
-        action.TurnOnXYSlice: TurnOnXYSliceAction,
-        action.TurnOffXYSlice: TurnOffXYSliceAction,
-    }
-
-    @impl(action.TurnOnXY)
-    @impl(action.TurnOffXY)
-    @impl(action.TurnOnXSlice)
-    @impl(action.TurnOffXSlice)
-    @impl(action.TurnOnYSlice)
-    @impl(action.TurnOffYSlice)
-    @impl(action.TurnOnXYSlice)
-    @impl(action.TurnOffXYSlice)
-    def construct_intensity_actions(
-        self,
-        interp: TraceInterpreter,
-        frame: Frame,
-        stmt: action.IntensityStatement,
-    ):
-        if interp.curr_pos is None:
-            raise InterpreterError(
-                "Position of AOD not set before turning on/off tones"
-            )
-
-        x_tone_indices = frame.get(stmt.x_tones)
-        y_tone_indices = frame.get(stmt.y_tones)
-
-        interp.trace.append(
-            self.intensity_actions[type(stmt)](
-                x_tone_indices if isinstance(x_tone_indices, slice) else x_tone_indices,
-                y_tone_indices if isinstance(y_tone_indices, slice) else y_tone_indices,
-            )
-        )
-        interp.trace.append(WayPointsAction(way_points=[interp.curr_pos]))
-        return ()
-
-    @impl(action.Move)
-    def move(self, interp: TraceInterpreter, frame: Frame, stmt: action.Move):
-        if interp.curr_pos is None:
-            raise InterpreterError("Position of AOD not set before moving tones")
-
-        assert isinstance(interp.trace[-1], WayPointsAction)
-
-        interp.trace[-1].add_waypoint(pos := frame.get_typed(stmt.grid, grid.Grid))
-        if interp.curr_pos.shape != pos.shape:
-            raise InterpreterError(
-                f"Position of AOD {interp.curr_pos} and target position {pos} have different shapes"
-            )
-        interp.curr_pos = pos
-
-        return ()
-
-    @impl(action.Set)
-    def set(self, interp: TraceInterpreter, frame: Frame, stmt: action.Set):
-        pos = frame.get_typed(stmt.grid, grid.Grid)
-        interp.trace.append(WayPointsAction([pos]))
-
-        interp.curr_pos = pos
-
-        return ()

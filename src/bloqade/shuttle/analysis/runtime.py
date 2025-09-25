@@ -12,10 +12,16 @@ class RuntimeFrame(ForwardFrame[EmptyLattice]):
     This frame is used to track the state of quantum operations within a method.
     """
 
-    quantum_stmts: set[ir.Statement] = field(default_factory=set)
+    quantum_call: set[ir.Statement] = field(default_factory=set)
     """Set of quantum statements in the frame."""
     is_quantum: bool = False
     """Whether the frame contains quantum operations."""
+
+    def merge_runtime(self, other: "RuntimeFrame", stmt: ir.Statement):
+        if other.is_quantum:
+            self.is_quantum = True
+            self.quantum_call.add(stmt)
+            self.quantum_call.update(other.quantum_call)
 
 
 class RuntimeAnalysis(ForwardExtra[RuntimeFrame, EmptyLattice]):
@@ -61,10 +67,8 @@ class Scf(interp.MethodTable):
                 else_frame, stmt.else_body, (_interp.lattice.top(),)
             )
 
-        frame.is_quantum = (
-            frame.is_quantum or then_frame.is_quantum or else_frame.is_quantum
-        )
-        frame.quantum_stmts.update(then_frame.quantum_stmts, else_frame.quantum_stmts)
+        frame.merge_runtime(then_frame, stmt)
+        frame.merge_runtime(else_frame, stmt)
         match (then_result, else_result):
             case (interp.ReturnValue(), tuple()):
                 return else_result
@@ -86,8 +90,7 @@ class Scf(interp.MethodTable):
                 body_frame, stmt.body, (_interp.lattice.bottom(),)
             )
 
-        frame.is_quantum = frame.is_quantum or body_frame.is_quantum
-        frame.quantum_stmts.update(body_frame.quantum_stmts)
+        frame.merge_runtime(body_frame, stmt)
         if isinstance(result, interp.ReturnValue) or result is None:
             return args[1:]
         else:
@@ -107,7 +110,8 @@ class Func(interp.MethodTable):
     def invoke(self, _interp: RuntimeAnalysis, frame: RuntimeFrame, stmt: func.Invoke):
         args = (_interp.lattice.top(),) * len(stmt.inputs)
         callee_frame, result = _interp.run_method(stmt.callee, args)
-        frame.is_quantum = frame.is_quantum or callee_frame.is_quantum
+        frame.merge_runtime(callee_frame, stmt)
+
         return (result,)
 
     @interp.impl(func.Call)
@@ -123,10 +127,11 @@ class Func(interp.MethodTable):
             body = trait.get_callable_region(callee_result.code)
             with _interp.new_frame(stmt) as callee_frame:
                 result = _interp.run_ssacfg_region(callee_frame, body, args)
+
         else:
             raise InterruptedError("Dynamic method calls are not supported")
 
-        frame.is_quantum = frame.is_quantum or callee_frame.is_quantum
+        frame.merge_runtime(callee_frame, stmt)
         return (result,)
 
     @interp.impl(func.Return)

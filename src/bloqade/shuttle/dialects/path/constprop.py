@@ -43,7 +43,7 @@ class ConstProp(MethodTable):
             device_task.move_fn.arg_names, inputs_results, kwargs
         )
 
-        path = TraceInterpreter(stmt.arch_spec).run_trace(
+        path = TraceInterpreter(arch_spec=stmt.arch_spec).run_trace(
             device_task.move_fn,
             tuple(
                 cast(const.Value, arg).data if isinstance(arg, const.Value) else arg

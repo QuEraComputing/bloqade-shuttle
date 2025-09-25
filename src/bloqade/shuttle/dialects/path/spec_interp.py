@@ -29,7 +29,7 @@ class SpecPathInterpreter(MethodTable):
         inputs = frame.get_values(stmt.inputs)
         kwargs = stmt.kwargs
         args = interp.permute_values(device_task.move_fn.arg_names, inputs, kwargs)
-        path = TraceInterpreter(interp.arch_spec).run_trace(
+        path = TraceInterpreter(arch_spec=interp.arch_spec).run_trace(
             device_task.move_fn, args, {}
         )
 

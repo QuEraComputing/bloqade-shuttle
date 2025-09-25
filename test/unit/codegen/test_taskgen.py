@@ -83,7 +83,7 @@ class TestActionMethods:
         return grid.Grid.from_positions([1, 2], [3, 4])
 
     def init_interpreter(self):
-        interpreter = taskgen.TraceInterpreter(ArchSpec())
+        interpreter = taskgen.TraceInterpreter(arch_spec=ArchSpec())
         interpreter.initialize()
         return interpreter
 
@@ -230,7 +230,7 @@ def test_interpreter_trace():
         action.turn_on(action.ALL, action.ALL)
         action.turn_off(action.ALL, action.ALL)
 
-    interpreter = taskgen.TraceInterpreter(ArchSpec())
+    interpreter = taskgen.TraceInterpreter(arch_spec=ArchSpec())
     assert interpreter.run_trace(test_action, (), {}) == [
         taskgen.WayPointsAction([grid.Grid.from_positions([1, 2], [3, 4])]),
         taskgen.TurnOnXYSliceAction(action.ALL, action.ALL),
@@ -245,7 +245,7 @@ def test_interpreter_run_trace_error():
     def test_bad_method():
         return None
 
-    interpreter = taskgen.TraceInterpreter(ArchSpec())
+    interpreter = taskgen.TraceInterpreter(arch_spec=ArchSpec())
 
     with pytest.raises(ValueError):
         interpreter.run_trace(test_bad_method, (), {})
