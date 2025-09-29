@@ -1,6 +1,6 @@
 {
     "name": "qcr_4a8d_quera_circ",
-    "architecture_spec_path": "scratch/qcrank_architecture_4_2_v.json",
+    "architecture_spec_path": "scratch/hardware_example/qcrank_architecture_4_2_v.json",
     "instructions": [
         {
             "type": "init",

@@ -8,7 +8,7 @@ from lower_zair import ShuttleBuilder
 
 from bloqade.shuttle import action, gate, init, measure, schedule, spec
 from bloqade.shuttle.prelude import move, tweezer
-from bloqade.shuttle.stdlib.layouts.two_col_zone import rearrange
+from bloqade.shuttle.stdlib.layouts.two_col_zone import rearrange, rearrange_horizontal_vertical_move
 from bloqade.shuttle.visualizer import MatplotlibRenderer, PathVisualizer
 
 
@@ -80,10 +80,11 @@ def run_qcrank(filename: str):
     shuttle_builder = ShuttleBuilder(
         spec_mapping=spec_mapping,
         move_kernel=rearrange,
+        # move_kernel=rearrange_horizontal_vertical_move,
         num_qubits=num_qubits
     )
     method = shuttle_builder.lower(compiled_qcrank)
-    # print(method.print())
+    method.print()
 
 
 if __name__ == "__main__":
