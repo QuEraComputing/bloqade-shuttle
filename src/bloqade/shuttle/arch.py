@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from itertools import chain
 from typing import cast
 
 import numpy as np
@@ -12,10 +13,27 @@ class Layout:
     """Abstract base class for layout."""
 
     fillable: set[str]
-    """ The set of trap names that are fillable by the sorter. """
+    """The set of trap names that are fillable by the sorter."""
+
+    has_cz: set[str]
+    """The set of trap names that can have a CZ gates applied."""
+
+    has_local: set[str]
+    """The set of trap names that can have local single qubit gates applied."""
+
+    special_grid: dict[str, Grid] = field(default_factory=dict, kw_only=True)
+    """Set of special grid values that are not static traps, but can be used for specific purposes."""
 
     def __hash__(self):
-        return hash((frozenset(self.static_traps.items()), frozenset(self.fillable)))
+        return hash(
+            (
+                frozenset(self.static_traps.items()),
+                frozenset(self.fillable),
+                frozenset(self.has_cz),
+                frozenset(self.has_local),
+                frozenset(self.special_grid.items()),
+            )
+        )
 
     def __eq__(self, other):
         if not isinstance(other, Layout):
@@ -23,6 +41,31 @@ class Layout:
         return (
             self.static_traps == other.static_traps and self.fillable == other.fillable
         )
+
+    def bounding_box(self) -> tuple[float, float, float, float]:
+        """Get the bounding box (xmin, xmax, ymin, ymax) of the layout."""
+        xmin = float("inf")
+        xmax = float("-inf")
+        ymin = float("inf")
+        ymax = float("-inf")
+
+        for zone in chain(self.static_traps.values(), self.special_grid.values()):
+            if zone.x_init is not None:
+                xmin = min(xmin, zone.x_init)
+                xmax = max(xmax, zone.x_init + zone.width)
+            if zone.y_init is not None:
+                ymin = min(ymin, zone.y_init)
+                ymax = max(ymax, zone.y_init + zone.height)
+
+        if (
+            xmin == float("inf")
+            or xmax == float("-inf")
+            or ymin == float("inf")
+            or ymax == float("-inf")
+        ):
+            raise ValueError("Layout has incomplete bounding box data.")
+
+        return xmin, xmax, ymin, ymax
 
     @staticmethod
     def _plot_zone(zone: Grid, ax, name: str, **plot_options):
@@ -81,12 +124,28 @@ def _default_layout():
         range(16),
     ).scale(10.0, 10.0)
 
-    return Layout(static_traps={"traps": zone}, fillable={"traps"})
+    return Layout(
+        static_traps={"traps": zone},
+        fillable={"traps"},
+        has_cz={"traps"},
+        has_local={"traps"},
+    )
 
 
 @dataclass(frozen=True)
 class ArchSpec:
     layout: Layout = field(default_factory=_default_layout)  # type: ignore
+    float_constants: dict[str, float] = field(default_factory=dict)
+    int_constants: dict[str, int] = field(default_factory=dict)
+
+    def __hash__(self):
+        return hash(
+            (
+                self.layout,
+                frozenset(self.float_constants.items()),
+                frozenset(self.int_constants.items()),
+            )
+        )
 
 
 @dataclass

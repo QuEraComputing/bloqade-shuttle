@@ -1,3 +1,4 @@
+from . import runtime as runtime
 from ._dialect import dialect as dialect
 from .concrete import PathInterpreter as PathInterpreter
 from .constprop import ConstProp as ConstProp
