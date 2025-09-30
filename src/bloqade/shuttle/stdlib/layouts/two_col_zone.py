@@ -111,6 +111,7 @@ def rearrange_impl(
     action.move(end)
     action.turn_off(action.ALL, action.ALL)
 
+
 @tweezer
 def rearrange_impl_horizontal_vertical(
     src_x: ilist.IList[int, NumX],
@@ -153,14 +154,14 @@ def rearrange_impl_horizontal_vertical(
     num_y = len(src_y)
 
     src_horizontal_parking = grid.from_positions(
-        ilist.map(parking_x, src_x), src_y
+        ilist.map(parking_x, src_x), ilist.map(float, src_y)
     )
     parking_y = ilist.map(parking_y_end, ilist.range(num_y))
     mid_pos_after_vertical_move = grid.from_positions(
         grid.get_xpos(src_horizontal_parking), parking_y
     )
     mid_pos_after_horizontal_move = grid.from_positions(
-        dst_x, parking_y
+        ilist.map(float, dst_x), ilist.map(float, parking_y)
     )
 
     action.set_loc(start)
@@ -187,6 +188,7 @@ def rearrange(
 
     device_fn = schedule.device_fn(rearrange_impl, x_tones, y_tones)
     device_fn(src_x, src_y, dst_x, dst_y)
+
 
 @move
 def rearrange_horizontal_vertical_move(
