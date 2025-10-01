@@ -78,41 +78,65 @@ N = TypeVar("N")
 
 
 @move
+def get_layers(qubits: ilist.IList[int, N]):
+    n_qubits = len(qubits)
+    layers = []
+    prepared = [qubits[0]]
+
+    for depth in range(n_qubits):
+        if len(prepared) < n_qubits:
+            remaining = qubits[len(prepared) :]
+            ctrls = []
+            qargs = []
+            for prev_idx in range(len(prepared)):
+                if prev_idx < len(remaining):
+                    ctrls = ctrls + [prepared[prev_idx]]
+                    qargs = qargs + [remaining[prev_idx]]
+
+            layers = layers + [(ctrls, qargs)]
+            prepared = prepared + qargs
+
+    return layers
+
+
+@move
 def ghz_prep_steps(
+    qubit_ids: ilist.IList[int, N],
+    gate_width: int,
+):
+    jobs = []
+    layers = get_layers(qubit_ids)
+
+    for i in range(len(layers)):
+        ctrl_ids = layers[i][0]
+        qarg_ids = layers[i][1]
+        n_gates = len(ctrl_ids)
+        num_groups = (n_gates + gate_width - 1) // gate_width
+
+        for group in range(num_groups):
+            start = group * gate_width
+            end = start + gate_width
+            if end > n_gates:
+                end = n_gates
+
+            jobs = jobs + [
+                (ctrl_ids[start:end], qarg_ids[start:end], range(end - start))
+            ]
+
+    return jobs
+
+
+@move
+def run_prep_steps(
     qubit_ids: ilist.IList[int, N],
     gate: grid.Grid[Any, Literal[2]],
     mem: grid.Grid[Any, Literal[1]],
 ):
 
-    n_qubits = len(qubit_ids)
     gate_shape = grid.shape(gate)
     gate_width = gate_shape[0]
 
-    jobs = []
-    # calculate the qubits in each layer then split up into groups based on the size of the gate
-    for depth in range(n_qubits):
-        step = n_qubits // (2**depth)
-        half_step = step // 2
-        if half_step > 0:
-            ctrl_qubits = qubit_ids[:-half_step:half_step]
-            qarg_qubits = qubit_ids[half_step::half_step]
-
-            num_gates = len(ctrl_qubits)
-            num_substeps = num_gates // gate_width + 1
-
-            for i in range(num_substeps):
-                start = i * gate_width
-                stop = start + gate_width
-
-                if stop > num_gates:
-                    stop = num_gates
-
-                if stop > start:
-                    ctrl_ids = ctrl_qubits[start:stop]
-                    qarg_ids = qarg_qubits[start:stop]
-                    gate_ids = ilist.range(stop - start)
-                    jobs = jobs + [(ctrl_ids, qarg_ids, gate_ids)]
-
+    jobs = ghz_prep_steps(qubit_ids, gate_width)
     apply_h(grid.sub_grid(mem, [qubit_ids[0]], [0]))
     for i in range(len(jobs)):
         ctrl_ids = jobs[i][0]
@@ -128,9 +152,9 @@ def run_ghz():
         list(map(float, range(0, spacing * num_sites, spacing))), [20.0]
     )
 
-    num_gate = int(mem.width // 20) + 1
+    num_gate = int(mem.width // 10) + 1
     gate = grid.Grid.from_positions(
-        list(map(float, range(0, num_gate * 20, 20))), [0.0, 3.0]
+        list(map(float, range(0, num_gate * 10, 10))), [0.0, 3.0]
     )
 
     mem_bounds = mem.x_bounds()
@@ -161,7 +185,7 @@ def run_ghz():
     @move
     def main():
         init.fill([spec.get_static_trap(zone_id="mem")])
-        ghz_prep_steps([1, 2, 4, 5, 7, 9, 14, 28, 29, 32], gate, mem)  # type: ignore
+        run_prep_steps([1, 2, 4, 5, 7, 9, 14, 28, 29, 32], gate, mem)  # type: ignore
         return measure.measure((mem,))
 
     return main, spec_value
@@ -169,6 +193,7 @@ def run_ghz():
 
 def run_plotter():
     main, spec_value = run_ghz()
+
     renderer = MatplotlibRenderer()
     PathVisualizer(main.dialects, renderer=renderer, arch_spec=spec_value).run(main, ())
 

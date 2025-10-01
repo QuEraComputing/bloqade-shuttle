@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from itertools import chain
 from typing import cast
 
 import numpy as np
@@ -40,6 +41,31 @@ class Layout:
         return (
             self.static_traps == other.static_traps and self.fillable == other.fillable
         )
+
+    def bounding_box(self) -> tuple[float, float, float, float]:
+        """Get the bounding box (xmin, xmax, ymin, ymax) of the layout."""
+        xmin = float("inf")
+        xmax = float("-inf")
+        ymin = float("inf")
+        ymax = float("-inf")
+
+        for zone in chain(self.static_traps.values(), self.special_grid.values()):
+            if zone.x_init is not None:
+                xmin = min(xmin, zone.x_init)
+                xmax = max(xmax, zone.x_init + zone.width)
+            if zone.y_init is not None:
+                ymin = min(ymin, zone.y_init)
+                ymax = max(ymax, zone.y_init + zone.height)
+
+        if (
+            xmin == float("inf")
+            or xmax == float("-inf")
+            or ymin == float("inf")
+            or ymax == float("-inf")
+        ):
+            raise ValueError("Layout has incomplete bounding box data.")
+
+        return xmin, xmax, ymin, ymax
 
     @staticmethod
     def _plot_zone(zone: Grid, ax, name: str, **plot_options):
