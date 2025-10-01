@@ -21,6 +21,11 @@ from kirin import ir
 
 import matplotlib.pyplot as plt
 
+ROW_SEPARATION = 10.0
+COL_SEPARATION = 8.0
+STORAGE_ALLY_WIDTH = 6.0
+GATE_SPACING = 2.0
+
 
 def animate_shuttle(
     main: ir.Method,  # entry point of shuttle program
@@ -95,18 +100,18 @@ def interzone_move(
     pos_2 = grid.from_positions(end_x, end_y)
 
     if left:
-        shift = 3
+        shift_x = STORAGE_ALLY_WIDTH/2
     else:
-        shift = -3
+        shift_x = -STORAGE_ALLY_WIDTH/2
 
     if start_y[0] > end_y[0]:
-        shift_y = 5
+        shift_y = ROW_SEPARATION/2
     else:
-        shift_y = -5
+        shift_y = -ROW_SEPARATION/2
 
-    mid_1 = grid.shift(pos_1, shift, 0)
-    mid_2 = grid.shift(pos_2, -3, 0)
-    mid_3 = grid.shift(pos_2, start_x[0] - end_x[0] + shift, shift_y)
+    mid_1 = grid.shift(pos_1, shift_x, 0)
+    mid_2 = grid.shift(pos_2, -STORAGE_ALLY_WIDTH/2, 0)
+    mid_3 = grid.shift(pos_2, start_x[0] - end_x[0] + shift_x, shift_y)
     mid_4 = grid.shift(pos_2,0,shift_y)
 
     action.set_loc(pos_1)
@@ -130,7 +135,7 @@ def entangle_move_ltor(
     start_x = grid.get_xpos(controls)
     start_y = grid.get_ypos(controls)
 
-    end_x = grid.get_xpos(grid.shift(targets, 2, 0))
+    end_x = grid.get_xpos(grid.shift(targets, GATE_SPACING, 0))
     end_y = grid.get_ypos(targets)
 
     pos_1 = grid.from_positions(start_x, start_y)
@@ -138,16 +143,16 @@ def entangle_move_ltor(
 
     if start_y[0] < end_y[0]:
         # moving up
-        y_shift = 5
+        y_shift = ROW_SEPARATION/2
     else:
         # moving down
-        y_shift = -5
+        y_shift = -ROW_SEPARATION/2
 
     if start_y == end_y:
         action.set_loc(pos_1)
         action.turn_on(action.ALL, action.ALL)
         action.move(pos_2)
-    elif start_y[0] - end_y[0] in [-10,10]:
+    elif start_y[0] - end_y[0] in [-ROW_SEPARATION,ROW_SEPARATION]:
         mid_1 = grid.shift(pos_1, 0, y_shift)
         mid_2 = grid.shift(pos_1, 2, y_shift)
 
@@ -158,8 +163,8 @@ def entangle_move_ltor(
         action.move(pos_2)
     else:
         mid_1 = grid.shift(pos_1, 0, y_shift)
-        mid_2 = grid.shift(pos_1, 6, y_shift)
-        mid_3 = grid.shift(pos_2, 4, 0)
+        mid_2 = grid.shift(pos_1, GATE_SPACING + COL_SEPARATION/2, y_shift)
+        mid_3 = grid.shift(pos_2, COL_SEPARATION/2, 0)
 
         action.set_loc(pos_1)
         action.turn_on(action.ALL, action.ALL)
@@ -177,7 +182,7 @@ def entangle_move_ltoaom(
     start_x = grid.get_xpos(controls)
     start_y = grid.get_ypos(controls)
 
-    end_x = grid.get_xpos(grid.shift(targets, -2, 0))
+    end_x = grid.get_xpos(grid.shift(targets, -GATE_SPACING, 0))
     end_y = grid.get_ypos(targets)
 
     pos_1 = grid.from_positions(start_x, start_y)
@@ -190,14 +195,14 @@ def entangle_move_ltoaom(
     else:
         if start_y[0] < end_y[0]:
             # moving up
-            y_shift = 5
+            y_shift = ROW_SEPARATION/2
         else:
             # moving down
-            y_shift = -5
+            y_shift = -ROW_SEPARATION/2
 
         mid_1 = grid.shift(pos_1, 0, y_shift)
-        mid_2 = grid.shift(pos_1, -4, y_shift)
-        mid_3 = grid.shift(pos_2, -2, 0)
+        mid_2 = grid.shift(pos_1, -COL_SEPARATION/2, y_shift)
+        mid_3 = grid.shift(pos_2, -GATE_SPACING, 0)
 
         action.set_loc(pos_1)
         action.turn_on(action.ALL, action.ALL)
@@ -236,17 +241,17 @@ def entangle_move_rtoaom(
     targets: grid.Grid[Any, Any],
 ):
 
-    start_x = grid.get_xpos(grid.shift(controls, 2, 0))
+    start_x = grid.get_xpos(grid.shift(controls, GATE_SPACING, 0))
     start_y = grid.get_ypos(controls)
 
-    end_x = grid.get_xpos(grid.shift(targets, -2, 0))
+    end_x = grid.get_xpos(grid.shift(targets, -GATE_SPACING, 0))
     end_y = grid.get_ypos(targets)
 
     pos_1 = grid.from_positions(start_x, start_y)
     pos_2 = grid.from_positions(end_x, end_y)
 
-    mid_1 = grid.shift(pos_1, 0, 5)
-    mid_2 = grid.shift(pos_2, 0, 5)
+    mid_1 = grid.shift(pos_1, 0, ROW_SEPARATION/2)
+    mid_2 = grid.shift(pos_2, 0, ROW_SEPARATION/2)
 
     action.set_loc(pos_1)
     action.turn_on(action.ALL, action.ALL)
@@ -333,9 +338,9 @@ def generate_moves():
 
     num_x = 17
     num_y = 5
-    column_spacing = 8.0
-    row_spacing = 10.0
-    gate_spacing = 2.0 #space between atoms for CZ gate.
+    column_spacing = COL_SEPARATION
+    row_spacing = ROW_SEPARATION
+    gate_spacing = GATE_SPACING #space between atoms for CZ gate.
 
     x_spacing = sum(repeat((gate_spacing, column_spacing), num_x - 1), ()) + (gate_spacing,)
     y_spacing = tuple(repeat(row_spacing, num_y - 1))
@@ -348,7 +353,7 @@ def generate_moves():
 
     aom_sites = left_traps.shift(-2,0)
 
-    reservoir_ally_width = 6.0
+    reservoir_ally_width = STORAGE_ALLY_WIDTH
     reservoir_column_spacing = column_spacing+gate_spacing-reservoir_ally_width
     reservoir_row_spacing = 4.0
     num_reservoir_rows = 19
