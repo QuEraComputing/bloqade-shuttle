@@ -60,7 +60,7 @@ def animate_shuttle(
 
     new_main = main.similar(kernel.union(move))
     ShuttleToInsight(move.union(kernel), 1, spec_value)(new_main)
-    new_main.print(hint="const")
+    # new_main.print(hint="const")
     timeline = AnimationInterpreter(kernel).get_timeline(new_main, ())
     return animate(
         timeline,
@@ -92,8 +92,8 @@ def row_move_impl(
     end_y = grid.get_ypos(targets)
 
     mid_1 = grid.shift(controls, 0, 5)
-    mid_2 = grid.shift(controls, 6 + (end_x[0]-start_x[0]), 5)
-    mid_3 = grid.shift(targets, 6, 0)
+    mid_2 = grid.shift(controls, 4 + (end_x[0]-start_x[0]), 5)
+    mid_3 = grid.shift(targets, 4, 0)
 
     action.set_loc(controls)
     action.turn_on(action.ALL, action.ALL)
@@ -312,21 +312,23 @@ def generate_moves():
 
         controls = spec.get_static_trap(zone_id="fourL_block_3")
         targets = spec.get_static_trap(zone_id="fourR_block_0")
+        run_move(controls, targets)
 
         # Storage zone moves undone.
 
-        run_move(controls, targets)
 
     return main, spec_value
 
 def run_plotter():
     main, spec_value = generate_moves()
-    # renderer = MatplotlibRenderer()
-    # PathVisualizer(main.dialects, renderer=renderer, arch_spec=spec_value).run(main, ())
+    renderer = MatplotlibRenderer()
+    PathVisualizer(main.dialects, renderer=renderer, arch_spec=spec_value).run(main, ())
 
-    ani = animate_shuttle(main, spec_value)
-
-    plt.show()
+    # ani = animate_shuttle(main, spec_value)
+    #
+    # ani.save("gate_zone_physical_4x4x4_moves.mp4", writer="ffmpeg", fps=45, dpi=200)
+    #
+    # plt.show()
 
 
 if __name__ == "__main__":
