@@ -41,7 +41,6 @@ def get_base_spec():
     reservoir = reservoir_pair.repeat(
         num_x, num_reservoir_rows, reservoir_column_spacing, reservoir_row_spacing
     )
-    print(reservoir)
 
     top_reservoir = reservoir.shift(-81.0 - reservoir_ally_width, row_spacing * 3)
     bottom_reservoir = reservoir.shift(
