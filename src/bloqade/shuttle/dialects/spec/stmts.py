@@ -14,6 +14,14 @@ class GetStaticTrap(ir.Statement):
 
 
 @statement(dialect=dialect)
+class GetSpecialGrid(ir.Statement):
+    name = "get_special_grid"
+    traits = frozenset({ir.Pure(), lowering.FromPythonCall()})
+    grid_id: str = info.attribute()
+    result: ir.ResultValue = info.result(grid.GridType[types.Any, types.Any])
+
+
+@statement(dialect=dialect)
 class GetIntConstant(ir.Statement):
     traits = frozenset({ir.Pure(), lowering.FromPythonCall()})
     constant_id: str = info.attribute()

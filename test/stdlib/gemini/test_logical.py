@@ -1,13 +1,17 @@
+import typing
 from itertools import repeat
 
+import pytest
 from bloqade.geometry.dialects import grid
 from kirin.dialects import ilist
 
-from bloqade.shuttle import arch
-from bloqade.shuttle.stdlib.layouts.gemini.logical import get_spec
+from bloqade.shuttle import arch, move
+from bloqade.shuttle.arch import ArchSpecInterpreter
+from bloqade.shuttle.codegen import TraceInterpreter, taskgen
+from bloqade.shuttle.stdlib.layouts.gemini import logical
 
 
-def get_logical_spec_typer() -> arch.ArchSpec:
+def get_logical_spec_tyler() -> arch.ArchSpec:
     ROW_SEPARATION = 10.0
     COL_SEPARATION = 8.0
     STORAGE_ALLY_WIDTH = 6.0
@@ -127,7 +131,7 @@ def get_logical_spec_typer() -> arch.ArchSpec:
         "GR1_block": GR1_block_traps,
     }
 
-    layout = arch.Layout(
+    gemini_layout = arch.Layout(
         static_traps=static_traps,
         fillable=set(
             [
@@ -140,13 +144,12 @@ def get_logical_spec_typer() -> arch.ArchSpec:
         special_grid={"aom_sites": aom_sites},
     )
 
-    # layout.show()
     logical_rows = 5
     logical_cols = 2
     code_size = 7
 
     spec_value = arch.ArchSpec(
-        layout=layout,
+        layout=gemini_layout,
         float_constants={
             "row_separation": ROW_SEPARATION,
             "col_separation": COL_SEPARATION,
@@ -163,8 +166,8 @@ def get_logical_spec_typer() -> arch.ArchSpec:
 
 
 def test_against_tyler():
-    old_spec = get_logical_spec_typer()
-    new_spec = get_spec()
+    old_spec = get_logical_spec_tyler()
+    new_spec = logical.get_spec()
 
     for key in old_spec.layout.static_traps:
         new_grid = new_spec.layout.static_traps.get(key)
@@ -174,3 +177,61 @@ def test_against_tyler():
         assert new_grid.y_spacing == old_grid.y_spacing, f"Grid mismatch for key {key}"
         assert new_grid.x_init == old_grid.x_init, f"Grid mismatch for key {key}"
         assert new_grid.y_init == old_grid.y_init, f"Grid mismatch for key {key}"
+
+    for key in old_spec.layout.special_grid:
+        new_grid = new_spec.layout.special_grid.get(key)
+        old_grid = old_spec.layout.special_grid[key]
+        assert new_grid is not None, f"Missing grid for key {key}"
+        assert new_grid.x_spacing == old_grid.x_spacing, f"Grid mismatch for key {key}"
+        assert new_grid.y_spacing == old_grid.y_spacing, f"Grid mismatch for key {key}"
+        assert new_grid.x_init == old_grid.x_init, f"Grid mismatch for key {key}"
+        assert new_grid.y_init == old_grid.y_init, f"Grid mismatch for key {key}"
+
+
+N = typing.TypeVar("N")
+
+
+def run_trace(
+    left_subblocks: ilist.IList[int, N],
+    right_subblocks: ilist.IList[int, N],
+):
+
+    device_fn = ArchSpecInterpreter(
+        dialects=move, arch_spec=(arch_spec := logical.get_spec())
+    ).run(logical.get_device_fn, (left_subblocks, right_subblocks))
+    trace_results = TraceInterpreter(arch_spec=arch_spec).run_trace(
+        device_fn.move_fn, (left_subblocks, right_subblocks), kwargs={}
+    )
+
+    return trace_results, arch_spec
+
+
+@pytest.mark.xfail
+def test_aom_move():
+
+    left_subblocks = ilist.IList([0, 1])
+    right_subblocks = ilist.IList([0, 1])
+
+    actions, arch_spec = run_trace(left_subblocks, right_subblocks)
+
+    GL0_block = arch_spec.layout.static_traps["GL0_block"]
+    AOM1_block = arch_spec.layout.special_grid["AOM1_block"]
+
+    set_waypoint, turn_on, movement = actions
+
+    start_pos = GL0_block[:, ilist.IList([0, 1])]
+    end_pos = AOM1_block[:, ilist.IList([0, 1])]
+
+    expected_movement = taskgen.WayPointsAction([start_pos, end_pos])
+
+    assert set_waypoint == taskgen.WayPointsAction([start_pos])
+    assert (
+        isinstance(turn_on, taskgen.TurnOnXYSliceAction)
+        and turn_on.x_tone_indices == slice(None)
+        and turn_on.y_tone_indices == slice(None)
+    )
+    assert movement == expected_movement
+
+
+if __name__ == "__main__":
+    test_aom_move()

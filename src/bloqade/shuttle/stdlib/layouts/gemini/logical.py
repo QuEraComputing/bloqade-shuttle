@@ -57,8 +57,6 @@ def get_spec():
         "GL1_block": GL1_block,
         "GR0_block": GR0_block,
         "GR1_block": GR1_block,
-        "AOM0_block": AOM0_block,
-        "AOM1_block": AOM1_block,
         "SL0_block": SL0_block,
         "SL1_block": SL1_block,
         "SR0_block": SR0_block,
@@ -68,8 +66,13 @@ def get_spec():
         "MR0_block": MR0_block,
         "MR1_block": MR1_block,
     }
+    additional_special_grids = {
+        "AOM0_block": AOM0_block,
+        "AOM1_block": AOM1_block,
+    }
 
     arch_spec.layout.static_traps.update(additional_static_traps)
+    arch_spec.layout.special_grid.update(additional_special_grids)
     arch_spec.layout.has_cz.add("gate_zone")
     arch_spec.layout.fillable.update(("GL0_block", "GL1_block"))
     arch_spec.layout.has_local.update(
@@ -108,11 +111,10 @@ def ltor_block_aom_move(
     ), "Left and right subblocks must have the same length."
 
     left_blocks = spec.get_static_trap(zone_id="GL0_block")
-    right_blocks = spec.get_static_trap(zone_id="AOM1_block")
+    right_blocks = spec.get_special_grid(grid_id="AOM1_block")
 
-    left_block = left_blocks[0, left_subblocks]
-    right_block = right_blocks[0, right_subblocks]
-
+    left_block = left_blocks[:, left_subblocks]
+    right_block = right_blocks[:, right_subblocks]
     row_separation = spec.get_float_constant(constant_id="row_separation")
     col_separation = spec.get_float_constant(constant_id="col_separation")
     gate_spacing = spec.get_float_constant(constant_id="gate_spacing")

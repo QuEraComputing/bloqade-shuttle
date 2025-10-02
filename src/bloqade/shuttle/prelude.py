@@ -1,7 +1,7 @@
 from bloqade.geometry.dialects import grid
 from bloqade.squin import op, qubit
 from kirin import ir
-from kirin.dialects import func, ilist
+from kirin.dialects import debug, func, ilist
 from kirin.passes import Default, Fold, TypeInfer
 from kirin.prelude import structural
 from kirin.rewrite import Walk
@@ -51,7 +51,7 @@ def kernel(self):
 
 
 # We dont allow [cf, aod, schedule] appear in move function
-@ir.dialect_group(structural.union([action, spec, grid, filled]))
+@ir.dialect_group(structural.union([action, spec, grid, filled, debug]))
 def tweezer(self):
     fold_pass = Fold(self)
     typeinfer_pass = TypeInfer(self)
@@ -92,7 +92,9 @@ def tweezer(self):
 
 # no action allow. can have cf, with addtional spec
 @ir.dialect_group(
-    structural.union([init, schedule, path, grid, filled, spec, gate, op, measure])
+    structural.union(
+        [init, schedule, path, grid, filled, spec, gate, op, measure, debug]
+    )
 )
 def move(self):
     schedule_to_path = ScheduleToPath(self)
