@@ -2,6 +2,7 @@ from itertools import repeat
 from typing import TypeVar
 
 from bloqade.geometry.dialects import grid
+from kirin import ir
 from kirin.dialects import ilist
 
 from bloqade.shuttle import action, schedule, spec
@@ -154,15 +155,13 @@ def rearrange_impl_horizontal_vertical(
     num_y = len(src_y)
 
     src_horizontal_parking = grid.from_positions(
-        ilist.map(parking_x, src_x), ilist.map(float, src_y)
+        ilist.map(parking_x, src_x), grid.get_ypos(start)
     )
     parking_y = ilist.map(parking_y_end, ilist.range(num_y))
     mid_pos_after_vertical_move = grid.from_positions(
         grid.get_xpos(src_horizontal_parking), parking_y
     )
-    mid_pos_after_horizontal_move = grid.from_positions(
-        ilist.map(float, dst_x), ilist.map(float, parking_y)
-    )
+    mid_pos_after_horizontal_move = grid.from_positions(grid.get_xpos(end), parking_y)
 
     action.set_loc(start)
     action.turn_on(action.ALL, action.ALL)
@@ -179,6 +178,7 @@ def rearrange(
     src_y: ilist.IList[int, NumY],
     dst_x: ilist.IList[int, NumX],
     dst_y: ilist.IList[int, NumY],
+    tweezer_kernal: ir.Method = rearrange_impl,
 ):
     if len(src_x) < 1 or len(dst_x) < 1:
         return
@@ -186,22 +186,5 @@ def rearrange(
     x_tones = ilist.range(len(src_x))
     y_tones = ilist.range(len(src_y))
 
-    device_fn = schedule.device_fn(rearrange_impl, x_tones, y_tones)
-    device_fn(src_x, src_y, dst_x, dst_y)
-
-
-@move
-def rearrange_horizontal_vertical_move(
-    src_x: ilist.IList[int, NumX],
-    src_y: ilist.IList[int, NumY],
-    dst_x: ilist.IList[int, NumX],
-    dst_y: ilist.IList[int, NumY],
-):
-    if len(src_x) < 1 or len(dst_x) < 1:
-        return
-
-    x_tones = ilist.range(len(src_x))
-    y_tones = ilist.range(len(src_y))
-
-    device_fn = schedule.device_fn(rearrange_impl_horizontal_vertical, x_tones, y_tones)
+    device_fn = schedule.device_fn(tweezer_kernal, x_tones, y_tones)
     device_fn(src_x, src_y, dst_x, dst_y)

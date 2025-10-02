@@ -182,7 +182,7 @@ doc = [
 requires-dist = [
     { name = "bloqade-circuit", specifier = ">=0.6.0,<0.8.0.dev0" },
     { name = "bloqade-geometry", specifier = "~=0.3.0" },
-    { name = "kirin-toolchain", specifier = ">=0.17.17,<0.18.0.dev0" },
+    { name = "kirin-toolchain", specifier = ">=0.17.23,<0.18.0.dev0" },
     { name = "matplotlib", marker = "extra == 'visualization'", specifier = ">=3.9.4" },
 ]
 provides-extras = ["visualization"]
@@ -955,16 +955,16 @@ wheels = [
 
 [[package]]
 name = "kirin-toolchain"
-version = "0.17.22"
+version = "0.17.27"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beartype" },
     { name = "rich" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/48/58/0fcd2b2c63580cf50aa1a13516d44d329422e35967258696b1bb176d3231/kirin_toolchain-0.17.22.tar.gz", hash = "sha256:a0a05ac5870352564c76c2754f501c158608217613136f17ecf25882cb7e2b03", size = 1184720, upload-time = "2025-08-20T13:09:11.71Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/80/1d/d7401fde271224c7768d5481e9025681764b909f4ef39acea78581ce0de1/kirin_toolchain-0.17.27.tar.gz", hash = "sha256:782521650e7aa1c79890b0fe9b8ffe6edbcd857fe4bc93198b8d78933e4bd739", size = 1184493, upload-time = "2025-10-01T20:55:26.051Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/63/a5/295afd71ec6c3c116e875ee94a589baf097045e7cbc35d509c47edf9c2fc/kirin_toolchain-0.17.22-py3-none-any.whl", hash = "sha256:516b4dd85ceaa2e94a5a051a8aa8d6264fd33757e6aafc94ef2118384e45f1f4", size = 228152, upload-time = "2025-08-20T13:09:08.738Z" },
+    { url = "https://files.pythonhosted.org/packages/c9/a3/68e0f242a4934378b7ab2e84351e0fb5986d37e49a698d85df5eaf15cf32/kirin_toolchain-0.17.27-py3-none-any.whl", hash = "sha256:2a7917ce3d823956036c26045a1e33ab4cf1cf54e4d7d89639c115cff12c15a9", size = 231024, upload-time = "2025-10-01T20:55:24.44Z" },
 ]
 
 [[package]]
