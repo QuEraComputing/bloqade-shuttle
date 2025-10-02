@@ -1,4 +1,4 @@
-from typing import Any, TypeVar
+from typing import TypeVar
 
 from bloqade.geometry.dialects import grid
 from kirin.dialects import ilist
@@ -10,7 +10,7 @@ from ..asserts import assert_sorted
 from .base_spec import get_base_spec
 
 
-def get_logical_spec():
+def get_spec():
     arch_spec = get_base_spec()
 
     gate_zone = arch_spec.layout.static_traps["gate_zone"]
@@ -95,14 +95,6 @@ N = TypeVar("N")
 
 
 @tweezer
-def get_subblock(
-    block: grid.Grid, sublock_indices: ilist.IList[int, N]
-) -> grid.Grid[Any, N]:
-    all_columns = ilist.range(grid.shape(block)[0])
-    return block.get_view(all_columns, sublock_indices)
-
-
-@tweezer
 def ltor_block_aom_move(
     left_subblocks: ilist.IList[int, N],
     right_subblocks: ilist.IList[int, N],
@@ -115,10 +107,11 @@ def ltor_block_aom_move(
         right_subblocks
     ), "Left and right subblocks must have the same length."
 
-    left_block = get_subblock(spec.get_static_trap(zone_id="GL0_block"), left_subblocks)
-    right_block = get_subblock(
-        spec.get_static_trap(zone_id="AOM1_block"), right_subblocks
-    )
+    left_blocks = spec.get_static_trap(zone_id="GL0_block")
+    right_blocks = spec.get_static_trap(zone_id="AOM1_block")
+
+    left_block = left_blocks[0, left_subblocks]
+    right_block = right_blocks[0, right_subblocks]
 
     row_separation = spec.get_float_constant(constant_id="row_separation")
     col_separation = spec.get_float_constant(constant_id="col_separation")
@@ -141,14 +134,22 @@ def ltor_block_aom_move(
 
 
 @move
-def entangle(
+def get_device_fn(
     left_subblocks: ilist.IList[int, N],
     right_subblocks: ilist.IList[int, N],
 ):
     x_tones = ilist.range(spec.get_int_constant(constant_id="code_size"))
     y_tones = ilist.range(len(left_subblocks))
+    return schedule.device_fn(ltor_block_aom_move, x_tones, y_tones)
 
-    device_func = schedule.device_fn(ltor_block_aom_move, x_tones, y_tones)
+
+@move
+def entangle(
+    left_subblocks: ilist.IList[int, N],
+    right_subblocks: ilist.IList[int, N],
+):
+
+    device_func = get_device_fn(left_subblocks, right_subblocks)
     rev_func = schedule.reverse(device_func)
 
     device_func(left_subblocks, right_subblocks)

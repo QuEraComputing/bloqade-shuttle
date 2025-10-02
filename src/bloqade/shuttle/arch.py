@@ -178,4 +178,4 @@ class ArchSpecMixin:
 class ArchSpecInterpreter(ArchSpecMixin, Interpreter):
     """Interpreter that requires an architecture specification."""
 
-    pass
+    keys = ["spec.interp", "main"]

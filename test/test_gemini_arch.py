@@ -4,7 +4,7 @@ from bloqade.geometry.dialects import grid
 from kirin.dialects import ilist
 
 from bloqade.shuttle import arch
-from bloqade.shuttle.stdlib.layouts.gemini.logical import get_logical_spec
+from bloqade.shuttle.stdlib.layouts.gemini.logical import get_spec
 
 
 def get_logical_spec_typer() -> arch.ArchSpec:
@@ -164,7 +164,7 @@ def get_logical_spec_typer() -> arch.ArchSpec:
 
 def test_against_tyler():
     old_spec = get_logical_spec_typer()
-    new_spec = get_logical_spec()
+    new_spec = get_spec()
 
     for key in old_spec.layout.static_traps:
         new_grid = new_spec.layout.static_traps.get(key)

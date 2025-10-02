@@ -133,6 +133,7 @@ def _default_dialect():
 @dataclass
 class TraceInterpreter(ArchSpecInterpreter):
     keys: ClassVar[list[str]] = ["action.tracer", "spec.interp", "main"]
+
     trace: list[AbstractAction] = field(init=False, default_factory=list)
     curr_pos: Optional[grid.Grid] = field(init=False, default=None)
     dialects: ir.DialectGroup = field(init=False, default_factory=_default_dialect)
@@ -148,16 +149,14 @@ class TraceInterpreter(ArchSpecInterpreter):
 
         if not isinstance(mt.code, (action.TweezerFunction, func.Lambda)):
             raise ValueError("Method code must be a MoveFunction or Lambda")
-
-        # TODO: use permute_values to get correct order.
-        super().run(mt, args=args, kwargs=kwargs)
+        self.run(mt, args=args, kwargs=kwargs)
         return self.trace.copy()
 
 
 @action.dialect.register(key="action.tracer")
 class ActionTracer(MethodTable):
 
-    intensity_actions = {
+    intensity_actions: dict[type, type] = {
         action.TurnOnXY: TurnOnXYAction,
         action.TurnOffXY: TurnOffXYAction,
         action.TurnOnXSlice: TurnOnXSliceAction,
