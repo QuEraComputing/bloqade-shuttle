@@ -172,3 +172,5 @@ def test_against_tyler():
         assert new_grid is not None, f"Missing grid for key {key}"
         assert new_grid.x_spacing == old_grid.x_spacing, f"Grid mismatch for key {key}"
         assert new_grid.y_spacing == old_grid.y_spacing, f"Grid mismatch for key {key}"
+        assert new_grid.x_init == old_grid.x_init, f"Grid mismatch for key {key}"
+        assert new_grid.y_init == old_grid.y_init, f"Grid mismatch for key {key}"

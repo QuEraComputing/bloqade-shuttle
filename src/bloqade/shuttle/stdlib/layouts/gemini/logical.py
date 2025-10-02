@@ -20,23 +20,24 @@ def get_logical_spec():
 
     left_traps = gate_zone[::2, :]
     right_traps = gate_zone[1::2, :]
-    S_block_traps = top_reservoir[4 : 4 + 7 * 4, 8 : 8 + 5 * 2 : 2]
-    M_block_traps = bottom_reservoir[4 : 4 + 7 * 4 :, 2 : 2 + 5 * 2 : 2]
+    S_block = top_reservoir[4 : 4 + 7 * 4, 8 : 8 + 5 * 2 : 2]
+    M_block = bottom_reservoir[4 : 4 + 7 * 4 :, 2 : 2 + 5 * 2 : 2]
 
-    SL_block_traps = S_block_traps[: 2 * 7, :]
-    SR_block_traps = S_block_traps[2 * 7 :, :]
-    ML_block_traps = M_block_traps[: 2 * 7, :]
-    MR_block_traps = M_block_traps[2 * 7 :, :]
+    S0_block = S_block[: 2 * 7, :]
+    S1_block = S_block[2 * 7 :, :]
+    M0_block = M_block[: 2 * 7, :]
+    M1_block = M_block[2 * 7 :, :]
 
-    SL0_block = SL_block_traps[::2, :]
-    SL1_block = SL_block_traps[1::2, :]
-    SR0_block = SR_block_traps[::2, :]
-    SR1_block = SR_block_traps[1::2, :]
+    SL0_block = S0_block[::2, :]
+    SR0_block = S0_block[1::2, :]
 
-    ML0_block = ML_block_traps[::2, :]
-    ML1_block = ML_block_traps[1::2, :]
-    MR0_block = MR_block_traps[::2, :]
-    MR1_block = MR_block_traps[1::2, :]
+    SL1_block = S1_block[::2, :]
+    SR1_block = S1_block[1::2, :]
+
+    ML0_block = M0_block[::2, :]
+    MR0_block = M0_block[1::2, :]
+    ML1_block = M1_block[::2, :]
+    MR1_block = M1_block[1::2, :]
 
     GL0_block = left_traps[2 : 2 + 7 :, :]
     GR0_block = right_traps[2 : 2 + 7 :, :]
