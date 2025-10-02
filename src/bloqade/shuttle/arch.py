@@ -24,6 +24,25 @@ class Layout:
     special_grid: dict[str, Grid] = field(default_factory=dict, kw_only=True)
     """Set of special grid values that are not static traps, but can be used for specific purposes."""
 
+    _zone_to_id: dict[Grid, str] = field(
+        default_factory=dict, init=False, compare=False, repr=False
+    )
+
+    def __post_init__(self):
+        for zone_id, zone in chain(
+            self.static_traps.items(), self.special_grid.items()
+        ):
+            if zone in self._zone_to_id:
+                raise ValueError(
+                    f"Duplicate static trap zone detected: {zone_id}, {zone}, please ensure all names point to a unique set of locations"
+                )
+
+            self._zone_to_id[zone] = zone_id
+
+    def get_zone_id(self, zone: Grid) -> str | None:
+        """Get the zone ID for a given grid, if it exists in static_traps or special_grid."""
+        return self._zone_to_id.get(zone, None)
+
     def __hash__(self):
         return hash(
             (

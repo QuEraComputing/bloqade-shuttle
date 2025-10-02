@@ -4,10 +4,10 @@ from bloqade.geometry.dialects import grid
 from kirin.dialects import ilist
 
 from bloqade.shuttle import arch
-from bloqade.shuttle.stdlib.layouts.gemini import get_base_spec
+from bloqade.shuttle.stdlib.layouts.gemini.logical import get_logical_spec
 
 
-def get_base_spec_tyler() -> arch.ArchSpec:
+def get_logical_spec_typer() -> arch.ArchSpec:
     ROW_SEPARATION = 10.0
     COL_SEPARATION = 8.0
     STORAGE_ALLY_WIDTH = 6.0
@@ -108,9 +108,9 @@ def get_base_spec_tyler() -> arch.ArchSpec:
     GR1_block_traps = right_traps.get_view(G1_block_x_indices, all_y_indices)
 
     static_traps = {
-        "traps": all_entangling_zone_traps,
-        "left_traps": left_traps,
-        "right_traps": right_traps,
+        "gate_zone": all_entangling_zone_traps,
+        "left_gate_zone_sites": left_traps,
+        "right_gate_zone_sites": right_traps,
         "top_reservoir": top_reservoir,
         "bottom_reservoir": bottom_reservoir,
         "SL0_block": SL0_block_traps,
@@ -135,8 +135,8 @@ def get_base_spec_tyler() -> arch.ArchSpec:
                 "GL1_block",
             ]
         ),
-        has_cz=set(["traps"]),
-        has_local=set(["left_traps"]),
+        has_cz=set(["gate_zone"]),
+        has_local=set(["GL0_block", "GL1_block", "GR0_block", "GR1_block"]),
         special_grid={"aom_sites": aom_sites},
     )
 
@@ -163,8 +163,8 @@ def get_base_spec_tyler() -> arch.ArchSpec:
 
 
 def test_against_tyler():
-    old_spec = get_base_spec_tyler()
-    new_spec = get_base_spec()
+    old_spec = get_logical_spec_typer()
+    new_spec = get_logical_spec()
 
     for key in old_spec.layout.static_traps:
         new_grid = new_spec.layout.static_traps.get(key)

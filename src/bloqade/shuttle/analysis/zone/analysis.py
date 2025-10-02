@@ -21,9 +21,9 @@ class ZoneAnalysis(Forward[Zone]):
     arch_spec: ArchSpec = field(default_factory=ArchSpec)
 
     def get_grid_lattice(self, zone: grid.Grid) -> Zone:
-        for zone_id, zone_obj in self.arch_spec.layout.static_traps.items():
-            if zone is zone_obj:  # must be the object defined in the spec to match
-                return SpecZone(zone_id)
+        zone_id = self.arch_spec.layout.get_zone_id(zone)
+        if zone_id is not None:
+            return SpecZone(zone_id)
 
         return UnknownZone()
 
