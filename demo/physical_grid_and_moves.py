@@ -1,72 +1,12 @@
-from itertools import chain, repeat
+from itertools import repeat
 from typing import Any, TypeVar
 
 from bloqade.geometry.dialects import grid
-from bloqade.insight import kernel
-from bloqade.insight.interp import AnimationInterpreter
-from bloqade.insight.legacy.animate import FieldOfView, animate
-from bloqade.insight.upstream.shuttle import ShuttleToInsight
-from kirin import ir
 from kirin.dialects import ilist
 
 from bloqade.shuttle import action, init, schedule, spec
 from bloqade.shuttle.prelude import move, tweezer
 from bloqade.shuttle.visualizer import MatplotlibRenderer, PathVisualizer
-
-
-def animate_shuttle(
-    main: ir.Method,  # entry point of shuttle program
-    spec_value: spec.ArchSpec,  # architecture specification
-    display_fov: FieldOfView | None = None,
-    dilation_rate: float = 0.05,
-    fps: int = 30,
-    gate_display_dilation: float = 1.0,
-    fig_args={},
-    save_mpeg: bool = False,
-    filename: str = "vqpu_animation",
-    start_block: int = 0,
-    n_blocks: int | None = None,
-):
-
-    def get_fov(spec: spec.Layout):
-        x_min = float("inf")
-        x_max = float("-inf")
-        y_min = float("inf")
-        y_max = float("-inf")
-        for zone in chain(spec.static_traps.values(), spec.special_grid.values()):
-            x_bounds = zone.x_bounds()
-            y_bounds = zone.y_bounds()
-            if x_bounds[0] is not None:
-                x_min = min(x_min, x_bounds[0])
-            if x_bounds[1] is not None:
-                x_max = max(x_max, x_bounds[1])
-            if y_bounds[0] is not None:
-                y_min = min(y_min, y_bounds[0])
-            if y_bounds[1] is not None:
-                y_max = max(y_max, y_bounds[1])
-
-        return FieldOfView(x_min - 10, x_max + 10, y_min - 10, y_max + 10)
-
-    if display_fov is None:
-        display_fov = get_fov(spec_value.layout)
-
-    new_main = main.similar(kernel.union(move))
-    ShuttleToInsight(move.union(kernel), 1, spec_value)(new_main)
-    # new_main.print(hint="const")
-    timeline = AnimationInterpreter(kernel).get_timeline(new_main, ())
-    return animate(
-        timeline,
-        display_fov=display_fov,
-        dilation_rate=dilation_rate,
-        fps=fps,
-        gate_display_dilation=gate_display_dilation,
-        fig_args=fig_args,
-        save_mpeg=save_mpeg,
-        filename=filename,
-        start_block=start_block,
-        n_blocks=n_blocks,
-    )
-
 
 # Define type variables for generic programming
 NumX = TypeVar("NumX", bound=int)
@@ -345,12 +285,6 @@ def run_plotter():
     main, spec_value = generate_moves()
     renderer = MatplotlibRenderer()
     PathVisualizer(main.dialects, renderer=renderer, arch_spec=spec_value).run(main, ())
-
-    # ani = animate_shuttle(main, spec_value)
-    #
-    # ani.save("gate_zone_physical_4x4x4_moves.mp4", writer="ffmpeg", fps=45, dpi=200)
-    #
-    # plt.show()
 
 
 if __name__ == "__main__":
