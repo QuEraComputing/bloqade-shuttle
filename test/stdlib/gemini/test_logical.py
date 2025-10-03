@@ -214,10 +214,10 @@ def is_sorted(lst: ilist.IList[int, N]) -> bool:
     "left_subblocks,right_subblocks",
     [
         (ilist.IList([0, 1]), ilist.IList([0, 1])),
-        (ilist.IList([2, 3]), ilist.IList([2, 3])),
-        (ilist.IList([0, 2, 4]), ilist.IList([0, 2, 4])),
-        (ilist.IList([1, 3]), ilist.IList([1, 3])),
-        (ilist.IList([0, 2, 1]), ilist.IList([0, 1, 2])),
+        (ilist.IList([2, 3]), ilist.IList([2, 4])),
+        (ilist.IList([0, 1, 2]), ilist.IList([0, 2, 4])),
+        (ilist.IList([1, 3]), ilist.IList([0, 1])),
+        (ilist.IList([0, 2, 1]), ilist.IList([0, 3, 4])),
     ],
 )
 def test_aom_move(
