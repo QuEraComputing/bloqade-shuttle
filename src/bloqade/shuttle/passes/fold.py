@@ -38,8 +38,6 @@ class Fold(Pass):
             InlineGetItem(),
             ilist.rewrite.InlineGetItem(),
             ilist.rewrite.HintLen(),
-            DeadCodeElimination(),
-            CommonSubexpressionElimination(),
         )
         result = Fixpoint(Walk(rule)).rewrite(mt.code).join(result)
 
@@ -71,6 +69,13 @@ class AggressiveUnroll(Pass):
         result = self.fold.unsafe_run(mt).join(result)
         result = Walk(Inline(self.inline_heuristic)).rewrite(mt.code).join(result)
         result = Walk(Fixpoint(CFGCompactify())).rewrite(mt.code).join(result)
+
+        rule = Chain(
+            CommonSubexpressionElimination(),
+            DeadCodeElimination(),
+        )
+        result = Fixpoint(Walk(rule)).rewrite(mt.code).join(result)
+
         return result
 
     @classmethod
