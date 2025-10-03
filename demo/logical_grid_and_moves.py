@@ -1,18 +1,12 @@
-from itertools import chain, repeat
-from typing import Any, List, Literal, TypeVar
+from itertools import repeat
+from typing import Any, TypeVar
 
 import matplotlib.pyplot as plt
 from bloqade.geometry.dialects import grid
-from bloqade.insight import kernel
-from bloqade.insight.interp import AnimationInterpreter
-from bloqade.insight.legacy.animate import FieldOfView, animate
-from bloqade.insight.upstream.shuttle import ShuttleToInsight
-from kirin import ir
 from kirin.dialects import ilist
 
-from bloqade.shuttle import action, gate, init, measure, schedule, spec
+from bloqade.shuttle import action, init, schedule, spec
 from bloqade.shuttle.prelude import move, tweezer
-from bloqade.shuttle.stdlib.layouts.asserts import assert_sorted
 from bloqade.shuttle.visualizer import MatplotlibRenderer, PathVisualizer
 
 ROW_SEPARATION = 10.0
