@@ -206,23 +206,53 @@ def run_trace(
     return trace_results, arch_spec
 
 
-@pytest.mark.xfail
-def test_aom_move():
+def is_sorted(lst: ilist.IList[int, N]) -> bool:
+    return all(x <= y for x, y in zip(lst, lst[1:]))
 
-    left_subblocks = ilist.IList([0, 1])
-    right_subblocks = ilist.IList([0, 1])
 
-    actions, arch_spec = run_trace(left_subblocks, right_subblocks)
+@pytest.mark.parametrize(
+    "left_subblocks,right_subblocks",
+    [
+        (ilist.IList([0, 1]), ilist.IList([0, 1])),
+        (ilist.IList([2, 3]), ilist.IList([2, 3])),
+        (ilist.IList([0, 2, 4]), ilist.IList([0, 2, 4])),
+        (ilist.IList([1, 3]), ilist.IList([1, 3])),
+        (ilist.IList([0, 2, 1]), ilist.IList([0, 1, 2])),
+    ],
+)
+def test_aom_move(
+    left_subblocks: ilist.IList[int, N], right_subblocks: ilist.IList[int, N]
+):
+
+    if not (is_sorted(left_subblocks) and is_sorted(right_subblocks)):
+        with pytest.raises(AssertionError):
+            run_trace(left_subblocks, right_subblocks)
+
+        return
+    else:
+        actions, arch_spec = run_trace(left_subblocks, right_subblocks)
 
     GL0_block = arch_spec.layout.static_traps["GL0_block"]
     AOM1_block = arch_spec.layout.special_grid["AOM1_block"]
 
     set_waypoint, turn_on, movement = actions
 
-    start_pos = GL0_block[:, ilist.IList([0, 1])]
-    end_pos = AOM1_block[:, ilist.IList([0, 1])]
+    start_pos = GL0_block[:, left_subblocks]
+    end_pos = AOM1_block[:, right_subblocks]
 
-    expected_movement = taskgen.WayPointsAction([start_pos, end_pos])
+    x_shift = (
+        arch_spec.float_constants["col_separation"] / 2.0
+        - arch_spec.float_constants["gate_spacing"]
+    )
+    y_shift = arch_spec.float_constants["row_separation"] / 2.0
+
+    first_pos = start_pos.shift(0, y_shift)
+    third_pos = end_pos.shift(-x_shift, 0.0)
+    mid_pos = grid.Grid.from_positions(third_pos.x_positions, first_pos.y_positions)
+
+    expected_movement = taskgen.WayPointsAction(
+        [start_pos, first_pos, mid_pos, third_pos, end_pos]
+    )
 
     assert set_waypoint == taskgen.WayPointsAction([start_pos])
     assert (
@@ -233,5 +263,5 @@ def test_aom_move():
     assert movement == expected_movement
 
 
-if __name__ == "__main__":
-    test_aom_move()
+# if __name__ == "__main__":
+#     test_aom_move()
