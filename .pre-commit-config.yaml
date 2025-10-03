@@ -26,7 +26,7 @@ repos:
   hooks:
     - id: pyright-check
       name: pyright-check
-      entry: uv run pyright .
+      entry: uv run pyright src test
       language: system
       pass_filenames: false
       always_run: true
