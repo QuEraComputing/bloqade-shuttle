@@ -1,3 +1,4 @@
+import itertools
 import typing
 from itertools import repeat
 
@@ -210,21 +211,26 @@ def is_sorted(lst: ilist.IList[int, N]) -> bool:
     return all(x <= y for x, y in zip(lst, lst[1:]))
 
 
+test_indices = [
+    ilist.IList([0]),
+    ilist.IList([1]),
+    ilist.IList([1, 3]),
+    ilist.IList([0, 2, 4]),
+    ilist.IList([0, 1, 2, 3, 4]),
+    ilist.IList([3, 2, 1]),
+]
+
+
 @pytest.mark.parametrize(
-    "left_subblocks,right_subblocks",
-    [
-        (ilist.IList([0, 1]), ilist.IList([0, 1])),
-        (ilist.IList([2, 3]), ilist.IList([2, 4])),
-        (ilist.IList([0, 1, 2]), ilist.IList([0, 2, 4])),
-        (ilist.IList([1, 3]), ilist.IList([0, 1])),
-        (ilist.IList([0, 2, 1]), ilist.IList([0, 3, 4])),
-    ],
+    "left_subblocks,right_subblocks", itertools.product(test_indices, repeat=2)
 )
 def test_aom_move(
     left_subblocks: ilist.IList[int, N], right_subblocks: ilist.IList[int, N]
 ):
 
-    if not (is_sorted(left_subblocks) and is_sorted(right_subblocks)):
+    if not (is_sorted(left_subblocks) and is_sorted(right_subblocks)) or len(
+        left_subblocks
+    ) != len(right_subblocks):
         with pytest.raises(AssertionError):
             run_trace(left_subblocks, right_subblocks)
 

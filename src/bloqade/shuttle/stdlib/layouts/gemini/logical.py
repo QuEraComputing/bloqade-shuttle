@@ -102,7 +102,6 @@ def ltor_block_aom_move(
     left_subblocks: ilist.IList[int, N],
     right_subblocks: ilist.IList[int, N],
 ):
-
     assert_sorted(left_subblocks)
     assert_sorted(right_subblocks)
 
@@ -154,6 +153,7 @@ def entangle(
     device_func = get_device_fn(left_subblocks, right_subblocks)
     rev_func = schedule.reverse(device_func)
 
-    device_func(left_subblocks, right_subblocks)
-    gate.top_hat_cz(spec.get_static_trap(zone_id="gate_zone"))
-    rev_func(left_subblocks, right_subblocks)
+    if len(left_subblocks) > 0:
+        device_func(left_subblocks, right_subblocks)
+        gate.top_hat_cz(spec.get_static_trap(zone_id="gate_zone"))
+        rev_func(left_subblocks, right_subblocks)
