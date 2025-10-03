@@ -123,14 +123,14 @@ wheels = [
 
 [[package]]
 name = "bloqade-geometry"
-version = "0.3.1"
+version = "0.3.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "kirin-toolchain" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5f/82/3d6764546ac54c8962b645d3de4d678d5723d686b24d295ccb750255c4b8/bloqade_geometry-0.3.1.tar.gz", hash = "sha256:d6139791777c9a6251a54b6d079c92c0021a98cc2347118d323aef5bd620b87a", size = 79643, upload-time = "2025-08-04T22:07:29.996Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/73/59/110ea0c720c05a08c3047684da6f99f3d134a282156f87317e04af6a6b73/bloqade_geometry-0.3.3.tar.gz", hash = "sha256:2b62207de19b6717b78ca03d572c9b46e58bb7410446bdbb844a3a6561ad322f", size = 86003, upload-time = "2025-10-03T15:24:10.985Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6e/f1/5f33979950a46d770b721daf529e571815ce92cae3dd7563dd38f7341b88/bloqade_geometry-0.3.1-py3-none-any.whl", hash = "sha256:278ba14a1d9114a3cc28f6539c7337bfd8602e034af69affb12c295a1404034d", size = 14560, upload-time = "2025-08-04T22:07:27.796Z" },
+    { url = "https://files.pythonhosted.org/packages/a4/61/f0e509d4acc069021ac09f45792136b32c93b1a885165818334aaad5f429/bloqade_geometry-0.3.3-py3-none-any.whl", hash = "sha256:bc38d21adadc35c38384ba4b3db1e9575646f9fbf952b33044dfce8a758903c3", size = 15009, upload-time = "2025-10-03T15:24:09.959Z" },
 ]
 
 [[package]]
@@ -181,7 +181,7 @@ doc = [
 [package.metadata]
 requires-dist = [
     { name = "bloqade-circuit", specifier = ">=0.6.0,<0.8.0.dev0" },
-    { name = "bloqade-geometry", specifier = "~=0.3.0" },
+    { name = "bloqade-geometry", specifier = "~=0.3.3" },
     { name = "kirin-toolchain", specifier = ">=0.17.23,<0.18.0.dev0" },
     { name = "matplotlib", marker = "extra == 'visualization'", specifier = ">=3.9.4" },
 ]

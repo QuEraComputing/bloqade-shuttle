@@ -5,12 +5,18 @@ from kirin.lowering import wraps as _wraps
 
 from bloqade.shuttle.arch import ArchSpec as ArchSpec, Layout as Layout
 
-from .stmts import GetFloatConstant, GetIntConstant, GetStaticTrap
+from .stmts import GetFloatConstant, GetIntConstant, GetSpecialGrid, GetStaticTrap
 
 
 @_wraps(GetStaticTrap)
 def get_static_trap(*, zone_id: str) -> grid.Grid[Any, Any]:
     """Get a static trap by its zone ID."""
+    ...
+
+
+@_wraps(GetSpecialGrid)
+def get_special_grid(*, grid_id: str) -> grid.Grid[Any, Any]:
+    """Get a special grid by its ID."""
     ...
 
 
