@@ -6,7 +6,7 @@ authors = [
     {name = "QuEra Computing Inc.", email = "info@quera.com"},
 ]
 dependencies = [
-    "bloqade-geometry ~=0.3.2",
+    "bloqade-geometry ~=0.3.3",
     "bloqade-circuit >=0.6.0,<0.8.0-dev",
     "kirin-toolchain >= 0.17.23,<0.18.0-dev",
 ]
