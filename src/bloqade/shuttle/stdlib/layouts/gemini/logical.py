@@ -194,17 +194,17 @@ def vertical_move_impl(
     assert block_id in ("GL", "GR"), "block_id must be either 'GL' or 'GR'"
     src = get_block(block_id, col_indices, src_rows)
     dst = get_block(block_id, col_indices, dst_rows)
+    
     x_shift = spec.get_float_constant(constant_id="col_separation") / 2.0
     if block_id == "GL":
         x_shift = -x_shift
 
-    if src != dst:
-        action.set_loc(src)
-        action.turn_on(action.ALL, action.ALL)
-        action.move(grid.shift(src, x_shift, 0.0))
-        action.move(grid.shift(dst, x_shift, 0.0))
-        action.move(dst)
-        action.turn_off(action.ALL, action.ALL)
+    action.set_loc(src)
+    action.turn_on(action.ALL, action.ALL)
+    action.move(grid.shift(src, x_shift, 0.0))
+    action.move(grid.shift(dst, x_shift, 0.0))
+    action.move(dst)
+    action.turn_off(action.ALL, action.ALL)
 
 
 @tweezer
@@ -223,13 +223,12 @@ def horizontal_move_impl(
     dst = get_block(block_id, dst_cols, row_indices)
     y_shift = spec.get_float_constant(constant_id="row_separation") / 2.0
 
-    if src != dst:
-        action.set_loc(src)
-        action.turn_on(action.ALL, action.ALL)
-        action.move(grid.shift(src, 0.0, y_shift))
-        action.move(grid.shift(dst, 0.0, y_shift))
-        action.move(dst)
-        action.turn_off(action.ALL, action.ALL)
+    action.set_loc(src)
+    action.turn_on(action.ALL, action.ALL)
+    action.move(grid.shift(src, 0.0, y_shift))
+    action.move(grid.shift(dst, 0.0, y_shift))
+    action.move(dst)
+    action.turn_off(action.ALL, action.ALL)
 
 
 Nx = TypeVar("Nx", bound=int)
@@ -277,13 +276,19 @@ def entangle(
     else:
         tmp_block = src_block
 
-    horizontal_move(tmp_block, src_rows, src_cols, dst_cols)
-    vertical_move(tmp_block, dst_cols, src_rows, dst_rows)
+    if src_cols != dst_cols:
+        horizontal_move(tmp_block, src_rows, src_cols, dst_cols)
+
+    if src_rows != dst_rows:
+        vertical_move(tmp_block, dst_cols, src_rows, dst_rows)
 
     gate.top_hat_cz(spec.get_static_trap(zone_id="gate_zone"))
 
-    inv_vertical_move(tmp_block, dst_cols, src_rows, dst_rows)
-    inv_horizontal_move(tmp_block, src_rows, src_cols, dst_cols)
+    if src_rows != dst_rows:
+        inv_vertical_move(tmp_block, dst_cols, src_rows, dst_rows)
+
+    if src_cols != dst_cols:
+        inv_horizontal_move(tmp_block, src_rows, src_cols, dst_cols)
 
     if src_block == dst_block:
         shift(tmp_block, src_cols, src_rows)
