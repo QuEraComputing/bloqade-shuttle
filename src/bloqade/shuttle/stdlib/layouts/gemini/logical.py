@@ -191,10 +191,14 @@ def vertical_move_impl(
     assert_sorted(src_rows)
     assert_sorted(dst_rows)
 
+    assert len(src_rows) == len(
+        dst_rows
+    ), "src_rows and dst_rows must have the same length"
+
     assert block_id in ("GL", "GR"), "block_id must be either 'GL' or 'GR'"
     src = get_block(block_id, col_indices, src_rows)
     dst = get_block(block_id, col_indices, dst_rows)
-    
+
     x_shift = spec.get_float_constant(constant_id="col_separation") / 2.0
     if block_id == "GL":
         x_shift = -x_shift
@@ -217,6 +221,10 @@ def horizontal_move_impl(
     assert_sorted(row_indices)
     assert_sorted(src_cols)
     assert_sorted(dst_cols)
+
+    assert len(src_cols) == len(
+        dst_cols
+    ), "src_cols and dst_cols must have the same length"
 
     assert block_id in ("GL", "GR"), "block_id must be either 'GL' or 'GR'"
     src = get_block(block_id, src_cols, row_indices)
