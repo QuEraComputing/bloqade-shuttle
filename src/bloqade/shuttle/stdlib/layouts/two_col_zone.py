@@ -197,18 +197,18 @@ def rearrange(
     device_fn(src_x, src_y, dst_x, dst_y)
 
 
-@move
-def get_device_fn(
-    src_x: ilist.IList[int, NumX],
-    src_y: ilist.IList[int, NumY],
-    dst_x: ilist.IList[int, NumX],
-    dst_y: ilist.IList[int, NumY],
-    tweezer_kernal: ir.Method = rearrange_impl,
-):
-    if len(src_x) < 1 or len(dst_x) < 1:
-        return
+# @move
+# def get_device_fn(
+#     src_x: ilist.IList[int, NumX],
+#     src_y: ilist.IList[int, NumY],
+#     dst_x: ilist.IList[int, NumX],
+#     dst_y: ilist.IList[int, NumY],
+#     tweezer_kernal: ir.Method = rearrange_impl,
+# ):
+#     if len(src_x) < 1 or len(dst_x) < 1:
+#         return
 
-    x_tones = ilist.range(len(src_x))
-    y_tones = ilist.range(len(src_y))
+#     x_tones = ilist.range(len(src_x))
+#     y_tones = ilist.range(len(src_y))
 
-    return schedule.device_fn(tweezer_kernal, x_tones, y_tones)
+#     return schedule.device_fn(tweezer_kernal, x_tones, y_tones)
