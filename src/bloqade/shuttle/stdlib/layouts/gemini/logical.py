@@ -118,7 +118,8 @@ def get_block(
 
     Args:
         block_id (str): The block identifier, either "GL" or "GR".
-        col_id (int): The column identifier, either 0 or 1.
+        col_indices (IList[int, Any]): The list of logical column indices.
+        row_indices (IList[int, Any]): The list of logical row indices.
 
     Returns:
         Grid: The grid corresponding to the specified block and column.
@@ -152,6 +153,15 @@ def get_block(
 
 @tweezer
 def get_other_block(block_id: str) -> str:
+    """Returns the identifier of the other block.
+
+    Args:
+        block_id (str): The current block identifier, either "GL" or "GR".
+
+    Returns:
+        str: The identifier of the other block.
+
+    """
     assert block_id in ("GL", "GR"), "block_id must be either 'GL' or 'GR'"
     other_block = "GL"
     if block_id == "GL":
@@ -165,6 +175,13 @@ def swap_block_impl(
     selected_cols: ilist.IList[int, Any],
     selected_rows: ilist.IList[int, Any],
 ):
+    """Swaps the specified rows and columns between the source and destination blocks.
+
+    Args:
+        src_block (str): the current block identifier, either "GL" or "GR".
+        selected_cols (ilist.IList[int, Any]): the list of selected column indices to swap.
+        selected_rows (ilist.IList[int, Any]): the list of selected row indices to swap.
+    """
 
     assert_sorted(selected_cols)
     assert_sorted(selected_rows)
@@ -187,6 +204,15 @@ def vertical_move_impl(
     src_rows: ilist.IList[int, N],
     dst_rows: ilist.IList[int, N],
 ):
+    """Moves the specified rows within the given block.
+
+    Args:
+        block_id (str): The block identifier, either "GL" or "GR".
+        col_indices (ilist.IList[int, Any]): The list of logical column indices.
+        src_rows (ilist.IList[int, N]): The list of source row indices.
+        dst_rows (ilist.IList[int, N]): The list of destination row indices.
+
+    """
     assert_sorted(col_indices)
     assert_sorted(src_rows)
     assert_sorted(dst_rows)
@@ -218,6 +244,14 @@ def horizontal_move_impl(
     src_cols: ilist.IList[int, N],
     dst_cols: ilist.IList[int, N],
 ):
+    """Moves the specified columns within the given block.
+
+    Args:
+        block_id (str): The block identifier, either "GL" or "GR".
+        row_indices (ilist.IList[int, Any]): The list of row indices.
+        src_cols (ilist.IList[int, N]): The list of source column indices.
+        dst_cols (ilist.IList[int, N]): The list of destination column indices.
+    """
     assert_sorted(row_indices)
     assert_sorted(src_cols)
     assert_sorted(dst_cols)
@@ -244,14 +278,29 @@ Ny = TypeVar("Ny", bound=int)
 
 
 @move
-def entangle(
-    src_block: str,
+def gl_entangle(
     src_cols: ilist.IList[int, Nx],
     src_rows: ilist.IList[int, Ny],
-    dst_block: str,
     dst_cols: ilist.IList[int, Nx],
     dst_rows: ilist.IList[int, Ny],
 ):
+    """Entangles the qubits located in the "GL" blocks between src and dst positions.
+
+    The function performs the following steps:
+    1. Validates the input parameters to ensure they are sorted and of equal length.
+    3. Moves the qubits horizontally if the source and destination columns differ.
+    4. Moves the qubits vertically if the source and destination rows differ.
+    5. Applies a CZ gate to the qubits in the gate zone.
+    6. Reverses the vertical and horizontal moves to return the qubits to their original positions.
+
+    Args:
+        src_cols (ilist.IList[int, Nx]): The list of source column indices.
+        src_rows (ilist.IList[int, Ny]): The list of source row indices.
+        dst_cols (ilist.IList[int, Nx]): The list of destination column indices.
+        dst_rows (ilist.IList[int, Ny]): The list of destination row indices.
+
+    """
+
     assert_sorted(src_cols)
     assert_sorted(src_rows)
     assert_sorted(dst_cols)
@@ -264,8 +313,8 @@ def entangle(
         dst_rows
     ), "src_rows and dst_rows must have the same length"
 
-    assert src_block in ("GL", "GR"), "src_block must be either 'GL' or 'GR'"
-    assert dst_block in ("GL", "GR"), "dst_block must be either 'GL' or 'GR'"
+    storage_block = "GL"
+    tmp_block = "GR"
 
     x_tones = ilist.range(
         0, len(src_cols) * spec.get_int_constant(constant_id="code_size")
@@ -278,11 +327,8 @@ def entangle(
     inv_horizontal_move = schedule.reverse(horizontal_move)
     inv_vertical_move = schedule.reverse(vertical_move)
 
-    if src_block == dst_block:
-        tmp_block = get_other_block(src_block)
-        shift(src_block, src_cols, src_rows)
-    else:
-        tmp_block = src_block
+    # Need to swap blocks assuming all atoms are placed in the storage block
+    shift(storage_block, src_cols, src_rows)
 
     if src_cols != dst_cols:
         horizontal_move(tmp_block, src_rows, src_cols, dst_cols)
@@ -298,5 +344,4 @@ def entangle(
     if src_cols != dst_cols:
         inv_horizontal_move(tmp_block, src_rows, src_cols, dst_cols)
 
-    if src_block == dst_block:
-        shift(tmp_block, src_cols, src_rows)
+    shift(tmp_block, src_cols, src_rows)

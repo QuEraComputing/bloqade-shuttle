@@ -198,7 +198,7 @@ swap_block_test_cases = [
     (ilist.IList([0]), ilist.IList([0, 2, 4])),
     (ilist.IList([1]), ilist.IList([1, 3])),
     (ilist.IList([0, 1]), ilist.IList([0, 1, 2, 3, 4])),
-    (ilist.IList([0, 2]), ilist.IList([0, 2, 4])),
+    (ilist.IList([0, 1]), ilist.IList([0, 2, 4])),
     (ilist.IList([1, 0]), ilist.IList([0, 2, 4])),
 ]
 
@@ -210,10 +210,7 @@ def test_swap_block_impl(
     spec = logical.get_spec()
     ti = TraceInterpreter(spec)
 
-    y_indices = ilist.IList([0, 2, 4])
-    x_indices = ilist.IList([0])
-
-    args = ("GL", ilist.IList([0]), ilist.IList([0, 2, 4]))
+    args = ("GL", x_indices, y_indices)
 
     has_error = not is_sorted(x_indices) or not is_sorted(y_indices)
 
@@ -230,6 +227,13 @@ def test_swap_block_impl(
 
     start_grid = spec.layout.static_traps["GL_blocks"][x_physical_indices, y_indices]
     end_grid = spec.layout.static_traps["GR_blocks"][x_physical_indices, y_indices]
+
+    has_error = not is_sorted(x_indices) or not is_sorted(y_indices)
+
+    if has_error:
+        with pytest.raises(AssertionError):
+            ti.run_trace(logical.swap_block_impl, args=args, kwargs={})
+        return
 
     expected_actions = [
         taskgen.WayPointsAction([start_grid]),
