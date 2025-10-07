@@ -412,7 +412,7 @@
     <span class=p>),</span> <span class=s2>&quot;src_rows and dst_rows must have the same length&quot;</span>
 
     <span class=n>storage_block</span> <span class=o>=</span> <span class=s2>&quot;GL&quot;</span>
-    <span class=n>tmp_block</span> <span class=o>=</span> <span class=s2>&quot;GR&quot;</span>
+    <span class=n>move_block</span> <span class=o>=</span> <span class=s2>&quot;GR&quot;</span>
 
     <span class=n>x_tones</span> <span class=o>=</span> <span class=n>ilist</span><span class=o>.</span><span class=n>range</span><span class=p>(</span>
         <span class=mi>0</span><span class=p>,</span> <span class=nb>len</span><span class=p>(</span><span class=n>src_cols</span><span class=p>)</span> <span class=o>*</span> <span class=n>spec</span><span class=o>.</span><span class=n>get_int_constant</span><span class=p>(</span><span class=n>constant_id</span><span class=o>=</span><span class=s2>&quot;code_size&quot;</span><span class=p>)</span>
@@ -429,20 +429,20 @@
     <span class=n>shift</span><span class=p>(</span><span class=n>storage_block</span><span class=p>,</span> <span class=n>src_cols</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>)</span>
 
     <span class=k>if</span> <span class=n>src_cols</span> <span class=o>!=</span> <span class=n>dst_cols</span><span class=p>:</span>
-        <span class=n>horizontal_move</span><span class=p>(</span><span class=n>tmp_block</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>,</span> <span class=n>src_cols</span><span class=p>,</span> <span class=n>dst_cols</span><span class=p>)</span>
+        <span class=n>horizontal_move</span><span class=p>(</span><span class=n>move_block</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>,</span> <span class=n>src_cols</span><span class=p>,</span> <span class=n>dst_cols</span><span class=p>)</span>
 
     <span class=k>if</span> <span class=n>src_rows</span> <span class=o>!=</span> <span class=n>dst_rows</span><span class=p>:</span>
-        <span class=n>vertical_move</span><span class=p>(</span><span class=n>tmp_block</span><span class=p>,</span> <span class=n>dst_cols</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>,</span> <span class=n>dst_rows</span><span class=p>)</span>
+        <span class=n>vertical_move</span><span class=p>(</span><span class=n>move_block</span><span class=p>,</span> <span class=n>dst_cols</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>,</span> <span class=n>dst_rows</span><span class=p>)</span>
 
     <span class=n>gate</span><span class=o>.</span><span class=n>top_hat_cz</span><span class=p>(</span><span class=n>spec</span><span class=o>.</span><span class=n>get_static_trap</span><span class=p>(</span><span class=n>zone_id</span><span class=o>=</span><span class=s2>&quot;gate_zone&quot;</span><span class=p>))</span>
 
     <span class=k>if</span> <span class=n>src_rows</span> <span class=o>!=</span> <span class=n>dst_rows</span><span class=p>:</span>
-        <span class=n>inv_vertical_move</span><span class=p>(</span><span class=n>tmp_block</span><span class=p>,</span> <span class=n>dst_cols</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>,</span> <span class=n>dst_rows</span><span class=p>)</span>
+        <span class=n>inv_vertical_move</span><span class=p>(</span><span class=n>move_block</span><span class=p>,</span> <span class=n>dst_cols</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>,</span> <span class=n>dst_rows</span><span class=p>)</span>
 
     <span class=k>if</span> <span class=n>src_cols</span> <span class=o>!=</span> <span class=n>dst_cols</span><span class=p>:</span>
-        <span class=n>inv_horizontal_move</span><span class=p>(</span><span class=n>tmp_block</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>,</span> <span class=n>src_cols</span><span class=p>,</span> <span class=n>dst_cols</span><span class=p>)</span>
+        <span class=n>inv_horizontal_move</span><span class=p>(</span><span class=n>move_block</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>,</span> <span class=n>src_cols</span><span class=p>,</span> <span class=n>dst_cols</span><span class=p>)</span>
 
-    <span class=n>shift</span><span class=p>(</span><span class=n>tmp_block</span><span class=p>,</span> <span class=n>src_cols</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>)</span>
+    <span class=n>shift</span><span class=p>(</span><span class=n>move_block</span><span class=p>,</span> <span class=n>src_cols</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>)</span>
 </code></pre></div></td></tr></table></div> </details> </div> </div> <div class="doc doc-object doc-function"> <h2 id=bloqade.shuttle.stdlib.layouts.gemini.logical.horizontal_move_impl class="doc doc-heading"> <code class="doc-symbol doc-symbol-heading doc-symbol-function"></code> <span class="doc doc-object-name doc-function-name">horizontal_move_impl</span> </h2> <div class="doc-signature highlight"><pre><span></span><code><span class=nf>horizontal_move_impl</span><span class=p>(</span>
     <span class=n>block_id</span><span class=p>:</span> <span class=nb>str</span><span class=p>,</span>
     <span class=n>row_indices</span><span class=p>:</span> <span class=n>IList</span><span class=p>[</span><span class=nb>int</span><span class=p>,</span> <span class=n>Any</span><span class=p>],</span>
