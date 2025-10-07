@@ -314,7 +314,7 @@ def gl_entangle(
     ), "src_rows and dst_rows must have the same length"
 
     storage_block = "GL"
-    tmp_block = "GR"
+    move_block = "GR"
 
     x_tones = ilist.range(
         0, len(src_cols) * spec.get_int_constant(constant_id="code_size")
@@ -331,17 +331,17 @@ def gl_entangle(
     shift(storage_block, src_cols, src_rows)
 
     if src_cols != dst_cols:
-        horizontal_move(tmp_block, src_rows, src_cols, dst_cols)
+        horizontal_move(move_block, src_rows, src_cols, dst_cols)
 
     if src_rows != dst_rows:
-        vertical_move(tmp_block, dst_cols, src_rows, dst_rows)
+        vertical_move(move_block, dst_cols, src_rows, dst_rows)
 
     gate.top_hat_cz(spec.get_static_trap(zone_id="gate_zone"))
 
     if src_rows != dst_rows:
-        inv_vertical_move(tmp_block, dst_cols, src_rows, dst_rows)
+        inv_vertical_move(move_block, dst_cols, src_rows, dst_rows)
 
     if src_cols != dst_cols:
-        inv_horizontal_move(tmp_block, src_rows, src_cols, dst_cols)
+        inv_horizontal_move(move_block, src_rows, src_cols, dst_cols)
 
-    shift(tmp_block, src_cols, src_rows)
+    shift(move_block, src_cols, src_rows)
