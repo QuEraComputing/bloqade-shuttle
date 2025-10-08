@@ -277,6 +277,27 @@ Nx = TypeVar("Nx", bound=int)
 Ny = TypeVar("Ny", bound=int)
 
 
+@tweezer
+def entangle_move_impl(
+    storage_block: str,
+    src_cols: ilist.IList[int, Nx],
+    src_rows: ilist.IList[int, Ny],
+    dst_cols: ilist.IList[int, Nx],
+    dst_rows: ilist.IList[int, Ny],
+):
+    assert storage_block in ("GL", "GR"), "storage_block must be either 'GL' or 'GR'"
+    move_block = get_other_block(storage_block)
+
+    # Need to swap blocks assuming all atoms are placed in the storage block
+    swap_block_impl(storage_block, src_cols, src_rows)
+
+    if src_cols != dst_cols:
+        horizontal_move_impl(move_block, src_rows, src_cols, dst_cols)
+
+    if src_rows != dst_rows:
+        vertical_move_impl(move_block, dst_cols, src_rows, dst_rows)
+
+
 @move
 def gl_entangle(
     src_cols: ilist.IList[int, Nx],
@@ -313,35 +334,14 @@ def gl_entangle(
         dst_rows
     ), "src_rows and dst_rows must have the same length"
 
-    storage_block = "GL"
-    move_block = "GR"
-
     x_tones = ilist.range(
         0, len(src_cols) * spec.get_int_constant(constant_id="code_size")
     )
     y_tones = ilist.range(0, len(src_rows))
 
-    shift = schedule.device_fn(swap_block_impl, x_tones, y_tones)
-    horizontal_move = schedule.device_fn(horizontal_move_impl, x_tones, y_tones)
-    vertical_move = schedule.device_fn(vertical_move_impl, x_tones, y_tones)
-    inv_horizontal_move = schedule.reverse(horizontal_move)
-    inv_vertical_move = schedule.reverse(vertical_move)
+    device_fn = schedule.device_fn(entangle_move_impl, x_tones, y_tones)
+    inf_device_fn = schedule.reverse(device_fn)
 
-    # Need to swap blocks assuming all atoms are placed in the storage block
-    shift(storage_block, src_cols, src_rows)
-
-    if src_cols != dst_cols:
-        horizontal_move(move_block, src_rows, src_cols, dst_cols)
-
-    if src_rows != dst_rows:
-        vertical_move(move_block, dst_cols, src_rows, dst_rows)
-
+    device_fn("GL", src_cols, src_rows, dst_cols, dst_rows)
     gate.top_hat_cz(spec.get_static_trap(zone_id="gate_zone"))
-
-    if src_rows != dst_rows:
-        inv_vertical_move(move_block, dst_cols, src_rows, dst_rows)
-
-    if src_cols != dst_cols:
-        inv_horizontal_move(move_block, src_rows, src_cols, dst_cols)
-
-    shift(move_block, src_cols, src_rows)
+    inf_device_fn("GL", dst_cols, dst_rows, src_cols, src_rows)
