@@ -1,10 +1,9 @@
-from typing import Any, TypeVar
+from typing import Any
 
 from bloqade.geometry.dialects import grid
 from kirin.dialects import ilist
 
-from bloqade.shuttle import action, gate, schedule, spec, tweezer
-from bloqade.shuttle.prelude import move
+from bloqade.shuttle import action, spec, tweezer
 
 from ..asserts import assert_sorted
 from .base_spec import get_base_spec
@@ -105,20 +104,17 @@ def get_spec():
     return arch_spec
 
 
-N = TypeVar("N")
-
-
 @tweezer
 def get_block(
     block_id: str,
-    col_indices: ilist.IList[int, Any],
+    col_index: int,
     row_indices: ilist.IList[int, Any],
 ):
     """Returns the zone corresponding to the specified block and column.
 
     Args:
         block_id (str): The block identifier, either "GL" or "GR".
-        col_indices (IList[int, Any]): The list of logical column indices.
+        col_index (int): The logical column index.
         row_indices (IList[int, Any]): The list of logical row indices.
 
     Returns:
@@ -134,214 +130,134 @@ def get_block(
         block = spec.get_static_trap(zone_id="GR_blocks")
 
     code_size = spec.get_int_constant(constant_id="code_size")
-
-    def _get_physical_columns(logical_col: int):
-        return ilist.range(logical_col * code_size, (logical_col + 1) * code_size)
-
-    def join(
-        lhs: ilist.IList[int, Any], rhs: ilist.IList[int, Any]
-    ) -> ilist.IList[int, Any]:
-        return lhs + rhs
-
-    physical_columns_lists = ilist.map(_get_physical_columns, col_indices)
-    physical_col_indices = ilist.foldl(
-        join, physical_columns_lists[1:], physical_columns_lists[0]
-    )
-
-    return block[physical_col_indices, row_indices]
+    return block[col_index * code_size : (col_index + 1) * code_size, row_indices]
 
 
 @tweezer
-def get_other_block(block_id: str) -> str:
-    """Returns the identifier of the other block.
-
-    Args:
-        block_id (str): The current block identifier, either "GL" or "GR".
-
-    Returns:
-        str: The identifier of the other block.
-
-    """
-    assert block_id in ("GL", "GR"), "block_id must be either 'GL' or 'GR'"
-    other_block = "GL"
-    if block_id == "GL":
-        other_block = "GR"
-    return other_block
-
-
-@tweezer
-def swap_block_impl(
-    src_block: str,
-    selected_cols: ilist.IList[int, Any],
-    selected_rows: ilist.IList[int, Any],
+def move_by_shift(
+    start_pos: grid.Grid[Any, Any],
+    shifts: ilist.IList[tuple[float, float], Any],
+    active_x: ilist.IList[int, Any] | slice,
+    active_y: ilist.IList[int, Any] | slice,
 ):
-    """Swaps the specified rows and columns between the source and destination blocks.
+    """Moves the specified atoms by applying a series of shifts.
 
     Args:
-        src_block (str): the current block identifier, either "GL" or "GR".
-        selected_cols (ilist.IList[int, Any]): the list of selected column indices to swap.
-        selected_rows (ilist.IList[int, Any]): the list of selected row indices to swap.
+        start_pos (grid.Grid[Any, Any]): The starting position of the atoms.
+        shifts (ilist.IList[tuple[float, float], Any]): The list of shifts to apply.
+        active_x (ilist.IList[int, Any] | slice): The list or slice of active x indices.
+        active_y (ilist.IList[int, Any] | slice): The list or slice of active y indices.
     """
+    action.set_loc(start_pos)
+    action.turn_on(active_x, active_y)
 
-    assert_sorted(selected_cols)
-    assert_sorted(selected_rows)
+    current_pos = start_pos
+    for shift in shifts:
+        current_pos = grid.shift(current_pos, shift[0], shift[1])
+        action.move(current_pos)
 
-    dst_block = get_other_block(src_block)
-
-    start = get_block(src_block, selected_cols, selected_rows)
-    end = get_block(dst_block, selected_cols, selected_rows)
-
-    action.set_loc(start)
-    action.turn_on(action.ALL, action.ALL)
-    action.move(end)
-    action.turn_off(action.ALL, action.ALL)
+    action.turn_off(active_x, active_y)
 
 
 @tweezer
-def vertical_move_impl(
-    block_id: str,
-    col_indices: ilist.IList[int, Any],
-    src_rows: ilist.IList[int, N],
-    dst_rows: ilist.IList[int, N],
+def vertial_shift_impl(
+    offset: int,
+    src_col: int,
+    src_rows: ilist.IList[int, Any],
 ):
     """Moves the specified rows within the given block.
 
     Args:
         block_id (str): The block identifier, either "GL" or "GR".
-        col_indices (ilist.IList[int, Any]): The list of logical column indices.
-        src_rows (ilist.IList[int, N]): The list of source row indices.
-        dst_rows (ilist.IList[int, N]): The list of destination row indices.
-
+        offset (int): The offset to apply to the row indices, must be non-negative.
+        src_col (int): The source column index.
+        src_rows (ilist.IList[int, Any]): The list of source row indices.
     """
-    assert_sorted(col_indices)
+    assert offset >= 0, "offset must be non-negative"
+    max_row = spec.get_int_constant(constant_id="logical_rows") - offset
+
+    def check_row(row: int):
+        assert row + offset < spec.get_int_constant(
+            constant_id="logical_rows"
+        ), "row index + offset must be less than `logical_rows`"
+
+    ilist.for_each(check_row, src_rows)
+    assert (
+        len(src_rows) < max_row
+    ), "Number of source rows must be less than `logical_rows - offset`"
     assert_sorted(src_rows)
-    assert_sorted(dst_rows)
 
-    assert len(src_rows) == len(
-        dst_rows
-    ), "src_rows and dst_rows must have the same length"
+    start_pos = get_block("GL", src_col, ilist.range(max_row))
+    row_separation = spec.get_float_constant(constant_id="row_separation")
+    col_separation = spec.get_float_constant(constant_id="col_separation")
+    gate_spacing = spec.get_float_constant(constant_id="gate_spacing")
 
-    assert block_id in ("GL", "GR"), "block_id must be either 'GL' or 'GR'"
-    src = get_block(block_id, col_indices, src_rows)
-    dst = get_block(block_id, col_indices, dst_rows)
+    if offset > 1:
+        shifts = ilist.IList(
+            [
+                (0.0, row_separation * 0.5),
+                (gate_spacing + col_separation * 0.5, 0.0),
+                (0.0, row_separation * (offset - 0.5)),
+                (-col_separation * 0.5, 0.0),
+            ]
+        )
+    elif offset == 1:
+        shifts = ilist.IList(
+            [
+                (0.0, row_separation * 0.5),
+                (gate_spacing, 0.0),
+                (0.0, row_separation * 0.5),
+            ]
+        )
+    else:
+        shifts = ilist.IList([(gate_spacing, 0.0)])
 
-    x_shift = spec.get_float_constant(constant_id="col_separation") / 2.0
-    if block_id == "GL":
-        x_shift = -x_shift
+    move_by_shift(start_pos, shifts, action.ALL, src_rows)
 
-    action.set_loc(src)
-    action.turn_on(action.ALL, action.ALL)
-    action.move(grid.shift(src, x_shift, 0.0))
-    action.move(grid.shift(dst, x_shift, 0.0))
-    action.move(dst)
-    action.turn_off(action.ALL, action.ALL)
+    # validate the movement
+    current_pos = start_pos
+    for shift in shifts:
+        current_pos = grid.shift(current_pos, shift[0], shift[1])
+
+    expected_last_pos = get_block("GR", src_col, ilist.range(offset, max_row + offset))
+    assert (
+        current_pos == expected_last_pos
+    ), "Final position does not match expected position"
 
 
 @tweezer
-def horizontal_move_impl(
-    block_id: str,
-    row_indices: ilist.IList[int, Any],
-    src_cols: ilist.IList[int, N],
-    dst_cols: ilist.IList[int, N],
+def gr_zero_to_one(
+    src_rows: ilist.IList[int, Any],
 ):
     """Moves the specified columns within the given block.
 
     Args:
-        block_id (str): The block identifier, either "GL" or "GR".
-        row_indices (ilist.IList[int, Any]): The list of row indices.
-        src_cols (ilist.IList[int, N]): The list of source column indices.
-        dst_cols (ilist.IList[int, N]): The list of destination column indices.
+        src_rows (ilist.IList[int, Any]): The rows to apply the transformation to.
     """
-    assert_sorted(row_indices)
-    assert_sorted(src_cols)
-    assert_sorted(dst_cols)
+    logical_rows = spec.get_int_constant(constant_id="logical_rows")
+    row_separation = spec.get_float_constant(constant_id="row_separation")
+    col_separation = spec.get_float_constant(constant_id="col_separation")
+    shift = col_separation * spec.get_float_constant(constant_id="code_size")
 
-    assert len(src_cols) == len(
-        dst_cols
-    ), "src_cols and dst_cols must have the same length"
-
-    assert block_id in ("GL", "GR"), "block_id must be either 'GL' or 'GR'"
-    src = get_block(block_id, src_cols, row_indices)
-    dst = get_block(block_id, dst_cols, row_indices)
-    y_shift = spec.get_float_constant(constant_id="row_separation") / 2.0
-
-    action.set_loc(src)
-    action.turn_on(action.ALL, action.ALL)
-    action.move(grid.shift(src, 0.0, y_shift))
-    action.move(grid.shift(dst, 0.0, y_shift))
-    action.move(dst)
-    action.turn_off(action.ALL, action.ALL)
-
-
-Nx = TypeVar("Nx", bound=int)
-Ny = TypeVar("Ny", bound=int)
-
-
-@tweezer
-def entangle_move_impl(
-    storage_block: str,
-    src_cols: ilist.IList[int, Nx],
-    src_rows: ilist.IList[int, Ny],
-    dst_cols: ilist.IList[int, Nx],
-    dst_rows: ilist.IList[int, Ny],
-):
-    assert storage_block in ("GL", "GR"), "storage_block must be either 'GL' or 'GR'"
-    move_block = get_other_block(storage_block)
-
-    # Need to swap blocks assuming all atoms are placed in the storage block
-    swap_block_impl(storage_block, src_cols, src_rows)
-
-    if src_cols != dst_cols:
-        horizontal_move_impl(move_block, src_rows, src_cols, dst_cols)
-
-    if src_rows != dst_rows:
-        vertical_move_impl(move_block, dst_cols, src_rows, dst_rows)
-
-
-@move
-def gl_entangle(
-    src_cols: ilist.IList[int, Nx],
-    src_rows: ilist.IList[int, Ny],
-    dst_cols: ilist.IList[int, Nx],
-    dst_rows: ilist.IList[int, Ny],
-):
-    """Entangles the qubits located in the "GL" blocks between src and dst positions.
-
-    The function performs the following steps:
-    1. Validates the input parameters to ensure they are sorted and of equal length.
-    3. Moves the qubits horizontally if the source and destination columns differ.
-    4. Moves the qubits vertically if the source and destination rows differ.
-    5. Applies a CZ gate to the qubits in the gate zone.
-    6. Reverses the vertical and horizontal moves to return the qubits to their original positions.
-
-    Args:
-        src_cols (ilist.IList[int, Nx]): The list of source column indices.
-        src_rows (ilist.IList[int, Ny]): The list of source row indices.
-        dst_cols (ilist.IList[int, Nx]): The list of destination column indices.
-        dst_rows (ilist.IList[int, Ny]): The list of destination row indices.
-
-    """
-
-    assert_sorted(src_cols)
-    assert_sorted(src_rows)
-    assert_sorted(dst_cols)
-    assert_sorted(dst_rows)
-
-    assert len(src_cols) == len(
-        dst_cols
-    ), "src_cols and dst_cols must have the same length"
-    assert len(src_rows) == len(
-        dst_rows
-    ), "src_rows and dst_rows must have the same length"
-
-    x_tones = ilist.range(
-        0, len(src_cols) * spec.get_int_constant(constant_id="code_size")
+    shifts = ilist.IList(
+        [
+            (0.0, row_separation * 0.5),
+            (shift, 0.0),
+            (0.0, -row_separation * 0.5),
+        ]
     )
-    y_tones = ilist.range(0, len(src_rows))
 
-    device_fn = schedule.device_fn(entangle_move_impl, x_tones, y_tones)
-    inf_device_fn = schedule.reverse(device_fn)
+    all_rows = ilist.range(logical_rows)
+    start_pos = get_block("GR", 0, all_rows)
 
-    device_fn("GL", src_cols, src_rows, dst_cols, dst_rows)
-    gate.top_hat_cz(spec.get_static_trap(zone_id="gate_zone"))
-    inf_device_fn("GL", dst_cols, dst_rows, src_cols, src_rows)
+    move_by_shift(start_pos, shifts, action.ALL, src_rows)
+
+    # validate the movement
+    current_pos = start_pos
+    for shift in shifts:
+        current_pos = grid.shift(current_pos, shift[0], shift[1])
+
+    expected_last_pos = get_block("GR", 1, all_rows)
+    assert (
+        current_pos == expected_last_pos
+    ), "Final position does not match expected position"
