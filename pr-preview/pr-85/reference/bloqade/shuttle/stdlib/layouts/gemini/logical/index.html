@@ -308,28 +308,7 @@
     <span class=n>dst_cols</span><span class=p>:</span> <span class=n>IList</span><span class=p>[</span><span class=nb>int</span><span class=p>,</span> <span class=n>Nx</span><span class=p>],</span>
     <span class=n>dst_rows</span><span class=p>:</span> <span class=n>IList</span><span class=p>[</span><span class=nb>int</span><span class=p>,</span> <span class=n>Ny</span><span class=p>],</span>
 <span class=p>)</span>
-</code></pre></div> <div class="doc doc-contents "> <p>Entangles the qubits located in the "GL" blocks between src and dst positions.</p> <p>The function performs the following steps: 1. Validates the input parameters to ensure they are sorted and of equal length. 3. Moves the qubits horizontally if the source and destination columns differ. 4. Moves the qubits vertically if the source and destination rows differ. 5. Applies a CZ gate to the qubits in the gate zone. 6. Reverses the vertical and horizontal moves to return the qubits to their original positions.</p> <p><span class=doc-section-title>Parameters:</span></p> <table> <thead> <tr> <th>Name</th> <th>Type</th> <th>Description</th> <th>Default</th> </tr> </thead> <tbody> <tr class=doc-section-item> <td> <code>src_cols</code> </td> <td> <code><span title=kirin.dialects.ilist.IList>IList</span>[<span title=int>int</span>, <span title=bloqade.shuttle.stdlib.layouts.gemini.logical.Nx>Nx</span>]</code> </td> <td> <div class=doc-md-description> <p>The list of source column indices.</p> </div> </td> <td> <em>required</em> </td> </tr> <tr class=doc-section-item> <td> <code>src_rows</code> </td> <td> <code><span title=kirin.dialects.ilist.IList>IList</span>[<span title=int>int</span>, <span title=bloqade.shuttle.stdlib.layouts.gemini.logical.Ny>Ny</span>]</code> </td> <td> <div class=doc-md-description> <p>The list of source row indices.</p> </div> </td> <td> <em>required</em> </td> </tr> <tr class=doc-section-item> <td> <code>dst_cols</code> </td> <td> <code><span title=kirin.dialects.ilist.IList>IList</span>[<span title=int>int</span>, <span title=bloqade.shuttle.stdlib.layouts.gemini.logical.Nx>Nx</span>]</code> </td> <td> <div class=doc-md-description> <p>The list of destination column indices.</p> </div> </td> <td> <em>required</em> </td> </tr> <tr class=doc-section-item> <td> <code>dst_rows</code> </td> <td> <code><span title=kirin.dialects.ilist.IList>IList</span>[<span title=int>int</span>, <span title=bloqade.shuttle.stdlib.layouts.gemini.logical.Ny>Ny</span>]</code> </td> <td> <div class=doc-md-description> <p>The list of destination row indices.</p> </div> </td> <td> <em>required</em> </td> </tr> </tbody> </table> <details class=quote> <summary>Source code in <code>src/bloqade/shuttle/stdlib/layouts/gemini/logical.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal>280</span>
-<span class=normal>281</span>
-<span class=normal>282</span>
-<span class=normal>283</span>
-<span class=normal>284</span>
-<span class=normal>285</span>
-<span class=normal>286</span>
-<span class=normal>287</span>
-<span class=normal>288</span>
-<span class=normal>289</span>
-<span class=normal>290</span>
-<span class=normal>291</span>
-<span class=normal>292</span>
-<span class=normal>293</span>
-<span class=normal>294</span>
-<span class=normal>295</span>
-<span class=normal>296</span>
-<span class=normal>297</span>
-<span class=normal>298</span>
-<span class=normal>299</span>
-<span class=normal>300</span>
-<span class=normal>301</span>
+</code></pre></div> <div class="doc doc-contents "> <p>Entangles the qubits located in the "GL" blocks between src and dst positions.</p> <p>The function performs the following steps: 1. Validates the input parameters to ensure they are sorted and of equal length. 3. Moves the qubits horizontally if the source and destination columns differ. 4. Moves the qubits vertically if the source and destination rows differ. 5. Applies a CZ gate to the qubits in the gate zone. 6. Reverses the vertical and horizontal moves to return the qubits to their original positions.</p> <p><span class=doc-section-title>Parameters:</span></p> <table> <thead> <tr> <th>Name</th> <th>Type</th> <th>Description</th> <th>Default</th> </tr> </thead> <tbody> <tr class=doc-section-item> <td> <code>src_cols</code> </td> <td> <code><span title=kirin.dialects.ilist.IList>IList</span>[<span title=int>int</span>, <span title=bloqade.shuttle.stdlib.layouts.gemini.logical.Nx>Nx</span>]</code> </td> <td> <div class=doc-md-description> <p>The list of source column indices.</p> </div> </td> <td> <em>required</em> </td> </tr> <tr class=doc-section-item> <td> <code>src_rows</code> </td> <td> <code><span title=kirin.dialects.ilist.IList>IList</span>[<span title=int>int</span>, <span title=bloqade.shuttle.stdlib.layouts.gemini.logical.Ny>Ny</span>]</code> </td> <td> <div class=doc-md-description> <p>The list of source row indices.</p> </div> </td> <td> <em>required</em> </td> </tr> <tr class=doc-section-item> <td> <code>dst_cols</code> </td> <td> <code><span title=kirin.dialects.ilist.IList>IList</span>[<span title=int>int</span>, <span title=bloqade.shuttle.stdlib.layouts.gemini.logical.Nx>Nx</span>]</code> </td> <td> <div class=doc-md-description> <p>The list of destination column indices.</p> </div> </td> <td> <em>required</em> </td> </tr> <tr class=doc-section-item> <td> <code>dst_rows</code> </td> <td> <code><span title=kirin.dialects.ilist.IList>IList</span>[<span title=int>int</span>, <span title=bloqade.shuttle.stdlib.layouts.gemini.logical.Ny>Ny</span>]</code> </td> <td> <div class=doc-md-description> <p>The list of destination row indices.</p> </div> </td> <td> <em>required</em> </td> </tr> </tbody> </table> <details class=quote> <summary>Source code in <code>src/bloqade/shuttle/stdlib/layouts/gemini/logical.py</code></summary> <div class=highlight><table class=highlighttable><tr><td class=linenos><div class=linenodiv><pre><span></span><span class=normal>301</span>
 <span class=normal>302</span>
 <span class=normal>303</span>
 <span class=normal>304</span>
@@ -411,38 +390,17 @@
         <span class=n>dst_rows</span>
     <span class=p>),</span> <span class=s2>&quot;src_rows and dst_rows must have the same length&quot;</span>
 
-    <span class=n>storage_block</span> <span class=o>=</span> <span class=s2>&quot;GL&quot;</span>
-    <span class=n>move_block</span> <span class=o>=</span> <span class=s2>&quot;GR&quot;</span>
-
     <span class=n>x_tones</span> <span class=o>=</span> <span class=n>ilist</span><span class=o>.</span><span class=n>range</span><span class=p>(</span>
         <span class=mi>0</span><span class=p>,</span> <span class=nb>len</span><span class=p>(</span><span class=n>src_cols</span><span class=p>)</span> <span class=o>*</span> <span class=n>spec</span><span class=o>.</span><span class=n>get_int_constant</span><span class=p>(</span><span class=n>constant_id</span><span class=o>=</span><span class=s2>&quot;code_size&quot;</span><span class=p>)</span>
     <span class=p>)</span>
     <span class=n>y_tones</span> <span class=o>=</span> <span class=n>ilist</span><span class=o>.</span><span class=n>range</span><span class=p>(</span><span class=mi>0</span><span class=p>,</span> <span class=nb>len</span><span class=p>(</span><span class=n>src_rows</span><span class=p>))</span>
 
-    <span class=n>shift</span> <span class=o>=</span> <span class=n>schedule</span><span class=o>.</span><span class=n>device_fn</span><span class=p>(</span><span class=n>swap_block_impl</span><span class=p>,</span> <span class=n>x_tones</span><span class=p>,</span> <span class=n>y_tones</span><span class=p>)</span>
-    <span class=n>horizontal_move</span> <span class=o>=</span> <span class=n>schedule</span><span class=o>.</span><span class=n>device_fn</span><span class=p>(</span><span class=n>horizontal_move_impl</span><span class=p>,</span> <span class=n>x_tones</span><span class=p>,</span> <span class=n>y_tones</span><span class=p>)</span>
-    <span class=n>vertical_move</span> <span class=o>=</span> <span class=n>schedule</span><span class=o>.</span><span class=n>device_fn</span><span class=p>(</span><span class=n>vertical_move_impl</span><span class=p>,</span> <span class=n>x_tones</span><span class=p>,</span> <span class=n>y_tones</span><span class=p>)</span>
-    <span class=n>inv_horizontal_move</span> <span class=o>=</span> <span class=n>schedule</span><span class=o>.</span><span class=n>reverse</span><span class=p>(</span><span class=n>horizontal_move</span><span class=p>)</span>
-    <span class=n>inv_vertical_move</span> <span class=o>=</span> <span class=n>schedule</span><span class=o>.</span><span class=n>reverse</span><span class=p>(</span><span class=n>vertical_move</span><span class=p>)</span>
+    <span class=n>device_fn</span> <span class=o>=</span> <span class=n>schedule</span><span class=o>.</span><span class=n>device_fn</span><span class=p>(</span><span class=n>entangle_move_impl</span><span class=p>,</span> <span class=n>x_tones</span><span class=p>,</span> <span class=n>y_tones</span><span class=p>)</span>
+    <span class=n>inf_device_fn</span> <span class=o>=</span> <span class=n>schedule</span><span class=o>.</span><span class=n>reverse</span><span class=p>(</span><span class=n>device_fn</span><span class=p>)</span>
 
-    <span class=c1># Need to swap blocks assuming all atoms are placed in the storage block</span>
-    <span class=n>shift</span><span class=p>(</span><span class=n>storage_block</span><span class=p>,</span> <span class=n>src_cols</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>)</span>
-
-    <span class=k>if</span> <span class=n>src_cols</span> <span class=o>!=</span> <span class=n>dst_cols</span><span class=p>:</span>
-        <span class=n>horizontal_move</span><span class=p>(</span><span class=n>move_block</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>,</span> <span class=n>src_cols</span><span class=p>,</span> <span class=n>dst_cols</span><span class=p>)</span>
-
-    <span class=k>if</span> <span class=n>src_rows</span> <span class=o>!=</span> <span class=n>dst_rows</span><span class=p>:</span>
-        <span class=n>vertical_move</span><span class=p>(</span><span class=n>move_block</span><span class=p>,</span> <span class=n>dst_cols</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>,</span> <span class=n>dst_rows</span><span class=p>)</span>
-
+    <span class=n>device_fn</span><span class=p>(</span><span class=s2>&quot;GL&quot;</span><span class=p>,</span> <span class=n>src_cols</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>,</span> <span class=n>dst_cols</span><span class=p>,</span> <span class=n>dst_rows</span><span class=p>)</span>
     <span class=n>gate</span><span class=o>.</span><span class=n>top_hat_cz</span><span class=p>(</span><span class=n>spec</span><span class=o>.</span><span class=n>get_static_trap</span><span class=p>(</span><span class=n>zone_id</span><span class=o>=</span><span class=s2>&quot;gate_zone&quot;</span><span class=p>))</span>
-
-    <span class=k>if</span> <span class=n>src_rows</span> <span class=o>!=</span> <span class=n>dst_rows</span><span class=p>:</span>
-        <span class=n>inv_vertical_move</span><span class=p>(</span><span class=n>move_block</span><span class=p>,</span> <span class=n>dst_cols</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>,</span> <span class=n>dst_rows</span><span class=p>)</span>
-
-    <span class=k>if</span> <span class=n>src_cols</span> <span class=o>!=</span> <span class=n>dst_cols</span><span class=p>:</span>
-        <span class=n>inv_horizontal_move</span><span class=p>(</span><span class=n>move_block</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>,</span> <span class=n>src_cols</span><span class=p>,</span> <span class=n>dst_cols</span><span class=p>)</span>
-
-    <span class=n>shift</span><span class=p>(</span><span class=n>move_block</span><span class=p>,</span> <span class=n>src_cols</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>)</span>
+    <span class=n>inf_device_fn</span><span class=p>(</span><span class=s2>&quot;GL&quot;</span><span class=p>,</span> <span class=n>dst_cols</span><span class=p>,</span> <span class=n>dst_rows</span><span class=p>,</span> <span class=n>src_cols</span><span class=p>,</span> <span class=n>src_rows</span><span class=p>)</span>
 </code></pre></div></td></tr></table></div> </details> </div> </div> <div class="doc doc-object doc-function"> <h2 id=bloqade.shuttle.stdlib.layouts.gemini.logical.horizontal_move_impl class="doc doc-heading"> <code class="doc-symbol doc-symbol-heading doc-symbol-function"></code> <span class="doc doc-object-name doc-function-name">horizontal_move_impl</span> </h2> <div class="doc-signature highlight"><pre><span></span><code><span class=nf>horizontal_move_impl</span><span class=p>(</span>
     <span class=n>block_id</span><span class=p>:</span> <span class=nb>str</span><span class=p>,</span>
     <span class=n>row_indices</span><span class=p>:</span> <span class=n>IList</span><span class=p>[</span><span class=nb>int</span><span class=p>,</span> <span class=n>Any</span><span class=p>],</span>
