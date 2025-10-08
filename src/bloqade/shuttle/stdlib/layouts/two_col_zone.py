@@ -13,6 +13,7 @@ from .asserts import assert_sorted
 # Define type variables for generic programming
 NumX = TypeVar("NumX", bound=int)
 NumY = TypeVar("NumY", bound=int)
+Num = TypeVar("Num", bound=int)
 
 
 def get_spec(
@@ -179,6 +180,158 @@ def rearrange_impl_horizontal_vertical(
     action.turn_off(action.ALL, action.ALL)
 
 
+@tweezer
+def rearrange_impl_horizontal_vertical_multi_row(
+    src: ilist.IList[tuple[int, int], Num],
+    src_col: ilist.IList[int, Num],
+    src_row: ilist.IList[int, Num],
+    dst: ilist.IList[tuple[int, int], Num],
+    dst_col: ilist.IList[int, Num],
+    dst_row: ilist.IList[int, Num],
+):
+    assert len(src_col) == len(
+        dst_col
+    ), "Source and destination col indices must have the same length."
+    assert len(src_row) == len(
+        dst_row
+    ), "Source and destination row indices must have the same length."
+
+    assert_sorted(src_col)
+    assert_sorted(src_row)
+    assert_sorted(dst_col)
+    assert_sorted(dst_row)
+
+    def push_list(row):
+        cols = []
+        for loc in src:
+            if loc[1] == row:
+                cols = cols + [loc[0]]
+        return cols
+
+    rows_to_columns = ilist.map(push_list, src_row)
+
+    zone = spec.get_static_trap(zone_id="traps")
+
+    start = grid.sub_grid(zone, src_col, src_row)
+    end = grid.sub_grid(zone, dst_col, dst_row)
+
+    x_positions = grid.get_xpos(zone)
+
+    def parking_y_end(index: int):
+        start_y = grid.get_ypos(start)[index]
+        end_y = grid.get_ypos(end)[index]
+        if start_y < end_y:
+            end_y = end_y - 3.0
+        else:
+            end_y = end_y + 3.0
+
+        return end_y
+
+    num_row = len(src_row)
+
+    action.set_loc(start)
+    activated_cols = []
+
+    n_iter = 0
+    for row in src_row:
+        # iteratively pick up qubits row by row
+        col_to_activate = []
+        col_to_shift_back = []
+        for col in rows_to_columns[row]:
+            if col in activated_cols:
+                # col is already activated, need to be shifted back
+                col_to_shift_back = col_to_shift_back + [col]
+            else:
+                # activate column
+                col_to_activate = col_to_activate + [col]
+                activated_cols = activated_cols + [col]
+
+        # helper function
+        # the direction for x displacement is decided based on the left (index % 2 == 0) or right site (index % 2 == 1)
+        def parking_x(index: int):
+            if index in activated_cols:
+                return x_positions[index] + 3.0 * (2 * (index % 2) - 1)
+            else:
+                return x_positions[index]
+
+        def reverse_parking_x(index: int):
+            if (
+                index in col_to_shift_back
+                or index in col_to_activate
+                or index not in activated_cols
+            ):
+                return x_positions[index]
+            else:
+                return x_positions[index] + 3.0 * (2 * (index % 2) - 1)
+
+        def reverse_parking_y(index: int):
+            # ? add this function because I don't have a way
+            # ? to pass extra argument in to the function
+            # ? In addtion, I try to update n_iter in the if block
+            # ? but the value is not updated correctly
+            start_y = grid.get_ypos(start)[index]
+            end_y = grid.get_ypos(end)[index]
+            if n_iter - 1 < index:
+                return start_y
+            elif start_y < end_y:
+                return start_y + 3.0
+            else:
+                return start_y - 3.0
+
+        def parking_y_start(index: int):
+            start_y = grid.get_ypos(start)[index]
+            end_y = grid.get_ypos(end)[index]
+            if n_iter < index:
+                return start_y
+            elif start_y < end_y:
+                return start_y + 3.0
+            else:
+                return start_y - 3.0
+
+        # shift column back if previously parked
+        if col_to_shift_back:
+            assert n_iter > 0
+            reverse_parking = grid.from_positions(
+                ilist.map(reverse_parking_x, src_col),
+                ilist.map(
+                    reverse_parking_y,
+                    ilist.range(num_row),
+                ),
+            )
+            action.move(reverse_parking)
+
+        # activate new row and column
+        action.turn_on(col_to_activate, [row])
+
+        # park column and row
+        src_parking = grid.from_positions(
+            ilist.map(parking_x, src_col),
+            ilist.map(parking_y_start, ilist.range(num_row)),
+        )
+        action.move(src_parking)
+        n_iter += 1
+
+    assert len(activated_cols) == len(
+        dst_col
+    ), "Number of activated columns does not match the number of source indices"
+
+    # perform big horizontal and vertical move
+    parking_y = ilist.map(parking_y_end, ilist.range(num_row))
+
+    def parking_x(index: int):
+        return x_positions[index] + 3.0 * (2 * (index % 2) - 1)
+
+    mid_pos_after_vertical_move = grid.from_positions(
+        ilist.map(parking_x, src_col), parking_y
+    )
+    mid_pos_after_horizontal_move = grid.from_positions(grid.get_xpos(end), parking_y)
+
+    action.move(mid_pos_after_vertical_move)
+    action.move(mid_pos_after_horizontal_move)
+    action.move(end)
+    action.turn_off(action.ALL, action.ALL)
+
+
 @move
 def rearrange(
     src_x: ilist.IList[int, NumX],
@@ -195,3 +348,35 @@ def rearrange(
 
     device_fn = schedule.device_fn(tweezer_kernal, x_tones, y_tones)
     device_fn(src_x, src_y, dst_x, dst_y)
+
+
+@move
+def rearrange_partial_pickup(
+    src: ilist.IList[tuple[int, int], Num],
+    dst: ilist.IList[tuple[int, int], Num],
+    tweezer_kernal: ir.Method = rearrange_impl_horizontal_vertical_multi_row,
+):
+    if len(src) < 1 or len(dst) < 1:
+        return
+
+    src_col = []
+    src_row = []
+    for loc in src:
+        if loc[0] not in src_col:
+            src_col = src_col + [loc[0]]
+        if loc[1] not in src_row:
+            src_row = src_row + [loc[1]]
+
+    dst_col = []
+    dst_row = []
+    for loc in dst:
+        if loc[0] not in dst_col:
+            dst_col = dst_col + [loc[0]]
+        if loc[1] not in dst_row:
+            dst_row = dst_row + [loc[1]]
+
+    x_tones = ilist.range(len(src_col))
+    y_tones = ilist.range(len(src_row))
+
+    device_fn = schedule.device_fn(tweezer_kernal, x_tones, y_tones)
+    device_fn(src, src_col, src_row, dst, dst_col, dst_row)
