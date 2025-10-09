@@ -113,12 +113,7 @@ move_test_cases = [
         ilist.IList([2, 4, 5]),
         ilist.IList([2, 3]),
         [
-            # taskgen.WayPointsAction(
-            #     [
-            #         grid.Grid((2.0, 10.0), (10.0,), 0.0, 0.0),
-            #     ]
-            # ),
-            taskgen.TurnOnXYSliceAction(slice(0, 1), slice(0, 1)),
+            taskgen.TurnOnXYAction(ilist.IList([0]), ilist.IList([0])),
             taskgen.WayPointsAction(
                 [
                     grid.Grid((2.0, 10.0), (10.0,), 0.0, 0.0),
@@ -126,7 +121,7 @@ move_test_cases = [
                     grid.Grid((2.0, 10.0), (7.0,), 0.0, 3.0),
                 ]
             ),
-            taskgen.TurnOnXYSliceAction(slice(1, 3), slice(0, 1)),
+            taskgen.TurnOnXYAction(ilist.IList([1, 2]), ilist.IList([1])),
             taskgen.WayPointsAction(
                 [
                     grid.Grid((2.0, 10.0), (7.0,), 0.0, 3.0),
@@ -137,11 +132,6 @@ move_test_cases = [
                 ]
             ),
             taskgen.TurnOffXYSliceAction(slice(None), slice(None)),
-            # taskgen.WayPointsAction(
-            #     [
-            #         grid.Grid((12.0, 2.0), (10.0,), 12.0, 20.0),
-            #     ]
-            # ),
         ],
     ),
     (  # error case
