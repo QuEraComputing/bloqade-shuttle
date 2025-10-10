@@ -160,7 +160,7 @@ def move_by_shift(
 
 
 @tweezer
-def vertial_shift_impl(
+def vertical_shift_impl(
     offset: int,
     src_col: int,
     src_rows: ilist.IList[int, Any],
