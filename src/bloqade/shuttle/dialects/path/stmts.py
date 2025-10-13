@@ -24,6 +24,20 @@ class Gen(ir.Statement):
 
 
 @decl.statement(dialect=dialect)
+class AutoGen(ir.Statement):
+    name = "gen"
+
+    traits = frozenset({ir.Pure()})
+    # not a fixed type here so just any
+    inputs: tuple[ir.SSAValue, ...] = info.argument()
+    # invoke-like statement
+    arch_spec: Optional[ArchSpec] = info.attribute(default=None)
+    task: ir.Method = info.attribute()
+    kwargs: tuple[str, ...] = info.attribute(default_factory=lambda: ())
+    result: ir.ResultValue = info.result(PathType)
+
+
+@decl.statement(dialect=dialect)
 class Parallel(ir.Statement):
     name = "parallel"
 

@@ -12,6 +12,16 @@ from bloqade.shuttle.dialects.path import dialect, stmts, types
 class ConstProp(MethodTable):
 
     @impl(stmts.Gen)
+    def auto_gen(
+        self,
+        interp: const.Propagate,
+        frame: forward.ForwardFrame[const.Result],
+        stmt: stmts.Gen,
+    ):
+        if stmt.arch_spec is None:
+            return (const.Result.top(),)
+
+    @impl(stmts.Gen)
     def gen(
         self,
         interp: const.Propagate,

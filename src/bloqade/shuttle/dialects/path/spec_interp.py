@@ -1,3 +1,4 @@
+from kirin.dialects import ilist
 from kirin.interp import (
     Frame,
     InterpreterError,
@@ -13,6 +14,27 @@ from bloqade.shuttle.dialects.path import dialect, stmts, types
 
 @dialect.register(key="spec.interp")
 class SpecPathInterpreter(MethodTable):
+
+    @impl(stmts.AutoGen)
+    def autogen(self, interp: ArchSpecInterpreter, frame: Frame, stmt: stmts.AutoGen):
+        inputs = frame.get_values(stmt.inputs)
+        kwargs = stmt.kwargs
+        args = interp.permute_values(stmt.task.arg_names, inputs, kwargs)
+        tr = TraceInterpreter(interp.arch_spec)
+        path = tr.run_trace(stmt.task, args, {})
+
+        if (curr_pos := tr.curr_pos) is None:
+            raise InterpreterError("No positions generated in path.")
+
+        num_x_tones, num_y_tones = curr_pos.shape
+
+        return (
+            types.Path(
+                x_tones=ilist.IList(range(num_x_tones)),
+                y_tones=ilist.IList(range(num_y_tones)),
+                path=path,
+            ),
+        )
 
     @impl(stmts.Gen)
     def gen(self, interp: ArchSpecInterpreter, frame: Frame, stmt: stmts.Gen):

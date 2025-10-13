@@ -5,6 +5,7 @@ from .constprop import ConstProp as ConstProp
 from .spec_interp import SpecPathInterpreter as SpecPathInterpreter
 from .stmts import (
     Auto as Auto,
+    AutoGen as AutoGen,
     Gen as Gen,
     Parallel as Parallel,
     Play as Play,
