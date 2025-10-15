@@ -104,7 +104,7 @@ def ghz_prep_steps(
 ):
     jobs = []
     layers = get_layers(qubit_ids)
-
+    mid = gate_width // 2
     for i in range(len(layers)):
         ctrl_ids = layers[i][0]
         qarg_ids = layers[i][1]
@@ -117,8 +117,12 @@ def ghz_prep_steps(
             if end > n_gates:
                 end = n_gates
 
+            layer_size = end - start
+            gate_start = mid - (layer_size // 2)
+            gate_end = gate_start + layer_size
+
             jobs = jobs + [
-                (ctrl_ids[start:end], qarg_ids[start:end], range(end - start))
+                (ctrl_ids[start:end], qarg_ids[start:end], range(gate_start, gate_end))
             ]
 
     return jobs
@@ -182,7 +186,7 @@ def run_ghz():
     @move
     def main():
         init.fill([spec.get_static_trap(zone_id="mem")])
-        run_prep_steps([1, 2, 4, 5, 7, 9, 14, 28, 29, 32], gate, mem)  # type: ignore
+        run_prep_steps([1, 2, 4, 5, 7, 9, 14, 28, 29, 32])  # type: ignore
         # return measure.measure((mem,))
 
     return main, spec_value
