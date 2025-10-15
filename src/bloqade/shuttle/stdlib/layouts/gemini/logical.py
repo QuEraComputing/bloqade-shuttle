@@ -89,7 +89,7 @@ def get_spec():
         ("GL0_block", "GL1_block", "GR0_block", "GR1_block")
     )
 
-    logical_rows, _ = SL0_block.shape
+    _, logical_rows = GL0_block.shape
     logical_cols = 2
     code_size = 7
 
@@ -102,6 +102,32 @@ def get_spec():
     arch_spec.int_constants.update(int_constants)
 
     return arch_spec
+
+
+@tweezer
+def move_by_shift(
+    start_pos: grid.Grid[Any, Any],
+    shifts: ilist.IList[tuple[float, float], Any],
+    active_x: ilist.IList[int, Any],
+    active_y: ilist.IList[int, Any],
+):
+    """Moves the specified atoms by applying a series of shifts.
+
+    Args:
+        start_pos (grid.Grid[Any, Any]): The starting position of the atoms.
+        shifts (ilist.IList[tuple[float, float], Any]): The list of shifts to apply.
+        active_x (ilist.IList[int, Any]): The list of active x indices of start_pos.
+        active_y (ilist.IList[int, Any]): The list of active y indices of start_pos.
+    """
+    action.set_loc(start_pos)
+    action.turn_on(active_x, active_y)
+
+    current_pos = start_pos
+    for shift in shifts:
+        current_pos = grid.shift(current_pos, shift[0], shift[1])
+        action.move(current_pos)
+
+    action.turn_off(active_x, active_y)
 
 
 @tweezer
@@ -134,64 +160,24 @@ def get_block(
 
 
 @tweezer
-def move_by_shift(
-    start_pos: grid.Grid[Any, Any],
-    shifts: ilist.IList[tuple[float, float], Any],
-    active_x: ilist.IList[int, Any] | slice,
-    active_y: ilist.IList[int, Any] | slice,
-):
-    """Moves the specified atoms by applying a series of shifts.
-
-    Args:
-        start_pos (grid.Grid[Any, Any]): The starting position of the atoms.
-        shifts (ilist.IList[tuple[float, float], Any]): The list of shifts to apply.
-        active_x (ilist.IList[int, Any] | slice): The list or slice of active x indices.
-        active_y (ilist.IList[int, Any] | slice): The list or slice of active y indices.
-    """
-    action.set_loc(start_pos)
-    action.turn_on(active_x, active_y)
-
-    current_pos = start_pos
-    for shift in shifts:
-        current_pos = grid.shift(current_pos, shift[0], shift[1])
-        action.move(current_pos)
-
-    action.turn_off(active_x, active_y)
-
-
-@tweezer
-def vertical_shift_impl(
+def calc_vertical_shifts(
     offset: int,
-    src_col: int,
-    src_rows: ilist.IList[int, Any],
 ):
     """Moves the specified rows within the given block.
 
     Args:
-        block_id (str): The block identifier, either "GL" or "GR".
         offset (int): The offset to apply to the row indices, must be non-negative.
-        src_col (int): The source column index.
-        src_rows (ilist.IList[int, Any]): The list of source row indices.
     """
-    assert offset >= 0, "offset must be non-negative"
-    max_row = spec.get_int_constant(constant_id="logical_rows") - offset
-
-    def check_row(row: int):
-        assert row + offset < spec.get_int_constant(
-            constant_id="logical_rows"
-        ), "row index + offset must be less than `logical_rows`"
-
-    ilist.for_each(check_row, src_rows)
-    assert (
-        len(src_rows) < max_row
-    ), "Number of source rows must be less than `logical_rows - offset`"
-    assert_sorted(src_rows)
-
-    start_pos = get_block("GL", src_col, ilist.range(max_row))
     row_separation = spec.get_float_constant(constant_id="row_separation")
     col_separation = spec.get_float_constant(constant_id="col_separation")
     gate_spacing = spec.get_float_constant(constant_id="gate_spacing")
 
+    sign = 1
+    if offset < 0:
+        sign = -1
+        offset = -offset
+
+    shifts = ilist.IList([])
     if offset > 1:
         shifts = ilist.IList(
             [
@@ -212,17 +198,53 @@ def vertical_shift_impl(
     else:
         shifts = ilist.IList([(gate_spacing, 0.0)])
 
-    move_by_shift(start_pos, shifts, action.ALL, src_rows)
+    def multiple_sign(idx: int):
+        return (shifts[idx][0], sign * shifts[idx][1])
 
-    # validate the movement
-    current_pos = start_pos
-    for shift in shifts:
-        current_pos = grid.shift(current_pos, shift[0], shift[1])
+    return ilist.map(multiple_sign, ilist.range(len(shifts)))
 
-    expected_last_pos = get_block("GR", src_col, ilist.range(offset, max_row + offset))
-    assert (
-        current_pos == expected_last_pos
-    ), "Final position does not match expected position"
+
+@tweezer
+def vertical_shift_impl(
+    offset: int,
+    src_col: int,
+    src_rows: ilist.IList[int, Any],
+):
+    """Moves the specified rows within the given block.
+
+    Args:
+        block_id (str): The block identifier, either "GL" or "GR".
+        offset (int): The offset to apply to the row indices, must be non-negative.
+        src_col (int): The source column index.
+        src_rows (ilist.IList[int, Any]): The list of source row indices.
+    """
+
+    def check_row(row: int):
+        num_rows = spec.get_int_constant(constant_id="logical_rows")
+        assert (
+            row + offset < num_rows
+        ), "row index + offset must be less than `logical_rows`"
+        assert row + offset >= 0, "row index + offset must be non-negative"
+
+    ilist.for_each(check_row, src_rows)
+
+    assert_sorted(src_rows)
+
+    row_start = 0
+    row_end = spec.get_int_constant(constant_id="logical_rows")
+
+    if offset > 0:
+        row_end = row_end - offset
+    else:
+        row_start = row_start - offset
+
+    start_pos = get_block("GL", src_col, ilist.range(row_start, row_end))
+    shape = grid.shape(start_pos)
+    all_cols = ilist.range(shape[0])
+
+    shifts = calc_vertical_shifts(offset)
+
+    move_by_shift(start_pos, shifts, all_cols, src_rows)
 
 
 @tweezer
@@ -250,14 +272,7 @@ def gr_zero_to_one(
     all_rows = ilist.range(logical_rows)
     start_pos = get_block("GR", 0, all_rows)
 
-    move_by_shift(start_pos, shifts, action.ALL, src_rows)
+    shape = grid.shape(start_pos)
+    all_cols = ilist.range(shape[0])
 
-    # validate the movement
-    current_pos = start_pos
-    for shift in shifts:
-        current_pos = grid.shift(current_pos, shift[0], shift[1])
-
-    expected_last_pos = get_block("GR", 1, all_rows)
-    assert (
-        current_pos == expected_last_pos
-    ), "Final position does not match expected position"
+    move_by_shift(start_pos, shifts, all_cols, src_rows)
