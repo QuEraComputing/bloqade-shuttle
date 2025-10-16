@@ -3,7 +3,8 @@ from typing import Any
 from bloqade.geometry.dialects import grid
 from kirin.dialects import ilist
 
-from bloqade.shuttle import action, spec, tweezer
+from bloqade.shuttle import action, schedule, spec, tweezer
+from bloqade.shuttle.prelude import move
 
 from ..asserts import assert_sorted
 from .base_spec import get_base_spec
@@ -163,7 +164,7 @@ def get_block(
 def calc_vertical_shifts(
     offset: int,
 ):
-    """Moves the specified rows within the given block.
+    """Generates a list of shifts to move atoms vertically by the specified offset.
 
     Args:
         offset (int): The offset to apply to the row indices, must be non-negative.
@@ -213,7 +214,6 @@ def vertical_shift_impl(
     """Moves the specified rows within the given block.
 
     Args:
-        block_id (str): The block identifier, either "GL" or "GR".
         offset (int): The offset to apply to the row indices, must be non-negative.
         src_col (int): The source column index.
         src_rows (ilist.IList[int, Any]): The list of source row indices.
@@ -247,8 +247,29 @@ def vertical_shift_impl(
     move_by_shift(start_pos, shifts, all_cols, src_rows)
 
 
+@move
+def vertical_shift(
+    offset: int,
+    src_col: int,
+    src_rows: ilist.IList[int, Any],
+):
+    """Moves the specified rows within the given block.
+
+    Args:
+        offset (int): The offset to apply to the row indices, must be non-negative.
+        src_col (int): The source column index.
+        src_rows (ilist.IList[int, Any]): The list of source row indices.
+    """
+
+    x_tones = ilist.range(spec.get_int_constant(constant_id="code_size"))
+    y_tones = ilist.range(len(src_rows))
+
+    device_fn = schedule.device_fn(vertical_shift_impl, x_tones, y_tones)
+    device_fn(offset, src_col, src_rows)
+
+
 @tweezer
-def gr_zero_to_one(
+def gr_zero_to_one_impl(
     src_rows: ilist.IList[int, Any],
 ):
     """Moves the specified columns within the given block.
@@ -276,3 +297,19 @@ def gr_zero_to_one(
     all_cols = ilist.range(shape[0])
 
     move_by_shift(start_pos, shifts, all_cols, src_rows)
+
+
+@move
+def gr_zero_to_one(
+    src_rows: ilist.IList[int, Any],
+):
+    """Moves the specified columns within the given block.
+
+    Args:
+        src_rows (ilist.IList[int, Any]): The rows to apply the transformation to.
+    """
+    x_tones = ilist.range(spec.get_int_constant(constant_id="code_size"))
+    y_tones = ilist.range(len(src_rows))
+
+    device_fn = schedule.device_fn(gr_zero_to_one_impl, x_tones, y_tones)
+    device_fn(src_rows)
