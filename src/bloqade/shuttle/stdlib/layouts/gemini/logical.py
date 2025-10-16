@@ -1,9 +1,9 @@
-from typing import TypeVar
+from typing import Any
 
 from bloqade.geometry.dialects import grid
 from kirin.dialects import ilist
 
-from bloqade.shuttle import action, gate, schedule, spec, tweezer
+from bloqade.shuttle import action, schedule, spec, tweezer
 from bloqade.shuttle.prelude import move
 
 from ..asserts import assert_sorted
@@ -11,6 +11,12 @@ from .base_spec import get_base_spec
 
 
 def get_spec():
+    """Get the architecture specification for the Gemini logical qubit layout.
+
+    Returns:
+        ArchSpec: The architecture specification with Gemini logical qubit layout.
+
+    """
     arch_spec = get_base_spec()
 
     gate_zone = arch_spec.layout.static_traps["gate_zone"]
@@ -39,11 +45,14 @@ def get_spec():
     ML1_block = M1_block[::2, :]
     MR1_block = M1_block[1::2, :]
 
-    GL0_block = left_traps[2 : 2 + 7 :, :]
-    GR0_block = right_traps[2 : 2 + 7 :, :]
+    GL_blocks = left_traps[2 : 2 + 2 * 7, :]
+    GR_blocks = right_traps[2 : 2 + 2 * 7, :]
 
-    GL1_block = left_traps[2 + 7 : 2 + 2 * 7 :, :]
-    GR1_block = right_traps[2 + 7 : 2 + 2 * 7 :, :]
+    GL0_block = GL_blocks[:7, :]
+    GR0_block = GR_blocks[:7, :]
+
+    GL1_block = GL_blocks[7 : 2 * 7, :]
+    GR1_block = GR_blocks[7 : 2 * 7, :]
 
     AOM0_block = aom_sites[2 : 2 + 7, :]
     AOM1_block = aom_sites[2 + 7 : 2 + 7 + 7, :]
@@ -53,6 +62,8 @@ def get_spec():
         "right_gate_zone_sites": right_traps,
         "top_reservoir_sites": top_reservoir,
         "bottom_reservoir_sites": bottom_reservoir,
+        "GL_blocks": GL_blocks,
+        "GR_blocks": GR_blocks,
         "GL0_block": GL0_block,
         "GL1_block": GL1_block,
         "GR0_block": GR0_block,
@@ -79,7 +90,7 @@ def get_spec():
         ("GL0_block", "GL1_block", "GR0_block", "GR1_block")
     )
 
-    logical_rows, _ = SL0_block.shape
+    _, logical_rows = GL0_block.shape
     logical_cols = 2
     code_size = 7
 
@@ -94,66 +105,211 @@ def get_spec():
     return arch_spec
 
 
-N = TypeVar("N")
+@tweezer
+def move_by_shift(
+    start_pos: grid.Grid[Any, Any],
+    shifts: ilist.IList[tuple[float, float], Any],
+    active_x: ilist.IList[int, Any],
+    active_y: ilist.IList[int, Any],
+):
+    """Moves the specified atoms by applying a series of shifts.
+
+    Args:
+        start_pos (grid.Grid[Any, Any]): The starting position of the atoms.
+        shifts (ilist.IList[tuple[float, float], Any]): The list of shifts to apply.
+        active_x (ilist.IList[int, Any]): The list of active x indices of start_pos.
+        active_y (ilist.IList[int, Any]): The list of active y indices of start_pos.
+    """
+    action.set_loc(start_pos)
+    action.turn_on(active_x, active_y)
+
+    current_pos = start_pos
+    for shift in shifts:
+        current_pos = grid.shift(current_pos, shift[0], shift[1])
+        action.move(current_pos)
+
+    action.turn_off(active_x, active_y)
 
 
 @tweezer
-def ltor_block_aom_move(
-    left_subblocks: ilist.IList[int, N],
-    right_subblocks: ilist.IList[int, N],
+def get_block(
+    block_id: str,
+    col_index: int,
+    row_indices: ilist.IList[int, Any],
 ):
-    assert_sorted(left_subblocks)
-    assert_sorted(right_subblocks)
+    """Returns the zone corresponding to the specified block and column.
 
-    assert len(left_subblocks) == len(
-        right_subblocks
-    ), "Left and right subblocks must have the same length."
+    Args:
+        block_id (str): The block identifier, either "GL" or "GR".
+        col_index (int): The logical column index.
+        row_indices (IList[int, Any]): The list of logical row indices.
 
-    left_blocks = spec.get_static_trap(zone_id="GL0_block")
-    right_blocks = spec.get_special_grid(grid_id="AOM1_block")
+    Returns:
+        Grid: The grid corresponding to the specified block and column.
 
-    left_block = left_blocks[:, left_subblocks]
-    right_block = right_blocks[:, right_subblocks]
+    """
+    assert block_id in ("GL", "GR"), "block_id must be either 'GL' or 'GR'"
+
+    block = None
+    if block_id == "GL":
+        block = spec.get_static_trap(zone_id="GL_blocks")
+    elif block_id == "GR":
+        block = spec.get_static_trap(zone_id="GR_blocks")
+
+    code_size = spec.get_int_constant(constant_id="code_size")
+    return block[col_index * code_size : (col_index + 1) * code_size, row_indices]
+
+
+@tweezer
+def calc_vertical_shifts(
+    offset: int,
+):
+    """Generates a list of shifts to move atoms vertically by the specified offset.
+
+    Args:
+        offset (int): The offset to apply to the row indices, must be non-negative.
+    """
     row_separation = spec.get_float_constant(constant_id="row_separation")
     col_separation = spec.get_float_constant(constant_id="col_separation")
     gate_spacing = spec.get_float_constant(constant_id="gate_spacing")
 
-    # AOM sites are already shifted by the gate spacing, so to shift to the center between the
-    # two blocks, we need to shift the AOM sites by half the col separation minus the gate
-    # spacing.
-    shift_from_aom = col_separation / 2.0 - gate_spacing
-    third_pos = grid.shift(right_block, -shift_from_aom, 0.0)
-    first_pos = grid.shift(left_block, 0.0, row_separation / 2.0)
-    second_pos = grid.from_positions(grid.get_xpos(third_pos), grid.get_ypos(first_pos))
+    sign = 1
+    if offset < 0:
+        sign = -1
+        offset = -offset
 
-    action.set_loc(left_block)
-    action.turn_on(action.ALL, action.ALL)
-    action.move(first_pos)
-    action.move(second_pos)
-    action.move(third_pos)
-    action.move(right_block)
+    shifts = ilist.IList([])
+    if offset > 1:
+        shifts = ilist.IList(
+            [
+                (0.0, row_separation * 0.5),
+                (gate_spacing + col_separation * 0.5, 0.0),
+                (0.0, row_separation * (offset - 0.5)),
+                (-col_separation * 0.5, 0.0),
+            ]
+        )
+    elif offset == 1:
+        shifts = ilist.IList(
+            [
+                (0.0, row_separation * 0.5),
+                (gate_spacing, 0.0),
+                (0.0, row_separation * 0.5),
+            ]
+        )
+    else:
+        shifts = ilist.IList([(gate_spacing, 0.0)])
+
+    def multiple_sign(idx: int):
+        return (shifts[idx][0], sign * shifts[idx][1])
+
+    return ilist.map(multiple_sign, ilist.range(len(shifts)))
+
+
+@tweezer
+def vertical_shift_impl(
+    offset: int,
+    src_col: int,
+    src_rows: ilist.IList[int, Any],
+):
+    """Moves the specified rows within the given block.
+
+    Args:
+        offset (int): The offset to apply to the row indices, must be non-negative.
+        src_col (int): The source column index.
+        src_rows (ilist.IList[int, Any]): The list of source row indices.
+    """
+
+    def check_row(row: int):
+        num_rows = spec.get_int_constant(constant_id="logical_rows")
+        assert (
+            row + offset < num_rows
+        ), "row index + offset must be less than `logical_rows`"
+        assert row + offset >= 0, "row index + offset must be non-negative"
+
+    ilist.for_each(check_row, src_rows)
+
+    assert_sorted(src_rows)
+
+    row_start = 0
+    row_end = spec.get_int_constant(constant_id="logical_rows")
+
+    if offset > 0:
+        row_end = row_end - offset
+    else:
+        row_start = row_start - offset
+
+    start_pos = get_block("GL", src_col, ilist.range(row_start, row_end))
+    shape = grid.shape(start_pos)
+    all_cols = ilist.range(shape[0])
+
+    shifts = calc_vertical_shifts(offset)
+
+    move_by_shift(start_pos, shifts, all_cols, src_rows)
 
 
 @move
-def get_device_fn(
-    left_subblocks: ilist.IList[int, N],
-    right_subblocks: ilist.IList[int, N],
+def vertical_shift(
+    offset: int,
+    src_col: int,
+    src_rows: ilist.IList[int, Any],
 ):
+    """Moves the specified rows within the given block.
+
+    Args:
+        offset (int): The offset to apply to the row indices, must be non-negative.
+        src_col (int): The source column index.
+        src_rows (ilist.IList[int, Any]): The list of source row indices.
+    """
+
     x_tones = ilist.range(spec.get_int_constant(constant_id="code_size"))
-    y_tones = ilist.range(len(left_subblocks))
-    return schedule.device_fn(ltor_block_aom_move, x_tones, y_tones)
+    y_tones = ilist.range(len(src_rows))
+
+    device_fn = schedule.device_fn(vertical_shift_impl, x_tones, y_tones)
+    device_fn(offset, src_col, src_rows)
+
+
+@tweezer
+def gr_zero_to_one_impl(
+    src_rows: ilist.IList[int, Any],
+):
+    """Moves the specified columns within the given block.
+
+    Args:
+        src_rows (ilist.IList[int, Any]): The rows to apply the transformation to.
+    """
+    logical_rows = spec.get_int_constant(constant_id="logical_rows")
+    row_separation = spec.get_float_constant(constant_id="row_separation")
+    col_separation = spec.get_float_constant(constant_id="col_separation")
+    shift = col_separation * spec.get_float_constant(constant_id="code_size")
+
+    shifts = ilist.IList(
+        [
+            (0.0, row_separation * 0.5),
+            (shift, 0.0),
+            (0.0, -row_separation * 0.5),
+        ]
+    )
+
+    all_rows = ilist.range(logical_rows)
+    start_pos = get_block("GR", 0, all_rows)
+
+    shape = grid.shape(start_pos)
+    all_cols = ilist.range(shape[0])
+
+    move_by_shift(start_pos, shifts, all_cols, src_rows)
 
 
 @move
-def entangle(
-    left_subblocks: ilist.IList[int, N],
-    right_subblocks: ilist.IList[int, N],
+def gr_zero_to_one(
+    src_rows: ilist.IList[int, Any],
 ):
+    """Moves the specified columns within the given block.
 
-    device_func = get_device_fn(left_subblocks, right_subblocks)
-    rev_func = schedule.reverse(device_func)
+    Args:
+        src_rows (ilist.IList[int, Any]): The rows to apply the transformation to.
+    """
+    x_tones = ilist.range(spec.get_int_constant(constant_id="code_size"))
+    y_tones = ilist.range(len(src_rows))
 
-    if len(left_subblocks) > 0:
-        device_func(left_subblocks, right_subblocks)
-        gate.top_hat_cz(spec.get_static_trap(zone_id="gate_zone"))
-        rev_func(left_subblocks, right_subblocks)
+    device_fn = schedule.device_fn(gr_zero_to_one_impl, x_tones, y_tones)
+    device_fn(src_rows)

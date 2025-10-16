@@ -1,15 +1,17 @@
-import itertools
-import typing
-from itertools import repeat
+from itertools import chain, repeat
 
 import pytest
 from bloqade.geometry.dialects import grid
+from kirin import ir
 from kirin.dialects import ilist
 
-from bloqade.shuttle import arch, move
-from bloqade.shuttle.arch import ArchSpecInterpreter
+from bloqade.shuttle import arch
 from bloqade.shuttle.codegen import TraceInterpreter, taskgen
 from bloqade.shuttle.stdlib.layouts.gemini import logical
+
+
+def is_sorted(lst):
+    return all(ele1 < ele2 for ele1, ele2 in zip(lst, lst[1:]))
 
 
 def get_logical_spec_tyler() -> arch.ArchSpec:
@@ -170,6 +172,16 @@ def test_against_tyler():
     old_spec = get_logical_spec_tyler()
     new_spec = logical.get_spec()
 
+    for key in old_spec.float_constants:
+        assert (
+            new_spec.float_constants[key] == old_spec.float_constants[key]
+        ), f"Float constant {key} mismatch"
+
+    for key in old_spec.int_constants:
+        assert (
+            new_spec.int_constants[key] == old_spec.int_constants[key]
+        ), f"Int constant {key} mismatch"
+
     for key in old_spec.layout.static_traps:
         new_grid = new_spec.layout.static_traps.get(key)
         old_grid = old_spec.layout.static_traps[key]
@@ -189,85 +201,154 @@ def test_against_tyler():
         assert new_grid.y_init == old_grid.y_init, f"Grid mismatch for key {key}"
 
 
-N = typing.TypeVar("N")
+def move_by_shift_cases():
 
+    start_grid = grid.Grid.from_positions([0.0, 1.0, 2.0], [0.0, 1.0, 2.0])
+    slice_1 = ilist.IList([1])
+    slice_2 = ilist.IList([1, 2])
+    slice_3 = ilist.IList([0, 1, 2])
 
-def run_trace(
-    left_subblocks: ilist.IList[int, N],
-    right_subblocks: ilist.IList[int, N],
-):
-
-    device_fn = ArchSpecInterpreter(
-        dialects=move, arch_spec=(arch_spec := logical.get_spec())
-    ).run(logical.get_device_fn, (left_subblocks, right_subblocks))
-    trace_results = TraceInterpreter(arch_spec=arch_spec).run_trace(
-        device_fn.move_fn, (left_subblocks, right_subblocks), kwargs={}
+    yield (
+        logical.move_by_shift,
+        [
+            taskgen.WayPointsAction([start_grid]),
+            taskgen.TurnOnXYAction(slice_1, slice_2),
+            taskgen.WayPointsAction(
+                [
+                    start_grid,
+                    pos := start_grid.shift(0, 1),
+                    pos := pos.shift(1, 0),
+                    pos := pos.shift(1, 1),
+                ]
+            ),
+            taskgen.TurnOffXYAction(slice_1, slice_2),
+            taskgen.WayPointsAction([pos]),
+        ],
+        (start_grid, [(0, 1), (1, 0), (1, 1)], slice_1, slice_2),
     )
 
-    return trace_results, arch_spec
+    yield (
+        logical.move_by_shift,
+        [
+            taskgen.WayPointsAction([start_grid]),
+            taskgen.TurnOnXYAction(slice_2, slice_3),
+            taskgen.WayPointsAction(
+                [
+                    start_grid,
+                    pos := start_grid.shift(0, 1),
+                    pos := pos.shift(1, 0),
+                ]
+            ),
+            taskgen.TurnOffXYAction(slice_2, slice_3),
+            taskgen.WayPointsAction([pos]),
+        ],
+        (start_grid, [(0, 1), (1, 0)], slice_2, slice_3),
+    )
+
+    yield (
+        logical.move_by_shift,
+        [
+            taskgen.WayPointsAction([start_grid]),
+            taskgen.TurnOnXYAction(slice_3, slice_3),
+            taskgen.WayPointsAction(
+                [
+                    start_grid,
+                    pos := start_grid.shift(0, 1),
+                ]
+            ),
+            taskgen.TurnOffXYAction(slice_3, slice_3),
+            taskgen.WayPointsAction([pos]),
+        ],
+        (start_grid, [(0, 1)], slice_3, slice_3),
+    )
 
 
-def is_sorted(lst: ilist.IList[int, N]) -> bool:
-    return all(x <= y for x, y in zip(lst, lst[1:]))
+def vertical_shift_cases():
+    spec = logical.get_spec()
 
+    src_rows = ilist.IList([0, 1])
 
-test_indices = [
-    ilist.IList([0]),
-    ilist.IList([1]),
-    ilist.IList([1, 3]),
-    ilist.IList([0, 2, 4]),
-    ilist.IList([0, 1, 2, 3, 4]),
-    ilist.IList([3, 2, 1]),
-]
+    gl0 = spec.layout.static_traps["GL0_block"]
+    gate_spacing = spec.float_constants["gate_spacing"]
+    row_separation = spec.float_constants["row_separation"]
+    col_separation = spec.float_constants["col_separation"]
+
+    num_x = gl0.shape[0]
+    x_tones = ilist.IList(range(num_x))
+    start_pos = gl0
+
+    yield (
+        logical.vertical_shift_impl,
+        [
+            taskgen.WayPointsAction([start_pos]),
+            taskgen.TurnOnXYAction(x_tones, src_rows),
+            taskgen.WayPointsAction(
+                [start_pos, pos := start_pos.shift(gate_spacing, 0.0)]
+            ),
+            taskgen.TurnOffXYAction(x_tones, src_rows),
+            taskgen.WayPointsAction([pos]),
+        ],
+        (0, 0, src_rows),
+    )
+
+    num_x = gl0.shape[0]
+    x_tones = ilist.IList(range(num_x))
+    start_pos = gl0[:, :-1]
+
+    yield (
+        logical.vertical_shift_impl,
+        [
+            taskgen.WayPointsAction([start_pos]),
+            taskgen.TurnOnXYAction(x_tones, src_rows),
+            taskgen.WayPointsAction(
+                [
+                    start_pos,
+                    pos := start_pos.shift(0.0, row_separation * 0.5),
+                    pos := pos.shift(gate_spacing, 0.0),
+                    pos := pos.shift(0.0, row_separation * 0.5),
+                ]
+            ),
+            taskgen.TurnOffXYAction(x_tones, src_rows),
+            taskgen.WayPointsAction([pos]),
+        ],
+        (1, 0, src_rows),
+    )
+
+    num_x = gl0.shape[0]
+    x_tones = ilist.IList(range(num_x))
+    start_pos = gl0[:, :-3]
+
+    yield (
+        logical.vertical_shift_impl,
+        [
+            taskgen.WayPointsAction([start_pos]),
+            taskgen.TurnOnXYAction(x_tones, src_rows),
+            taskgen.WayPointsAction(
+                [
+                    start_pos,
+                    pos := start_pos.shift(0.0, row_separation * 0.5),
+                    pos := pos.shift(gate_spacing + col_separation * 0.5, 0.0),
+                    pos := pos.shift(0.0, row_separation * 2.5),
+                    pos := pos.shift(-col_separation * 0.5, 0.0),
+                ]
+            ),
+            taskgen.TurnOffXYAction(x_tones, src_rows),
+            taskgen.WayPointsAction([pos]),
+        ],
+        (3, 0, src_rows),
+    )
 
 
 @pytest.mark.parametrize(
-    "left_subblocks,right_subblocks", itertools.product(test_indices, repeat=2)
+    "tweezer_method, expected_trace, args",
+    chain(move_by_shift_cases(), vertical_shift_cases()),
 )
-def test_aom_move(
-    left_subblocks: ilist.IList[int, N], right_subblocks: ilist.IList[int, N]
+def test_trace(
+    tweezer_method: ir.Method, expected_trace: list[taskgen.AbstractAction], args
 ):
-
-    if not (is_sorted(left_subblocks) and is_sorted(right_subblocks)) or len(
-        left_subblocks
-    ) != len(right_subblocks):
-        with pytest.raises(AssertionError):
-            run_trace(left_subblocks, right_subblocks)
-
-        return
-    else:
-        actions, arch_spec = run_trace(left_subblocks, right_subblocks)
-
-    GL0_block = arch_spec.layout.static_traps["GL0_block"]
-    AOM1_block = arch_spec.layout.special_grid["AOM1_block"]
-
-    set_waypoint, turn_on, movement = actions
-
-    start_pos = GL0_block[:, left_subblocks]
-    end_pos = AOM1_block[:, right_subblocks]
-
-    x_shift = (
-        arch_spec.float_constants["col_separation"] / 2.0
-        - arch_spec.float_constants["gate_spacing"]
-    )
-    y_shift = arch_spec.float_constants["row_separation"] / 2.0
-
-    first_pos = start_pos.shift(0, y_shift)
-    third_pos = end_pos.shift(-x_shift, 0.0)
-    mid_pos = grid.Grid.from_positions(third_pos.x_positions, first_pos.y_positions)
-
-    expected_movement = taskgen.WayPointsAction(
-        [start_pos, first_pos, mid_pos, third_pos, end_pos]
-    )
-
-    assert set_waypoint == taskgen.WayPointsAction([start_pos])
-    assert (
-        isinstance(turn_on, taskgen.TurnOnXYSliceAction)
-        and turn_on.x_tone_indices == slice(None)
-        and turn_on.y_tone_indices == slice(None)
-    )
-    assert movement == expected_movement
-
-
-# if __name__ == "__main__":
-#     test_aom_move()
+    spec = logical.get_spec()
+    interp = TraceInterpreter(spec)
+    trace = interp.run_trace(tweezer_method, args, {})
+    assert len(trace) == len(expected_trace)
+    for t1, t2 in zip(trace, expected_trace):
+        assert t1 == t2, f"Expected {t2}, got {t1}"
