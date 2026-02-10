@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> We are deprecating this package. For more work on atom move synthesis checkout [bloqade-lanes](https://github.com/QuEraComputing/bloqade-lanes). 
+
 # Bloqade-Shuttle
 
 Bloqade-shuttle is an SDK for simulation and programming neutral atom quantum computers
